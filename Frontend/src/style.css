@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.button {
+  @apply w-full text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center;
+}
+
+.spacing {
+  @apply py-4 px-16;
+}
+
+.mobile-spacing {
+  @apply px-8 py-3;
+}
+
+.button-border {
+  @apply w-full text-yellow-500 border border-yellow-500 hover:bg-yellow-100 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center;
+}

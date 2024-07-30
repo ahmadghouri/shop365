@@ -162,7 +162,7 @@ const startFetchingOrders = () => {
 };
 
 onMounted(() => {
-  startFetchingOrders();
+  fetchRestaurantOrders();
 });
 
 onUnmounted(() => {

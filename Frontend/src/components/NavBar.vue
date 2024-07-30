@@ -24,18 +24,15 @@
       <button class="md:hidden focus:outline-none">
         <router-link to="/home/cart">
           <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
+            width="1em"
+            height="1em"
+            viewBox="0 0 16 16"
           >
             <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            ></path>
+              fill="currentColor"
+              d="M6 14.5a1.5 1.5 0 1 1-3.001-.001A1.5 1.5 0 0 1 6 14.5m10 0a1.5 1.5 0 1 1-3.001-.001A1.5 1.5 0 0 1 16 14.5M16 8V2H4a1 1 0 0 0-1-1H0v1h2l.751 6.438A2 2 0 0 0 4 12h12v-1H4a1 1 0 0 1-1-1v-.01z"
+            />
           </svg>
         </router-link>
       </button>

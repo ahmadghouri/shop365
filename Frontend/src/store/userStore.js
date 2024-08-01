@@ -10,14 +10,11 @@ export const useUserStore = defineStore("user", {
   actions: {
     async getUsers() {
       try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/admin/users`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-            },
-          }
-        );
+        const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        });
         this.users = response.data;
         console.log(this.users);
       } catch (error) {

@@ -2,7 +2,6 @@
   <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
     <h1 class="text-3xl font-bold mb-6">Restaurant Orders</h1>
 
-    <!-- Loading or Error State -->
     <div v-if="loading" class="text-lg">Loading orders...</div>
     <div v-else-if="error" class="text-lg text-red-500">
       Error loading orders: {{ error }}
@@ -11,7 +10,6 @@
       No orders available.
     </div>
 
-    <!-- Orders List -->
     <div
       v-for="order in orders"
       :key="order.id"
@@ -21,7 +19,6 @@
       <h2 class="text-2xl font-semibold mb-4">Order ID: {{ order.id }}</h2>
 
       <div class="lg:flex gap-10">
-        <!-- User Information -->
         <section class="mb-4">
           <h3 class="text-xl font-semibold mb-2">User Information</h3>
           <p class="text-md">
@@ -36,8 +33,6 @@
             {{ order.user.household?.town?.town_name || "No Town Provided" }}
           </p>
         </section>
-
-        <!-- Order Information -->
         <section class="mb-4">
           <h3 class="text-xl font-semibold mb-2">Order Information</h3>
           <p class="text-md">
@@ -60,7 +55,6 @@
           </p>
         </section>
       </div>
-      <!-- Order Items -->
       <section>
         <h3 class="text-xl font-semibold mb-2">Order Items</h3>
         <div
@@ -125,7 +119,6 @@ const fetchRestaurantOrders = async () => {
 const updateOrderStatus = async (order) => {
   try {
     await orderStore.updateOrderStatus(order.id, order.status);
-    // Optionally refetch orders to ensure the UI is up to date
     await fetchRestaurantOrders();
   } catch (err) {
     console.error("Error updating order status:", err);
@@ -152,13 +145,6 @@ const isOrderRecentlyCreated = (order) => {
   const orderDate = new Date(order.created_at);
   const diffInMinutes = (now - orderDate) / (1000 * 60);
   return diffInMinutes < 30;
-};
-
-const startFetchingOrders = () => {
-  // Fetch orders initially
-  fetchRestaurantOrders();
-  // Set interval to fetch orders every 10 seconds (adjust as needed)
-  intervalId = setInterval(fetchRestaurantOrders, 10000); // 10000ms = 10s
 };
 
 onMounted(() => {

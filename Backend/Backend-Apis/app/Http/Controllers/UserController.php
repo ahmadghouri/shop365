@@ -10,7 +10,7 @@ class UserController extends Controller
     
     public function index()
     {
-        $users = User::where('role', 'end-user')
+        $users = User::where('role', 'end_user')
         ->with(['household.town'])  // Eager load `household` and `town`
         ->get();
 

@@ -6,7 +6,7 @@
       Restaurants
     </h1>
     <div
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mobile-spacing mt-6 px-4 md:px-8 lg:px-12"
+      class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-5 mobile-spacing mt-6 px-4 md:px-8 lg:px-12"
     >
       <router-link
         v-for="category in businessStore.businesses"

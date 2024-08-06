@@ -17,6 +17,13 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Business and products
+Route::apiResource('/business', BusinessController::class);
+Route::apiResource('/products', ProductController::class);
+
+Route::get('/all-products/{businessId}', [ProductController::class, 'index']);
+
+
 // Routes requiring authentication
 Route::middleware('auth:sanctum')->group(function() {
     Route::post('/add-details', [AuthController::class, 'addDetails']);
@@ -39,9 +46,8 @@ Route::middleware('auth:sanctum')->group(function() {
     });
     
     // Businesses and Products
-    Route::apiResource('/business', BusinessController::class);
-    Route::apiResource('/products', ProductController::class);
-    Route::get('/all-products/{businessId}', [ProductController::class, 'index']);
+
+    
     
     // Towns
     Route::apiResource('/towns', TownController::class);
@@ -53,12 +59,12 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])->prefix('/admin')->g
     Route::post('/createAdmins', [AdminController::class, 'createTownAdmin']);
     
     // Users management
-    Route::prefix('/users')->group(function() {
-        Route::get('/', [UserController::class, 'index'])->name('admin.users.index');
-        Route::get('{id}', [UserController::class, 'show'])->name('admin.users.show');
-        Route::put('{id}', [UserController::class, 'update'])->name('admin.users.update');
-        Route::delete('{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
-    });
+    
+        Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
+        Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
+        Route::put('/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
+        Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+    
     
     // Towns
     Route::apiResource('/towns', TownController::class);
@@ -72,7 +78,7 @@ Route::middleware(['auth:sanctum', TownAdminMiddleware::class])->prefix('/restau
     
     // Products management
     Route::get('/allproducts', [ProductController::class, 'getProducts']);
-    
+
     // Orders management
     Route::get('/orders', [OrderController::class, 'viewRestaurantOrders']);
 });

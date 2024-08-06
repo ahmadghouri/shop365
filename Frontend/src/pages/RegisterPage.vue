@@ -22,6 +22,10 @@
             placeholder="Enter your phone number"
             required
           />
+          <!-- Error Message for Phone -->
+          <p v-if="errors.phone_no" class="text-sm text-red-600">
+            {{ errors.phone_no[0] }}
+          </p>
         </div>
         <div>
           <label
@@ -39,6 +43,10 @@
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
             required
           />
+          <!-- Error Message for Password -->
+          <p v-if="errors.password" class="text-sm text-red-600">
+            {{ errors.password[0] }}
+          </p>
         </div>
 
         <div class="flex items-start">
@@ -61,6 +69,15 @@
             </label>
           </div>
         </div>
+
+        <!-- General Error Message -->
+        <p
+          v-if="generalError"
+          class="text-sm font-medium text-red-600 text-center"
+        >
+          {{ generalError }}
+        </p>
+
         <button type="submit" class="button">Create an Account</button>
         <p class="text-sm font-light text-gray-500 text-center">
           Powered by
@@ -82,6 +99,8 @@ import { useRouter } from "vue-router";
 const phone = ref("");
 const password = ref("");
 const termsAccepted = ref(false);
+const errors = ref({}); // To store validation errors
+const generalError = ref(""); // To store any general error messages
 const router = useRouter();
 
 const register = async () => {
@@ -89,6 +108,9 @@ const register = async () => {
     alert("You must accept the terms and conditions.");
     return;
   }
+
+  errors.value = {}; // Clear previous errors
+  generalError.value = ""; // Clear previous general error
 
   try {
     const response = await axios.post(`${API_BASE_URL}/api/register`, {
@@ -103,11 +125,19 @@ const register = async () => {
     router.push("/compregister");
   } catch (error) {
     if (error.response) {
-      alert(`Error: ${error.response.data.message}`);
+      const responseData = error.response.data;
+
+      if (responseData.errors) {
+        // If there are validation errors, store them
+        errors.value = responseData.errors;
+      } else {
+        // If it's a general error, store the message
+        generalError.value = responseData.message || "An error occurred";
+      }
     } else if (error.request) {
-      alert("Network error. Please try again.");
+      generalError.value = "Network error. Please try again.";
     } else {
-      alert("An unexpected error occurred.");
+      generalError.value = "An unexpected error occurred.";
     }
   }
 };

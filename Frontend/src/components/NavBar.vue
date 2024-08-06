@@ -3,7 +3,7 @@
     class="mobile-spacing sticky top-0 z-50 flex justify-between items-center bg-yellow-500 md:bg-gray-200 text-gray-800 shadow-md"
   >
     <div class="text-xl md:text-2xl font-bold">
-      <h1>Logo</h1>
+      <button @click="goToHome">Logo</button>
     </div>
     <div>
       <ul class="hidden md:flex gap-5 text-lg">
@@ -40,7 +40,15 @@
   </nav>
 </template>
 
-<script setup></script>
+<script setup>
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const goToHome = () => {
+  router.push("/home/categories");
+};
+</script>
 
 <style scoped>
 /* Custom styles if needed */

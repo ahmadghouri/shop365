@@ -1,77 +1,75 @@
 <template>
-  <div class="mobile-spacing">
-    <h1
-      class="mobile-spacing mt-3 text-2xl font-bold text-center sm:text-3xl md:text-4xl lg:text-5xl text-gray-800"
-    >
+  <div v-if="product" class="mobile-spacing space-y-6">
+    <h1 class="text-3xl font-bold text-center text-gray-900">
       {{ food }}
     </h1>
-    <div v-if="product" class="rounded-md">
-      <div class="w-full h-60 overflow-hidden mb-4 rounded-md">
-        <img
-          class="w-full h-full object-cover"
-          :src="product.image_url"
-          alt="Product image"
-        />
+
+    <div class="rounded-lg overflow-hidden shadow-lg">
+      <img
+        class="w-full h-64 object-cover"
+        :src="product.image_url"
+        alt="Product image"
+      />
+    </div>
+
+    <div class="bg-white p-4 rounded-lg shadow-lg">
+      <div class="text-center space-y-3">
+        <h2 class="text-2xl font-semibold text-gray-900">
+          {{ product.title }}
+        </h2>
+        <p class="text-lg text-gray-800 font-semibold">${{ product.price }}</p>
+        <p class="text-sm text-gray-700">
+          {{ product.description }}
+        </p>
       </div>
-      <div class="text-left">
-        <div class="flex justify-between items-center mt-4">
-          <h2 class="text-xl font-semibold text-slate-800">
-            {{ product.title }}
-          </h2>
-          <p class="text-lg text-gray-800 font-semibold">
-            {{ product.price }}
+
+      <div class="mt-6 space-y-4">
+        <div>
+          <label class="font-semibold text-gray-900">Description</label>
+          <p class="text-sm text-gray-600 mt-1">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+            lacinia odio vitae vestibulum.
           </p>
         </div>
-        <p class="text-slate-600 text-sm">{{ product.description }}</p>
-
-        <div class="mt-3">
-          <label class="font-semibold text-gray-800">Description</label>
-          <p class="text-sm text-gray-600">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
-            Praesentium, voluptates magnam molestiae temporibus doloribus modi.
-          </p>
-          <p class="text-sm text-gray-600">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
-            Praesentium, voluptates magnam.
-          </p>
+        <div>
+          <label class="font-semibold text-gray-900">Contact</label>
+          <p class="text-sm text-gray-600 mt-1">+92-3344556677</p>
         </div>
+      </div>
 
-        <div class="mt-3">
-          <label class="font-semibold text-gray-800">Contact</label>
-          <p class="text-sm text-gray-600">+92-3344556677</p>
-        </div>
-
-        <div class="mt-4">
-          <label class="font-semibold text-gray-800 mb-2">Quantity</label>
-          <div
-            class="flex items-center mt-1 border border-gray-300 rounded-md overflow-hidden w-max mx-auto"
+      <div class="mt-6">
+        <label class="font-semibold text-gray-900">Quantity</label>
+        <div
+          class="flex items-center mt-2 border border-gray-300 rounded-md overflow-hidden w-max mx-auto"
+        >
+          <button
+            @click="decreaseQuantity"
+            class="px-4 py-2 bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none transition-colors"
           >
-            <button
-              @click="decreaseQuantity"
-              class="px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 focus:outline-none transition-colors"
-            >
-              -
-            </button>
-            <span class="px-6 py-2 text-gray-800 bg-white">
-              {{ quantity }}
-            </span>
-            <button
-              @click="increaseQuantity"
-              class="px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 focus:outline-none transition-colors"
-            >
-              +
-            </button>
-          </div>
+            -
+          </button>
+          <span class="px-6 py-2 text-gray-800 bg-white">
+            {{ quantity }}
+          </span>
+          <button
+            @click="increaseQuantity"
+            class="px-4 py-2 bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none transition-colors"
+          >
+            +
+          </button>
         </div>
+      </div>
 
-        <div class="mt-4 flex justify-center space-x-4">
-          <router-link class="button" to="/orderconfirmation">
-            <button>Order Now</button>
-          </router-link>
-          <button class="button-border" @click="addToCart">Add To Cart</button>
-        </div>
+      <div class="mt-8 flex flex-col items-center space-y-3">
+        <button class="button" @click="handleOrderNow">Order Now</button>
+
+        <button class="button-border" @click="addToCart">Add To Cart</button>
       </div>
     </div>
+  </div>
+  <div v-else>
+    <p>Loading...</p>
+    <!-- Customize this loading state as needed -->
   </div>
 </template>
 
@@ -79,20 +77,20 @@
 import { ref, onMounted, computed } from "vue";
 import { useCartStore } from "../store/cartStore";
 import { useProductStore } from "../store/productStore";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 
 const route = useRoute();
+const router = useRouter();
 const cartStore = useCartStore();
 const productStore = useProductStore();
 const quantity = ref(1);
 
-onMounted(() => {
-  productStore.getProduct(route.params.id);
+onMounted(async () => {
+  await productStore.getProduct(route.params.id);
 });
 
 const product = computed(() => productStore.product);
-
 const food = computed(() => (product.value ? product.value.title : ""));
 
 const addToCart = async () => {
@@ -107,6 +105,11 @@ const addToCart = async () => {
   } catch (error) {
     toast.error("Failed to add product to cart.");
   }
+};
+
+const handleOrderNow = async () => {
+  await addToCart(); // Add the item to the cart
+  router.push({ name: "Cart" }); // Navigate to the cart page
 };
 
 const increaseQuantity = () => {

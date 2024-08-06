@@ -33,6 +33,7 @@ export const useUserStore = defineStore("user", {
           }
         );
 
+        localStorage.removeItem("token");
         this.users = this.users.filter((user) => user.id !== id);
       } catch (error) {
         console.error(error);

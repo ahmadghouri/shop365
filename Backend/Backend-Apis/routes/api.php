@@ -50,7 +50,7 @@ Route::middleware('auth:sanctum')->group(function() {
     
     
     // Towns
-    Route::apiResource('/towns', TownController::class);
+    Route::get('/get-towns', [TownController::class, 'index']);
 });
 
 // Admin routes

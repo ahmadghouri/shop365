@@ -138,7 +138,7 @@ const register = async () => {
 
 const options = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/towns`, {
+    const response = await axios.get(`${API_BASE_URL}/api/get-towns`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },

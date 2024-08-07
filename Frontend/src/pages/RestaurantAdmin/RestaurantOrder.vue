@@ -212,7 +212,7 @@
         <div class="flex justify-between px-6 py-4">
           <div></div>
           <div
-            class="py-4 px-6 flex gap-10 bg-[#272727] text-white rounded-lg min-h-[56px] shrink-0 items-start justify-center max-w-[200px]"
+            class="py-4 px-4 flex gap-10 bg-[#272727] text-white rounded-lg min-h-[56px] shrink-0 items-start justify-center max-w-[200px]"
           >
             <h1>Total Price:</h1>
             <h1>{{ selectedOrder.total_price }}</h1>

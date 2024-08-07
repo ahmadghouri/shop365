@@ -65,12 +65,28 @@ import { useRouter } from "vue-router"; // Use 'useRouter' instead of 'useRoute'
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
 const router = useRouter(); // Initialize the router object
+
 onMounted(() => {
   cartStore.getCartItems();
 });
 
 const removeFromCart = async (id) => {
-  await cartStore.removeItem(id);
+  console.log(id);
+
+  try {
+    const item = cartStore.cartItems.find((item) => item.id === id);
+    if (item) {
+      if (item.quantity > 1) {
+        // Decrease the quantity if more than 1
+        await cartStore.updateItemQuantity(id, item.quantity - 1);
+      } else {
+        // Remove the item if quantity is 1
+        await cartStore.removeItem(id);
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const total = computed(() => {

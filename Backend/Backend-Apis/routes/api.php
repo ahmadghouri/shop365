@@ -35,12 +35,16 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::post('/complaints', [ComplainController::class, 'store']);
     
     // Cart
-    Route::prefix('cart')->group(function() {
-        Route::post('/', [CartController::class, 'addToCart']);
-        Route::get('/', [CartController::class, 'viewCart']);
-        Route::delete('{id}', [CartController::class, 'removeCart']);
-        Route::delete('product/{id}', [CartController::class, 'removeProduct']);
-    });
+    // routes/api.php
+Route::prefix('cart')->group(function() {
+    Route::post('/', [CartController::class, 'addToCart']);
+    Route::get('/', [CartController::class, 'viewCart']);
+    Route::delete('{id}', [CartController::class, 'removeCart']);
+    Route::delete('product/{id}', [CartController::class, 'removeProduct']);
+    Route::patch('update/{id}', [CartController::class, 'updateQuantity']); // Add this line
+});
+
+    
     
     // Orders
     Route::prefix('order')->group(function() {

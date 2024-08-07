@@ -2,15 +2,20 @@
   <div class="mobile-spacing">
     <!-- Horizontal Scrollable Filter Section -->
     <div class="overflow-x-auto whitespace-nowrap py-4 mb-4">
-      <button
-        v-for="filter in filters"
-        :key="filter"
-        @click="filterProducts(filter)"
-        class="inline-block px-4 py-2 mx-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-full cursor-pointer hover:bg-gray-300"
-      >
-        {{ filter }}
-      </button>
-    </div>
+    <button
+      v-for="filter in filters"
+      :key="filter"
+      @click="filterProducts(filter)"
+      :class="[
+        'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer',
+        filter === selectedFilter
+          ? 'bg-yellow-500 text-white hover:bg-yellow-700'
+          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+      ]"
+    >
+      {{ filter }}
+    </button>
+  </div>
 
     <!-- Products Section -->
     <div>

@@ -94,5 +94,41 @@ class OrderController extends Controller
         return response()->json(['orders' => $orders], 200);
     }
 
+
+
+    public function updateStatus(Request $request, $id)
+{
+    $request->validate([
+        'status' => 'required|string|in:pending,preparing,delivered',
+    ]);
+
+    try {
+        $order = Order::findOrFail($id);
+
+        // Update the order status
+        $order->status = $request->status;
+        $order->save();
+
+        // Optionally, notify the user or broadcast an event
+        // $user = $order->user;
+        // $user->notify(new OrderNotification("Order Status Updated", $order));
+        // broadcast(new NotificationEvent($order));
+
+        return response()->json([
+            'message' => 'Order status updated successfully',
+            'order' => $order
+        ], 200);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'message' => 'Order not found or update failed',
+            'error' => $e->getMessage()
+        ], 404);
+    }
+}
+
+
+
+
 }
 

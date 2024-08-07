@@ -14,13 +14,13 @@ export const useOrderStore = defineStore("order", {
           {},
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`, // Ensure token is valid
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }
         );
       } catch (error) {
         console.error("Order didn't take place", error);
-        throw error; // Ensure error is re-thrown for catching in the component
+        throw error;
       }
     },
 
@@ -57,6 +57,31 @@ export const useOrderStore = defineStore("order", {
         this.orderDetails = response.data.orders;
       } catch (error) {
         console.error("Something went wrong", error);
+      }
+    },
+
+    async updateStatus(id, status) {
+      try {
+        const response = await axios.put(
+          `${API_BASE_URL}/api/orders/${id}/status`,
+          { status },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+            },
+          }
+        );
+
+        const updatedOrder = response.data.order; // Corrected to response.data.order
+        const index = this.orderDetails.findIndex(
+          (order) => order.id === updatedOrder.id
+        );
+        if (index !== -1) {
+          this.orderDetails[index] = updatedOrder;
+        }
+      } catch (error) {
+        console.error("Failed to update order status", error);
+        throw error;
       }
     },
   },

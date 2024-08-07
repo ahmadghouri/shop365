@@ -1,6 +1,13 @@
 <template>
   <div class="max-w-6xl mx-auto p-6 rounded-md">
-    <h1 class="text-3xl font-bold mb-6">Restaurant Orders</h1>
+    <div class="flex justify-between">
+      <h1 class="text-3xl font-bold mb-6">Restaurant Orders</h1>
+      <div>
+        <button @click="refreshOrders" class="button outline-none">
+          Refresh
+        </button>
+      </div>
+    </div>
 
     <div v-if="loading" class="text-lg">Loading orders...</div>
     <div v-else-if="error" class="text-lg text-red-500">
@@ -10,7 +17,7 @@
       No orders available.
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div
         v-for="order in orders"
         :key="order.id"
@@ -60,7 +67,7 @@
 
         <button
           @click="openModal(order)"
-          class="button absolute outline-none top-[199px] left-[185px] text-white py-2 px-4 rounded-lg max-w-[154px] min-h-[42px]"
+          class="button absolute outline-none top-[199px] md:left-[185px] text-white py-2 px-4 rounded-lg max-w-[154px] min-h-[42px]"
         >
           Proceed Order
         </button>
@@ -218,7 +225,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import { useOrderStore } from "../../store/orderStore"; // Adjust the path as needed
+import { useOrderStore } from "../../store/orderStore";
+import { useRouter } from "vue-router";
 
 const orderStore = useOrderStore();
 const orders = ref([]);
@@ -226,6 +234,7 @@ const loading = ref(true);
 const error = ref(null);
 const isModalOpen = ref(false);
 const selectedOrder = ref(null);
+const router = useRouter();
 
 const openModal = (order) => {
   selectedOrder.value = order;
@@ -285,6 +294,9 @@ const formatDate = (dateString) => {
 
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
+const refreshOrders = async () => {
+  await fetchRestaurantOrders();
+};
 onMounted(() => {
   fetchRestaurantOrders();
 });

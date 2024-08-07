@@ -37,7 +37,7 @@
               {{ product.type }}
             </p>
             <p class="text-sm text-gray-800 font-semibold">
-              Price: ${{ product.price }}
+              Price: {{ product.price }}
             </p>
           </div>
         </router-link>

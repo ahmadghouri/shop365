@@ -40,17 +40,46 @@ class CartController extends Controller
     }
 
     public function removeProduct($id)
-    {
-        $cartItem = cart::where('user_id', auth()->id())
-                        ->where('product_id',$id)
-                        ->first();
-        if($cartItem)
-        {
+{
+    $cartItem = Cart::where('user_id', auth()->id())
+                    ->where('product_id', $id)
+                    ->first();
+                    
+    if ($cartItem) {
+        if ($cartItem->quantity > 1) {
             $cartItem->quantity -= 1;
             $cartItem->save();
-            return $this->successResponse($cartItem,"Quantity Decreased");
+            return response()->json(['success' => true, 'data' => $cartItem, 'message' => 'Quantity decreased']);
+        } else {
+            $cartItem->delete(); // Remove the item if quantity is 1
+            return response()->json(['success' => true, 'message' => 'Product removed from cart']);
         }
-
-        return $this->errorResponse("No product found");
     }
+
+    return response()->json(['success' => false, 'message' => 'No product found'], 404);
+}
+
+
+public function updateQuantity(Request $request, $id)
+{
+    $cartItem = Cart::where('user_id', auth()->id())
+                    ->where('id', $id)
+                    ->first();
+
+    if ($cartItem) {
+        $quantity = $request->input('quantity');
+        $cartItem->quantity = $quantity;
+        $cartItem->save();
+        return response()->json([
+            'success' => true,
+            'message' => 'Quantity updated',
+            'data' => $cartItem
+        ]);
+    }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'No product found'
+    ], 404);
+}
 }

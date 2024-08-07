@@ -1,3 +1,5 @@
+// store/cartStore.js
+
 import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
 import axios from "axios";
@@ -14,6 +16,8 @@ export const useCartStore = defineStore("cart", {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
+        // Refresh cart items after adding
+        await this.getCartItems();
       } catch (error) {
         console.error("Failed to add to cart", error);
       }
@@ -35,25 +39,36 @@ export const useCartStore = defineStore("cart", {
 
     async removeItem(id) {
       try {
+        // Delete the item from the server
         await axios.delete(`${API_BASE_URL}/api/cart/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
-        const itemIndex = this.cartItems.findIndex((item) => item.id === id);
-
-        if (itemIndex !== -1) {
-          const item = this.cartItems[itemIndex];
-
-          if (item.quantity > 1) {
-            item.quantity--;
-          } else {
-            this.cartItems.splice(itemIndex, 1);
-          }
-        }
+        // Refresh cart items to ensure state is in sync with server
+        await this.getCartItems();
       } catch (error) {
         console.error("Failed to remove item from cart", error);
+      }
+    },
+
+    async updateItemQuantity(id, quantity) {
+      try {
+        await axios.patch(
+          `${API_BASE_URL}/api/cart/update/${id}`,
+          { quantity },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        // Refresh cart items to ensure state is in sync with server
+        await this.getCartItems();
+      } catch (error) {
+        console.error("Failed to update item quantity", error);
       }
     },
   },

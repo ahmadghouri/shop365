@@ -27,19 +27,23 @@
         </div>
         <div class="p-4 flex flex-col justify-between">
           <div>
+            <div class="flex items-center justify-between">
             <h1 class="text-xl font-semibold text-gray-900 mb-2">
               {{ category.name }}
             </h1>
+            <div class="flex items-center mb-2">
+              <!-- Dot Indicator for Open/Closed -->
+              <span
+                :class="{
+                  'bg-green-500': isOpen(category.opening_time, category.closing_time),
+                  'bg-red-500': !isOpen(category.opening_time, category.closing_time),
+                }"
+                class="w-3 h-3 rounded-full mr-2"
+              ></span>
+            </div>
+          </div>
             <p class="text-gray-700 text-sm mb-2">
               <span class="font-semibold">Type:</span> {{ category.type }}
-            </p>
-            <p class="text-gray-600 text-sm mb-2">
-              <span class="font-semibold">Open:</span>
-              {{ category.opening_time }}
-            </p>
-            <p class="text-gray-600 text-sm">
-              <span class="font-semibold">Close:</span>
-              {{ category.closing_time }}
             </p>
           </div>
           <div class="mt-4 text-center">
@@ -63,8 +67,25 @@
 <script setup>
 import { useBusinessStore } from "../store/businessStore";
 import { onMounted } from "vue";
+import dayjs from "dayjs";
 
 const businessStore = useBusinessStore();
+
+const isOpen = (openingTime, closingTime) => {
+  const currentTime = dayjs(); 
+  const open = dayjs().set("hour", parseInt(openingTime.split(":")[0])).set("minute", parseInt(openingTime.split(":")[1])).set("second", 0);
+  let close = dayjs().set("hour", parseInt(closingTime.split(":")[0])).set("minute", parseInt(closingTime.split(":")[1])).set("second", 0);
+
+  
+  if (close.isBefore(open)) {
+    close = close.add(1, "day");
+  }
+
+  
+  return currentTime.isAfter(open) && currentTime.isBefore(close);
+};
+
+
 
 onMounted(() => {
   businessStore.getBusinesses();

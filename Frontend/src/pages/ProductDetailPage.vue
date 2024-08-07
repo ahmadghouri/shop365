@@ -17,7 +17,7 @@
         <h2 class="text-2xl font-semibold text-gray-900">
           {{ product.title }}
         </h2>
-        <p class="text-lg text-gray-800 font-semibold">${{ product.price }}</p>
+        <p class="text-lg text-gray-800 font-semibold">{{ product.price }}</p>
         <p class="text-sm text-gray-700">
           {{ product.description }}
         </p>

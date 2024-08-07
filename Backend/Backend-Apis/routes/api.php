@@ -23,6 +23,9 @@ Route::apiResource('/products', ProductController::class);
 
 Route::get('/all-products/{businessId}', [ProductController::class, 'index']);
 
+Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+
+
 
 // Routes requiring authentication
 Route::middleware('auth:sanctum')->group(function() {

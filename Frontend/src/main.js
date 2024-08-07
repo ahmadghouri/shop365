@@ -5,7 +5,6 @@ import { createPinia } from "pinia";
 import router from "./routes/routes.js";
 import Toast from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
-import Pusher from "pusher-js";
 import "./style.css";
 
 const app = createApp(App);

@@ -79,12 +79,27 @@
         </p>
 
         <button type="submit" class="button">Create an Account</button>
-        <p class="text-sm font-light text-gray-500 text-center">
-          Powered by
-          <a href="#" class="font-medium text-yellow-600 hover:underline">
-            NBT-HUB
-          </a>
-        </p>
+
+        <div class="mt-6">
+          <p class="text-sm font-light text-gray-500 text-center">
+            Already have an account?
+            <router-link
+              to="/userlogin"
+              class="font-medium text-yellow-600 hover:underline"
+            >
+              Log In
+            </router-link>
+          </p>
+
+          <div class="flex justify-center mt-2">
+            <span
+              class="inline-flex items-center px-3 italic py-1.5 text-sm font-medium text-yellow-600"
+            >
+              Powered by
+              <a href="#" class="ml-1 underline"> NBT-HUB </a>
+            </span>
+          </div>
+        </div>
       </form>
     </div>
   </section>
@@ -144,5 +159,5 @@ const register = async () => {
 </script>
 
 <style scoped>
-/* If you still need custom styles, you can define them here */
+/* Add any custom styles here if needed */
 </style>

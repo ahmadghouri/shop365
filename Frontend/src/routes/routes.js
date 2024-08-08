@@ -20,6 +20,10 @@ import UserAdmin from "../pages/Admin/User.vue";
 import RegisterAdmin from "../pages/Admin/RegisterAdmin.vue";
 import RestaurantAdminDashboard from "../pages/RestaurantAdmin/RestaurantAdminDashboard.vue";
 import RestaurantOrder from "../pages/RestaurantAdmin/RestaurantOrder.vue";
+import Profile from "../pages/Profile.vue";
+import OrderHistory from "../pages/OrderHistory.vue";
+import UserLogin from "../pages/Login.vue";
+import ForgotPassword from "../pages/ForgotPassword.vue";
 
 const routes = [
   // Public Routes
@@ -40,6 +44,16 @@ const routes = [
         next();
       }
     },
+  },
+  {
+    path: "/userlogin",
+    name: "UserLogin",
+    component: UserLogin,
+  },
+  {
+    path: "/forgotpassword",
+    name: "ForgotPassword",
+    component: ForgotPassword,
   },
   {
     path: "/compregister",
@@ -104,9 +118,25 @@ const routes = [
         },
       },
       {
-        path: "/orderconfirmation",
+        path: "orderconfirmation",
         name: "Orderconfirmation",
         component: OrderNow,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: "profile",
+        name: "Profile",
+        component: Profile,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: "vieworders",
+        name: "ViewOrders",
+        component: OrderHistory,
         meta: {
           requiresAuth: true,
         },

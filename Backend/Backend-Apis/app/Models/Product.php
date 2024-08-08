@@ -16,7 +16,7 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
-        return url('/be' . $this->image);
+        return url('' . $this->image);
     }
 
     public function business(){

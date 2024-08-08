@@ -5,6 +5,7 @@ import axios from "axios";
 export const useOrderStore = defineStore("order", {
   state: () => ({
     orderDetails: [],
+    userOrderDetails: [],
   }),
   actions: {
     async placeOrder() {
@@ -26,13 +27,13 @@ export const useOrderStore = defineStore("order", {
 
     async getOrderDetails() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/orders`, {
+        const response = await axios.get(`${API_BASE_URL}/api/order`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
-        this.orderDetails = response.data.data;
+        this.userOrderDetails = response.data.data;
         console.log(this.orderDetails);
       } catch (error) {
         console.error("Something went wrong", error);

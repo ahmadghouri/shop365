@@ -10,7 +10,7 @@
           'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer',
           filter === selectedFilter
             ? 'bg-yellow-500 text-white hover:bg-yellow-700'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
         ]"
       >
         {{ filter }}
@@ -18,42 +18,64 @@
     </div>
 
     <!-- Products Section -->
-    <div>
+    <div class="relative mb-6">
+      <button
+        @click="goBack"
+        class="absolute left-0 top-1/2 transform -translate-y-1/2"
+      >
+        <!-- Back Arrow Icon -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 text-gray-800 hover:text-gray-500 transition duration-150"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
       <h1
-        class="text-2xl font-bold text-center sm:text-3xl md:text-4xl lg:text-5xl text-gray-800 mb-6"
+        class="text-2xl font-bold text-center sm:text-3xl md:text-4xl lg:text-5xl text-gray-800"
       >
         {{ categoryTitle }}
       </h1>
-      <div class="grid grid-cols-2 gap-4">
-        <router-link
-          v-for="product in filteredProducts"
-          :key="product.id"
-          :to="{
-            name: 'ProductDetailsPage',
-            params: { id: product.id },
-          }"
-          class="product-card bg-white p-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
-        >
-          <!-- Image Section -->
-          <div class="product-image-container">
-            <img
-              class="product-image"
-              :src="product.image_url"
-              alt="Product image"
-            />
-          </div>
+    </div>
 
-          <!-- Text Section -->
-          <div class="text-center mt-4">
-            <h2 class="text-lg font-semibold text-slate-800 mb-2">
-              {{ product.title }}
-            </h2>
-            <p class="text-sm text-gray-800 font-semibold">
-              Price: {{ product.price }}
-            </p>
-          </div>
-        </router-link>
-      </div>
+    <div class="grid grid-cols-2 gap-4">
+      <router-link
+        v-for="product in filteredProducts"
+        :key="product.id"
+        :to="{
+          name: 'ProductDetailsPage',
+          params: { id: product.id },
+        }"
+        class="product-card bg-white p-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
+      >
+        <!-- Image Section -->
+        <div class="product-image-container">
+          <img
+            class="product-image"
+            :src="product.image_url"
+            alt="Product image"
+          />
+        </div>
+
+        <!-- Text Section -->
+        <div class="text-center mt-4">
+          <h2 class="text-lg font-semibold text-slate-800 mb-2">
+            {{ product.title }}
+          </h2>
+          <p class="text-sm text-gray-800 font-semibold">
+            Price: {{ product.price }}
+          </p>
+        </div>
+      </router-link>
     </div>
   </div>
 </template>
@@ -61,9 +83,10 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "../store/productStore";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
+const router = useRouter();
 const productStore = useProductStore();
 
 const categoryTitle = ref(route.query.title);
@@ -85,6 +108,11 @@ const filterProducts = (filter) => {
   selectedFilter.value = filter;
 };
 
+// Go back to the previous page
+const goBack = () => {
+  router.back();
+};
+
 onMounted(() => {
   productStore.getProducts(route.params.id);
 });
@@ -92,18 +120,18 @@ onMounted(() => {
 
 <style scoped>
 .product-card {
-  height: 300px; /* Set fixed height for the card */
+  height: 300px;
 }
 
 .product-image-container {
-  height: 60%; /* Adjust height as needed */
+  height: 60%;
   overflow: hidden;
-  border-radius: 0.375rem; /* Rounded corners for image container */
+  border-radius: 0.375rem;
 }
 
 .product-image {
   width: 100%;
   height: 100%;
-  object-fit: contain /* Ensure image covers the container */
+  object-fit: contain; /* Ensure image covers the container */
 }
 </style>

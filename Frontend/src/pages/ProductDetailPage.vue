@@ -1,8 +1,32 @@
 <template>
   <div v-if="product" class="mobile-spacing space-y-6">
-    <h1 class="text-3xl font-bold text-center text-gray-900">
-      {{ food }}
-    </h1>
+    <!-- Back Arrow -->
+
+    <div class="flex items-center">
+      <button @click="goBack" class="h-4 w-4">
+        <!-- Back Arrow Icon -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-full w-full text-gray-900 hover:text-gray-700 transition duration-150"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      <div>
+        <h1 class="text-3xl ml-32 font-bold text-gray-900">
+          {{ food }}
+        </h1>
+      </div>
+    </div>
 
     <div class="rounded-lg overflow-hidden shadow-lg">
       <img
@@ -18,7 +42,6 @@
           {{ product.title }}
         </h2>
         <p class="text-lg text-gray-800 font-semibold">{{ product.price }}</p>
-        
       </div>
 
       <div class="mt-6 space-y-4">
@@ -28,7 +51,6 @@
             {{ product.description }}
           </p>
         </div>
-        
       </div>
 
       <div class="mt-6">
@@ -56,7 +78,6 @@
 
       <div class="mt-8 flex flex-col items-center space-y-3">
         <button class="button" @click="handleOrderNow">Order Now</button>
-
         <button class="button-border" @click="addToCart">Add To Cart</button>
       </div>
     </div>
@@ -114,6 +135,11 @@ const decreaseQuantity = () => {
   if (quantity.value > 1) {
     quantity.value--;
   }
+};
+
+// Go back to the previous page
+const goBack = () => {
+  router.back();
 };
 </script>
 

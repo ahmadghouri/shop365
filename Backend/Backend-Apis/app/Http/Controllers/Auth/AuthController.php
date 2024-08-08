@@ -84,5 +84,37 @@ class AuthController extends Controller
             return $this->errorResponse($e->getMessage(), 400);
         }
     }
+
+    public function profile() {
+        $user = auth()->user();
+        $household_id = $user->household_id;
+        $town_id = $user->town_id;
+    
+        // Load related household and town data conditionally
+        if ($household_id) {
+            $household = Household::where('id', $household_id)->first();
+        }
+    
+        if ($town_id) {
+            $town = Town::where('id', $town_id)->first();
+        }
+
+        if($household_id && $town_id){
+            $response = [
+                'user' => $user,
+                'household' => $household,
+                'town' => $town,
+            ];
+        } else {
+            $response = [
+                'user' => $user,
+            ];
+        }
+    
+       
+
+        return $this->successResponse($response, "User Profile", 200);
+    }
+    
     
 }

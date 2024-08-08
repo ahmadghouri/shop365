@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\ForgotPassword;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ComplainController;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/update-password', [ForgotPassword::class, 'updatePassword']);
 
 // Business and products
 Route::apiResource('/business', BusinessController::class);
@@ -34,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function() {
     
     // Complaints
     Route::post('/complaints', [ComplainController::class, 'store']);
+    Route::get('/profile',[AuthController::class, 'profile'] );
     
     // Cart
     // routes/api.php
@@ -54,8 +57,6 @@ Route::prefix('cart')->group(function() {
     });
     
     // Businesses and Products
-
-    
     
     // Towns
     Route::get('/get-towns', [TownController::class, 'index']);

@@ -27,11 +27,11 @@
       No orders available.
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
         v-for="order in filteredOrders"
         :key="order.id"
-        class="p-4 relative bg-white shadow-md flex flex-col max-w-[362px] min-h-[257px] rounded-lg"
+        class="p-4 relative bg-white shadow-md flex flex-col lg:max-w-[362px] min-h-[257px] rounded-lg"
       >
         <div class="flex items-center justify-between mb-4">
           <div>
@@ -243,7 +243,7 @@ const loading = ref(true);
 const error = ref(null);
 const isModalOpen = ref(false);
 const selectedOrder = ref(null);
-const selectedStatus = ref("");
+const selectedStatus = ref("pending");
 
 const fetchRestaurantOrders = async () => {
   try {

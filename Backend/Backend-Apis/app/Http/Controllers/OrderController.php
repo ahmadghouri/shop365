@@ -27,40 +27,49 @@ class OrderController extends Controller
     public function placeOrder()
     {
         $cartItems = Cart::where('user_id', auth()->id())->get();
-
+    
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => "Your cart is empty"], 200);
         }
-
-        // Initialize $order variable
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'total_price' => $cartItems->sum(function($cartItem){
-                return $cartItem->quantity * $cartItem->product->price;
-            })
-        ]);
-
-        $user = User::where('role', 'restaurant_admin')->first();
-        $user->notify(new OrderNotification( "New Order Placed", $order ));
-
-        broadcast(new NotificationEvent($order));
-
-        foreach ($cartItems as $cartItem) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $cartItem->product_id,
-                'price' => $cartItem->product->price,
-                'quantity' => $cartItem->quantity
+    
+        // Group cart items by business_id
+        $ordersByBusiness = $cartItems->groupBy(function($cartItem) {
+            return $cartItem->product->business_id; // assuming business_id is a field in products table
+        });
+    
+        $orders = [];
+    
+        foreach ($ordersByBusiness as $businessId => $items) {
+            // Create order for each business
+            $order = Order::create([
+                'user_id' => auth()->id(),
+                'business_id' => $businessId, // Assuming business_id is stored in orders table
+                'total_price' => $items->sum(function($cartItem) {
+                    return $cartItem->quantity * $cartItem->product->price;
+                })
             ]);
-
-            $cartItem->delete();
+    
+            foreach ($items as $cartItem) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $cartItem->product_id,
+                    'price' => $cartItem->product->price,
+                    'quantity' => $cartItem->quantity
+                ]);
+    
+                $cartItem->delete();
+            }
+    
+            // Store the order details
+            $orders[] = $order;
         }
-
     
+        // Optionally, you can handle notifications or other logic here
     
-        return response()->json(['message' => "Order placed successfully", 'order' => $order], 200);
-
+        return response()->json(['message' => "Order(s) placed successfully", 'orders' => $orders], 200);
     }
+    
+
 
 
     public function viewOrders()
@@ -85,14 +94,23 @@ class OrderController extends Controller
     public function viewRestaurantOrders()
     {
         $user = Auth::user();
-        $restaurantId = $user->business_id; // assuming restaurant_id is a field in the users table
-
-        $orders = Order::whereHas('items.product', function($query) use ($restaurantId) {
-            $query->where('business_id', $restaurantId);
-        })->with('items.product', 'user', 'user.household', 'user.household.town')->get();
-
+        $businessId = $user->business_id; // Assuming business_id is correctly set in the User model
+    
+       
+    
+        $orders = Order::whereHas('items.product', function ($query) use ($businessId) {
+            $query->where('business_id', $businessId);
+        })
+        ->with('items.product', 'user', 'user.household', 'user.household.town')
+        ->get();
+    
+        
+    
         return response()->json(['orders' => $orders], 200);
     }
+    
+
+
 
 
 

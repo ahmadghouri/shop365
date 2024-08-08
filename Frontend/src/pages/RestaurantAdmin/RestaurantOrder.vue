@@ -9,17 +9,27 @@
       </div>
     </div>
 
+    <div class="mb-6">
+      <label class="mr-4">Filter by status:</label>
+      <select v-model="selectedStatus" class="p-2 border rounded">
+        <option value="">All</option>
+        <option value="pending">Pending</option>
+        <option value="preparing">Preparing</option>
+        <option value="delivered">Delivered</option>
+      </select>
+    </div>
+
     <div v-if="loading" class="text-lg">Loading orders...</div>
     <div v-else-if="error" class="text-lg text-red-500">
       Error loading orders: {{ error }}
     </div>
-    <div v-else-if="orders.length === 0" class="text-lg">
+    <div v-else-if="filteredOrders.length === 0" class="text-lg">
       No orders available.
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div
-        v-for="order in orders"
+        v-for="order in filteredOrders"
         :key="order.id"
         class="p-4 relative bg-white shadow-md flex flex-col max-w-[362px] min-h-[257px] rounded-lg"
       >
@@ -34,9 +44,9 @@
             :class="{
               'bg-red-500 text-white text-sm rounded-full px-4 py-1 text-center':
                 order.status === 'pending',
-              'bg-yellow-500 text-white text-sm  rounded-full px-4 py-1 text-center':
+              'bg-yellow-500 text-white text-sm rounded-full px-4 py-1 text-center':
                 order.status === 'preparing',
-              'bg-green-500 text-white text-sm  rounded-full px-4 py-1 text-center':
+              'bg-green-500 text-white text-sm rounded-full px-4 py-1 text-center':
                 order.status === 'delivered',
             }"
           >
@@ -83,7 +93,7 @@
           class="bg-[#F3F4F6] w-full h-[56px] px-6 py-4 flex items-center justify-between"
         >
           <div class="font-semibold text-xl">
-            <p>Order ID:{{ selectedOrder.id }}</p>
+            <p>Order ID: {{ selectedOrder.id }}</p>
           </div>
 
           <div class="inline-flex gap-4 items-center">
@@ -224,9 +234,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useOrderStore } from "../../store/orderStore";
-import { useRouter } from "vue-router";
 
 const orderStore = useOrderStore();
 const orders = ref([]);
@@ -234,16 +243,7 @@ const loading = ref(true);
 const error = ref(null);
 const isModalOpen = ref(false);
 const selectedOrder = ref(null);
-const router = useRouter();
-
-const openModal = (order) => {
-  selectedOrder.value = order;
-  isModalOpen.value = true;
-};
-
-const closeModal = () => {
-  isModalOpen.value = false;
-};
+const selectedStatus = ref("");
 
 const fetchRestaurantOrders = async () => {
   try {
@@ -301,12 +301,26 @@ onMounted(() => {
   fetchRestaurantOrders();
 });
 
-onUnmounted(() => {
-  // Clear interval when component is unmounted
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
+// Computed property to filter orders based on selected status
+const filteredOrders = computed(() => {
+  if (selectedStatus.value === "") return orders.value;
+  return orders.value.filter((order) => order.status === selectedStatus.value);
 });
+
+// Watch for changes in selectedStatus and fetch new orders if needed
+watch(selectedStatus, async () => {
+  await fetchRestaurantOrders();
+});
+
+const openModal = (order) => {
+  selectedOrder.value = order;
+  isModalOpen.value = true;
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+  selectedOrder.value = null;
+};
 </script>
 
 <style scoped>

@@ -6,35 +6,29 @@
 
     <div class="rounded-lg overflow-hidden shadow-lg">
       <img
-        class="w-full h-64 object-cover"
+        class="w-full h-64 object-contain"
         :src="product.image_url"
         alt="Product image"
       />
     </div>
 
     <div class="bg-white p-4 rounded-lg shadow-lg">
-      <div class="text-center space-y-3">
+      <div class="text-center flex justify-between items-center">
         <h2 class="text-2xl font-semibold text-gray-900">
           {{ product.title }}
         </h2>
         <p class="text-lg text-gray-800 font-semibold">{{ product.price }}</p>
-        <p class="text-sm text-gray-700">
-          {{ product.description }}
-        </p>
+        
       </div>
 
       <div class="mt-6 space-y-4">
         <div>
           <label class="font-semibold text-gray-900">Description</label>
           <p class="text-sm text-gray-600 mt-1">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-            lacinia odio vitae vestibulum.
+            {{ product.description }}
           </p>
         </div>
-        <div>
-          <label class="font-semibold text-gray-900">Contact</label>
-          <p class="text-sm text-gray-600 mt-1">+92-3344556677</p>
-        </div>
+        
       </div>
 
       <div class="mt-6">

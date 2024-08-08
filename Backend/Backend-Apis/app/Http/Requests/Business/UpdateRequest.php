@@ -26,8 +26,8 @@ class UpdateRequest extends BaseRequest
             "name" => 'nullable|string|min:5',
             "image" => 'nullable|image|max:2048',
             "type" => 'nullable|string|max:255',
-            "opening_time" => 'nullable|date_format:H:i:s',
-            "closing_time" => 'nullable|date_format:H:i:s',
+            "opening_time" => 'nullable|string',
+            "closing_time" => 'nullable|string',
         ];
     }
 }

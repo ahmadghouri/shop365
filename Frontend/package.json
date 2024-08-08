@@ -21,6 +21,7 @@
     "@capacitor/status-bar": "6.0.0",
     "axios": "^1.7.2",
     "dayjs": "^1.11.12",
+    "moment-timezone": "^0.5.45",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
     "vue-router": "^4.0.13",

@@ -26,8 +26,8 @@ class StoreRequest extends BaseRequest
             "name" => 'required|string|min:5',
             "image" => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
             "type" => 'required|string|max:255',
-            "opening_time" => 'required|date_format:H:i:s',
-            "closing_time" => 'required|date_format:H:i:s',
+            "opening_time" => 'required|string',
+            "closing_time" => 'required|string',
         ];
     }
 }

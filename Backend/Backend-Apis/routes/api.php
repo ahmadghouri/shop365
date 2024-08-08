@@ -25,6 +25,7 @@ Route::get('/all-products/{businessId}', [ProductController::class, 'index']);
 
 Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 
+Route::apiResource('/towns', TownController::class);
 
 
 // Routes requiring authentication
@@ -74,7 +75,6 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])->prefix('/admin')->g
     
     
     // Towns
-    Route::apiResource('/towns', TownController::class);
 });
 
 // Town admin routes

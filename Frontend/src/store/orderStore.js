@@ -35,7 +35,7 @@ export const useOrderStore = defineStore("order", {
         });
 
         this.userOrderDetails = response.data.data;
-        console.log(this.orderDetails);
+        console.log(this.userOrderDetails); // Updated to log userOrderDetails
       } catch (error) {
         console.error("Something went wrong", error);
       }
@@ -56,7 +56,7 @@ export const useOrderStore = defineStore("order", {
           }
         );
 
-        this.orderDetails = response.data.orders;
+        this.orderDetails = response.data.data;
       } catch (error) {
         console.error("Something went wrong", error);
       }
@@ -74,12 +74,22 @@ export const useOrderStore = defineStore("order", {
           }
         );
 
-        const updatedOrder = response.data.order; // Corrected to response.data.order
-        const index = this.orderDetails.findIndex(
+        const updatedOrder = response.data.data;
+
+        // Update in orderDetails
+        const orderIndex = this.orderDetails.findIndex(
           (order) => order.id === updatedOrder.id
         );
-        if (index !== -1) {
-          this.orderDetails[index] = updatedOrder;
+        if (orderIndex !== -1) {
+          this.orderDetails[orderIndex] = updatedOrder;
+        }
+
+        // Update in userOrderDetails
+        const userOrderIndex = this.userOrderDetails.findIndex(
+          (order) => order.id === updatedOrder.id
+        );
+        if (userOrderIndex !== -1) {
+          this.userOrderDetails[userOrderIndex] = updatedOrder;
         }
       } catch (error) {
         console.error("Failed to update order status", error);

@@ -42,8 +42,11 @@ class OrderController extends Controller
         return $this->successResponse($orders,"Restaurant Orders", 200);
     }
 
-    public function updateStatus(UpdateOrderStatusRequest $request, $id)
+    public function updateStatus(Request $request, $id)
     {
+        $request->validate([
+            'status' => 'required|string|in:pending,preparing,delivered',
+        ]);
         
 
         try {

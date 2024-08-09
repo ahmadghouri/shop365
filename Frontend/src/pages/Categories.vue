@@ -2,7 +2,7 @@
   <div class="mobile-spacing">
     <div class="w-full flex justify-center mt-6">
       <img
-        src="/IndependanceDay.png"
+        src="/2.png"
         alt="Independence Day"
         class="w-full max-w-3xl rounded-lg shadow-lg"
       />

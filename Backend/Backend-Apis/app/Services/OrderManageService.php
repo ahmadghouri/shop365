@@ -14,64 +14,74 @@ class OrderManageService
     public function placeOrder()
     {
         $cartItems = Cart::where('user_id', auth()->id())->get();
-
+    
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty'], 200);
         }
-
-        // Group cart items by business_id
+    
+        
         $ordersByBusiness = $cartItems->groupBy(function ($cartItem) {
             return $cartItem->product->business_id;
         });
-
+    
         $orders = [];
         $failedBusinesses = [];
-
+    
         foreach ($ordersByBusiness as $businessId => $items) {
             $totalPrice = $items->sum(function ($cartItem) {
                 return $cartItem->product->price * $cartItem->quantity;
             });
-
+    
             Log::info("Processing businessId: $businessId, TotalPrice: $totalPrice");
-
-            if ($totalPrice >= 500) {
-                $order = Order::create([
-                    'user_id' => auth()->id(),
-                    'business_id' => $businessId,
-                    'total_price' => $totalPrice,
-                ]);
-
-                foreach ($items as $cartItem) {
-                    OrderItem::create([
-                        'order_id' => $order->id,
-                        'product_id' => $cartItem->product_id,
-                        'price' => $cartItem->product->price,
-                        'quantity' => $cartItem->quantity,
-                    ]);
-
-                    $cartItem->delete();
-                }
-
-                // Store the order details
-                $orders[] = $order;
-            } else {
+    
+            // Check if the total price for this business meets the minimum requirement
+            if ($totalPrice < 500) {
                 $business = Business::find($businessId); // Fetch the business name
                 $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
             }
         }
-
+    
+        
         if (count($failedBusinesses) > 0) {
             return response()->json(
                 [
-                    'message' => 'Order(s) cannot be placed. Minimum order amount is 500 rupees.',
+                    'message' => 'Order(s) cannot be placed. Minimum order amount is 500 rupees for each business.',
                     'failed_businesses' => $failedBusinesses,
                 ],
-                400,
+                400
             );
         }
-
+    
+        // Proceed to create orders for all valid businesses
+        foreach ($ordersByBusiness as $businessId => $items) {
+            $totalPrice = $items->sum(function ($cartItem) {
+                return $cartItem->product->price * $cartItem->quantity;
+            });
+    
+            $order = Order::create([
+                'user_id' => auth()->id(),
+                'business_id' => $businessId,
+                'total_price' => $totalPrice,
+            ]);
+    
+            foreach ($items as $cartItem) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $cartItem->product_id,
+                    'price' => $cartItem->product->price,
+                    'quantity' => $cartItem->quantity,
+                ]);
+    
+                $cartItem->delete();
+            }
+    
+            // Store the order details
+            $orders[] = $order;
+        }
+    
         return response()->json(['message' => 'Order(s) placed successfully', 'orders' => $orders], 200);
     }
+    
 
     public function viewOrders($userId)
     {

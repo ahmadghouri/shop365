@@ -19,6 +19,7 @@ export const useOrderStore = defineStore("order", {
             },
           }
         );
+        return response;
       } catch (error) {
         console.error("Order didn't take place", error);
         throw error;

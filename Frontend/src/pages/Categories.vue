@@ -1,6 +1,16 @@
 <template>
   <div class="mobile-spacing">
-    <h1 class="mt-3 text-2xl font-bold text-center sm:text-3xl md:text-4xl lg:text-5xl text-gray-800">
+    <div class="w-full flex justify-center mt-6">
+      <img
+        src="/IndependanceDay.png"
+        alt="Independence Day"
+        class="w-full max-w-3xl rounded-lg shadow-lg"
+      />
+    </div>
+
+    <h1
+      class="mt-3 text-2xl font-bold text-center sm:text-3xl md:text-4xl lg:text-5xl text-gray-800"
+    >
       Restaurants
     </h1>
 
@@ -13,14 +23,16 @@
           'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer',
           filter === selectedFilter
             ? 'bg-yellow-500 text-white hover:bg-yellow-700'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
         ]"
       >
         {{ filter }}
       </button>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6 md:px-8 lg:px-12">
+    <div
+      class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6 md:px-8 lg:px-12"
+    >
       <router-link
         v-for="category in filteredRestaurants"
         :key="category.id"
@@ -29,7 +41,21 @@
           params: { id: category.id },
           query: { title: category.name },
         }"
-        class="bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link"
+        :class="[
+          'bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link',
+          !isOpen(category.opening_time, category.closing_time)
+            ? 'pointer-events-none opacity-50'
+            : '',
+        ]"
+        :style="
+          !isOpen(category.opening_time, category.closing_time)
+            ? { cursor: 'not-allowed' }
+            : {}
+        "
+        @click.native.prevent="
+          !isOpen(category.opening_time, category.closing_time) &&
+            $event.preventDefault()
+        "
       >
         <div class="category-image-container">
           <img
@@ -48,28 +74,42 @@
               <!-- Dot Indicator for Open/Closed -->
               <span
                 :class="{
-                  'bg-green-500': isOpen(category.opening_time, category.closing_time),
-                  'bg-red-500': !isOpen(category.opening_time, category.closing_time),
+                  'bg-green-500': isOpen(
+                    category.opening_time,
+                    category.closing_time
+                  ),
+                  'bg-red-500': !isOpen(
+                    category.opening_time,
+                    category.closing_time
+                  ),
                 }"
                 class="w-3 h-3 rounded-full mr-2"
               ></span>
 
               <span class="text-sm">
-                {{ isOpen(category.opening_time, category.closing_time) ? "Opened" :"Closed" }}
+                {{
+                  isOpen(category.opening_time, category.closing_time)
+                    ? "Opened"
+                    : "Closed"
+                }}
               </span>
             </div>
           </div>
           <div class="mt-4 text-center">
-            <router-link
-              :to="{
-                name: 'CategoryPage',
-                params: { id: category.id },
-                query: { title: category.name },
-              }"
-              class="text-yellow-500 hover:text-yellow-700 font-semibold"
+            <span
+              :class="[
+                isOpen(category.opening_time, category.closing_time)
+                  ? 'text-yellow-500 hover:text-yellow-700'
+                  : 'text-gray-400',
+              ]"
+              class="font-semibold"
             >
-              View Details
-            </router-link>
+              {{
+                isOpen(category.opening_time, category.closing_time)
+                  ? "View Details"
+                  : "Closed"
+              }}
+            </span>
           </div>
         </div>
       </router-link>
@@ -80,22 +120,22 @@
 <script setup>
 import { useBusinessStore } from "../store/businessStore";
 import { ref, computed, onMounted } from "vue";
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);
 const selectedFilter = ref("All");
 
 const isOpen = (openingTime, closingTime) => {
-  const timezone = 'Asia/Karachi';
+  const timezone = "Asia/Karachi";
   const currentTime = moment().tz(timezone);
   const parseTime = (time) => moment.tz(time, "hh:mm:ssA", timezone);
-  
+
   const open = parseTime(openingTime);
   let close = parseTime(closingTime);
 
   if (close.isBefore(open)) {
-    close.add(1, 'day');
+    close.add(1, "day");
   }
 
   return currentTime.isAfter(open) && currentTime.isBefore(close);

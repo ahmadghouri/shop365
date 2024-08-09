@@ -2,7 +2,7 @@
   <div v-if="product" class="mobile-spacing space-y-6">
     <!-- Back Arrow -->
 
-    <div class="flex items-center">
+    <div class="flex items-center mt-4">
       <button @click="goBack" class="h-4 w-4">
         <!-- Back Arrow Icon -->
         <svg
@@ -20,12 +20,6 @@
           />
         </svg>
       </button>
-
-      <div>
-        <h1 class="text-3xl ml-32 font-bold text-gray-900">
-          {{ food }}
-        </h1>
-      </div>
     </div>
 
     <div class="rounded-lg overflow-hidden shadow-lg">

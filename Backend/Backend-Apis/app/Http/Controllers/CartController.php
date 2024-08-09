@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Cart\Add;
-use App\Models\cart;
 use App\Services\CartService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -17,69 +15,45 @@ class CartController extends Controller
         $this->cartService = $cartService;
     }
 
-
     public function addToCart(Add $request)
     {
         $cartItem = $this->cartService->add($request->validated());
-    
-        return response()->json($cartItem, 201);
+        return $this->successResponse($cartItem, 'Added to Cart', 201);
     }
-    
 
-
-    public function viewCart() 
+    public function viewCart()
     {
-        $cartItems = cart::with('product')->where('user_id', auth()->id())->get();
-        return $this->successResponse($cartItems, "Your cart");
+        $cartItems = $this->cartService->viewCart();
+        return $this->successResponse($cartItems, 'Your cart');
     }
 
-    public function removeCart($id) {
-        $item = cart::where('user_id', auth()->id())->where('id', $id)->firstOrFail();
-        $item->delete();
-        return $this->successResponse(null,"Deleted Successfully", 204);
+    public function removeCart($id)
+    {
+        $this->cartService->removeCart($id);
+        return $this->successResponse(null, 'Deleted Successfully', 204);
     }
 
     public function removeProduct($id)
-{
-    $cartItem = Cart::where('user_id', auth()->id())
-                    ->where('product_id', $id)
-                    ->first();
-                    
-    if ($cartItem) {
-        if ($cartItem->quantity > 1) {
-            $cartItem->quantity -= 1;
-            $cartItem->save();
-            return response()->json(['success' => true, 'data' => $cartItem, 'message' => 'Quantity decreased']);
+    {
+        $cartItem = $this->cartService->removeProduct($id);
+
+        if ($cartItem) {
+            return $this->successResponse($cartItem, 'Quantity decreased');
         } else {
-            $cartItem->delete(); // Remove the item if quantity is 1
-            return response()->json(['success' => true, 'message' => 'Product removed from cart']);
+            return $this->successResponse(null, 'Product removed from cart');
         }
+
+        return response()->json(['success' => false, 'message' => 'No product found'], 404);
     }
 
-    return response()->json(['success' => false, 'message' => 'No product found'], 404);
-}
+    public function updateQuantity(Request $request, $id)
+    {
+        $cartItem = $this->cartService->updateQuantity($request->all(), $id);
 
+        if ($cartItem) {
+            return $this->successResponse($cartItem, 'Quantity updated');
+        }
 
-public function updateQuantity(Request $request, $id)
-{
-    $cartItem = Cart::where('user_id', auth()->id())
-                    ->where('id', $id)
-                    ->first();
-
-    if ($cartItem) {
-        $quantity = $request->input('quantity');
-        $cartItem->quantity = $quantity;
-        $cartItem->save();
-        return response()->json([
-            'success' => true,
-            'message' => 'Quantity updated',
-            'data' => $cartItem
-        ]);
+        return $this->errorResponse('No product found', 404);
     }
-
-    return response()->json([
-        'success' => false,
-        'message' => 'No product found'
-    ], 404);
-}
 }

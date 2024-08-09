@@ -15,7 +15,6 @@ use Illuminate\Support\Str;
 
 class BusinessController extends Controller
 {
-
     protected $businessService;
     protected $imageService;
 
@@ -31,7 +30,7 @@ class BusinessController extends Controller
     {
         $businesses = Business::all();
 
-        return $this->successResponse($businesses, "All the businesses");
+        return $this->successResponse($businesses, 'All the businesses');
     }
 
     /**
@@ -41,15 +40,13 @@ class BusinessController extends Controller
     {
         $business = $this->businessService->store($request->validated());
 
-        if($request->has('image'))
-        {
-            $imagePath = $this->imageService->uploadImage($request,'image');
+        if ($request->has('image')) {
+            $imagePath = $this->imageService->uploadImage($request, 'image');
             $business->image = $imagePath;
             $business->save();
         }
-        
 
-        return $this->successResponse($business,"Business added successfully");
+        return $this->successResponse($business, 'Business added successfully');
     }
 
     /**
@@ -57,7 +54,7 @@ class BusinessController extends Controller
      */
     public function show(Business $business): JsonResponse
     {
-        return $this->successResponse($business,"Business",201);
+        return $this->successResponse($business, 'Business', 201);
     }
 
     /**
@@ -65,17 +62,15 @@ class BusinessController extends Controller
      */
     public function update(UpdateRequest $request, Business $business): JsonResponse
     {
-        $business->update($request->only(['type', 'name', 'opening_time', 'closing_time']));  
+        $business->update($request->only(['type', 'name', 'opening_time', 'closing_time']));
 
-        
         if ($request->hasFile('image')) {
             $imagePath = $this->imageService->uploadImage($request, 'image');
-            $business->image = $imagePath; 
+            $business->image = $imagePath;
             $business->save();
         }
 
-
-        return $this->successResponse($business->refresh(),"Updated");
+        return $this->successResponse($business->refresh(), 'Updated');
     }
 
     /**
@@ -92,7 +87,4 @@ class BusinessController extends Controller
             return $this->errorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }
-
-  
-    
 }

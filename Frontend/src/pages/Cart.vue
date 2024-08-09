@@ -116,14 +116,47 @@ const total = computed(() => {
 
 const orderNow = async () => {
   try {
-    await orderStore.placeOrder();
-    cartStore.cartItems = [];
-    toast.success("Your order has been placed.");
-    setTimeout(() => {
-      router.push("/home/orderconfirmation");
-    }, 1000);
+    const response = await orderStore.placeOrder();
+
+    if (
+      response.status === 200 &&
+      response.data.message === "Order(s) placed successfully"
+    ) {
+      cartStore.cartItems = [];
+      toast.success("Your order has been placed.");
+      setTimeout(() => {
+        router.push("/home/orderconfirmation");
+      }, 1000);
+    } else {
+      let errorMessage = response.data.message || "Something went wrong.";
+
+      if (
+        response.data.failed_businesses &&
+        response.data.failed_businesses.length > 0
+      ) {
+        const failedBusinesses = response.data.failed_businesses.join(", ");
+        errorMessage += ` The following restaurants have an order amount less than 500: ${failedBusinesses}.`;
+      }
+
+      toast.error(errorMessage);
+    }
   } catch (error) {
-    toast.error("Something went wrong.");
+    let errorMessage = "Something went wrong.";
+
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMessage = error.response.data.message;
+
+      if (
+        error.response.data.failed_businesses &&
+        error.response.data.failed_businesses.length > 0
+      ) {
+        const failedBusinesses =
+          error.response.data.failed_businesses.join(", ");
+        errorMessage += ` The following restaurants have an order amount less than 500: ${failedBusinesses}.`;
+      }
+    }
+
+    toast.error(errorMessage);
   }
 };
 

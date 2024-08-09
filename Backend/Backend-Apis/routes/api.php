@@ -29,64 +29,64 @@ Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 
 Route::apiResource('/towns', TownController::class);
 
-
 // Routes requiring authentication
-Route::middleware('auth:sanctum')->group(function() {
+Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add-details', [AuthController::class, 'addDetails']);
-    
+
     // Complaints
     Route::post('/complaints', [ComplainController::class, 'store']);
-    Route::get('/profile',[AuthController::class, 'profile'] );
-    
+    Route::get('/profile', [AuthController::class, 'profile']);
+
     // Cart
     // routes/api.php
-Route::prefix('cart')->group(function() {
-    Route::post('/', [CartController::class, 'addToCart']);
-    Route::get('/', [CartController::class, 'viewCart']);
-    Route::delete('{id}', [CartController::class, 'removeCart']);
-    Route::delete('product/{id}', [CartController::class, 'removeProduct']);
-    Route::patch('update/{id}', [CartController::class, 'updateQuantity']); // Add this line
-});
+    Route::prefix('cart')->group(function () {
+        Route::post('/', [CartController::class, 'addToCart']);
+        Route::get('/', [CartController::class, 'viewCart']);
+        Route::delete('{id}', [CartController::class, 'removeCart']);
+        Route::delete('product/{id}', [CartController::class, 'removeProduct']);
+        Route::patch('update/{id}', [CartController::class, 'updateQuantity']); // Add this line
+    });
 
-    
-    
     // Orders
-    Route::prefix('order')->group(function() {
+    Route::prefix('order')->group(function () {
         Route::post('/', [OrderController::class, 'placeOrder']);
         Route::get('/', [OrderController::class, 'viewOrders']);
     });
-    
+
     // Businesses and Products
-    
+
     // Towns
     Route::get('/get-towns', [TownController::class, 'index']);
 });
 
 // Admin routes
-Route::middleware(['auth:sanctum', AdminMiddleware::class])->prefix('/admin')->group(function() {
-    // Admins management
-    Route::post('/createAdmins', [AdminController::class, 'createTownAdmin']);
-    
-    // Users management
-    
+Route::middleware(['auth:sanctum', AdminMiddleware::class])
+    ->prefix('/admin')
+    ->group(function () {
+        // Admins management
+        Route::post('/createAdmins', [AdminController::class, 'createTownAdmin']);
+
+        // Users management
+
         Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
         Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
         Route::put('/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
-    
-    
-    // Towns
-});
+
+        // Towns
+    });
 
 // Town admin routes
-Route::middleware(['auth:sanctum', TownAdminMiddleware::class])->prefix('/restaurantAdmin')->group(function() {
-    // Complaints management
-    Route::put('/complaint-status', [ComplainController::class, 'update']);
-    Route::get('/complaints', [ComplainController::class, 'complaintsOfTown']);
-    
-    // Products management
-    Route::get('/allproducts', [ProductController::class, 'getProducts']);
+Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
+    ->prefix('/restaurantAdmin')
+    ->group(function () {
+        // Complaints management
+        Route::put('/complaint-status', [ComplainController::class, 'update']);
+        Route::get('/complaints', [ComplainController::class, 'complaintsOfTown']);
 
-    // Orders management
-    Route::get('/orders', [OrderController::class, 'viewRestaurantOrders']);
-});
+        // Products management
+        Route::get('/allproducts', [ProductController::class, 'getProducts']);
+
+        // Orders management
+        Route::get('/orders', [OrderController::class, 'viewRestaurantOrders']);
+    });

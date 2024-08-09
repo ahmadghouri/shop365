@@ -91,6 +91,9 @@ async function getOrderDetails() {
   try {
     await orderStore.getOrderDetails();
     orderDetails.value = orderStore.userOrderDetails;
+    orderDetails.value.sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
   } catch (error) {
     console.error(error);
   }

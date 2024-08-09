@@ -22,7 +22,7 @@
         :class="[
           'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer',
           filter === selectedFilter
-            ? 'bg-yellow-500 text-white hover:bg-yellow-700'
+            ? 'bg-yellow-500 text-white hover:bg-yellow-500'
             : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
         ]"
       >

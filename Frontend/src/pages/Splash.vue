@@ -9,15 +9,17 @@
       <div class="flex flex-col space-y-5 text-center md:text-left">
         <div class="flex flex-col space-y-5">
           <h1
-            class="text-3xl md:text-4xl px-2 text-left font-semibold text-slate-800"
+            class="text-4xl md:text-4xl px-2 text-left font-semibold text-slate-800"
           >
-            Welcome to our TownService App
+            Welcome to our
+            <span class="text-yellow-500 font-bold">Shop</span
+            ><span class="font-bold">365</span> App
           </h1>
           <p class="text-slate-600 hidden md:block">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam
-            perferendis ipsa quidem sapiente quam nulla rem ducimus similique,
-            ipsum dicta doloribus quibusdam explicabo quaerat nisi iusto
-            deserunt unde ad vel.
+            Shop365 is your ultimate companion for seamless living. Whether
+            you're craving a meal, need groceries or household items, or require
+            professional home services like plumbing, electrical work, or
+            carpentry, Shop365 has you covered.
           </p>
           <h2 class="font-semibold text-slate-700 text-left px-2">
             Powered by NBT-HUB

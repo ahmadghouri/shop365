@@ -23,7 +23,9 @@
         </button>
       </div>
       <div class="text-xl md:text-2xl font-bold">
-        <button @click="goToHome">Logo</button>
+        <button @click="goToHome">
+          <img src="/Shop365-Logo Grey.png" class="w-auto h-4" alt="" />
+        </button>
       </div>
       <div class="hidden md:flex gap-5 text-lg">
         <router-link to="/home" class="hover:text-yellow-500 cursor-pointer"
@@ -67,9 +69,10 @@
     </nav>
 
     <!-- Sidebar for mobile screens -->
+    <!-- Sidebar for mobile screens -->
     <transition name="slide-left">
       <div v-if="sidebarOpen" class="fixed inset-0 bg-black/5 z-40 flex">
-        <div class="bg-white w-64 h-full p-5 shadow-lg">
+        <div class="sidebar bg-white w-64 h-full p-5 shadow-lg">
           <button
             @click="toggleSidebar"
             class="focus:outline-none text-black mb-4"
@@ -110,7 +113,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -123,6 +126,22 @@ const toggleSidebar = () => {
 const goToHome = () => {
   router.push("/home/categories");
 };
+
+// Close the sidebar when clicking outside
+const handleClickOutside = (event) => {
+  const sidebar = document.querySelector(".sidebar");
+  if (sidebar && !sidebar.contains(event.target) && sidebarOpen.value) {
+    toggleSidebar();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("mousedown", handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("mousedown", handleClickOutside);
+});
 </script>
 
 <style scoped>

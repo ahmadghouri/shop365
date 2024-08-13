@@ -28,20 +28,10 @@
         </button>
       </div>
       <div class="hidden md:flex gap-5 text-lg">
-        <router-link to="/home" class="hover:text-yellow-500 cursor-pointer"
-          >Home</router-link
-        >
-        <router-link to="/about" class="hover:text-yellow-500 cursor-pointer"
-          >About</router-link
-        >
-        <router-link to="/contact" class="hover:text-yellow-500 cursor-pointer"
-          >Contact</router-link
-        >
-        <router-link
-          to="/complains"
-          class="hover:text-yellow-500 cursor-pointer"
-          >Complains</router-link
-        >
+        <router-link to="/home" class="hover:text-yellow-500 cursor-pointer">Home</router-link>
+        <router-link to="/about" class="hover:text-yellow-500 cursor-pointer">About</router-link>
+        <router-link to="/contact" class="hover:text-yellow-500 cursor-pointer">Contact</router-link>
+        <router-link to="/complains" class="hover:text-yellow-500 cursor-pointer">Complains</router-link>
       </div>
       <div class="flex gap-5">
         <!-- Cart button for larger screens -->
@@ -71,8 +61,13 @@
     <!-- Sidebar for mobile screens -->
     <!-- Sidebar for mobile screens -->
     <transition name="slide-left">
+<<<<<<< HEAD
       <div v-if="sidebarOpen" class="fixed inset-0 bg-black/5 z-40 flex">
         <div class="sidebar bg-white w-64 h-full p-5 shadow-lg">
+=======
+      <div v-if="sidebarOpen" ref="sidebarRef" class="fixed inset-0 bg-black/5 z-40 flex">
+        <div class="bg-white w-64 h-full p-5 shadow-lg">
+>>>>>>> 3fdd77a77af9e8f4a8f2bbcefb996c290df10a68
           <button
             @click="toggleSidebar"
             class="focus:outline-none text-black mb-4"
@@ -113,13 +108,20 @@
 </template>
 
 <script setup>
+<<<<<<< HEAD
 import { ref, onMounted, onBeforeUnmount } from "vue";
+=======
+import { ref, onMounted, onUnmounted } from "vue";
+>>>>>>> 3fdd77a77af9e8f4a8f2bbcefb996c290df10a68
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 const sidebarOpen = ref(false);
+const sidebarRef = ref(null);
+let clickTimeout = null;
 
 const toggleSidebar = () => {
+  if (clickTimeout) clearTimeout(clickTimeout);
   sidebarOpen.value = !sidebarOpen.value;
 };
 
@@ -127,6 +129,7 @@ const goToHome = () => {
   router.push("/home/categories");
 };
 
+<<<<<<< HEAD
 // Close the sidebar when clicking outside
 const handleClickOutside = (event) => {
   const sidebar = document.querySelector(".sidebar");
@@ -141,6 +144,24 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener("mousedown", handleClickOutside);
+=======
+// Function to handle clicks outside the sidebar
+const handleClickOutside = (event) => {
+  if (sidebarOpen.value && sidebarRef.value && !sidebarRef.value.contains(event.target)) {
+    clickTimeout = setTimeout(() => {
+      sidebarOpen.value = false;
+    }, 0); // Slight delay to avoid rapid toggle
+  }
+};
+
+// Add and remove event listener for clicks outside
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+>>>>>>> 3fdd77a77af9e8f4a8f2bbcefb996c290df10a68
 });
 </script>
 

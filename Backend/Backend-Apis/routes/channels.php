@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Broadcast;
+use App\Models\Business;
 
 
 
@@ -9,6 +10,11 @@ Broadcast::channel('notification', function ($user) {
 });
 
 
-Broadcast::channel('notifications.{id}', function ($user, $id) {
+Broadcast::channel('orders.User.{id}', function ($user, $id) {
     return (int)$user->id === (int)$id;
+});
+
+
+Broadcast::channel('business.{businessId}', function ($user, $businessId) {
+    return $user->businesses->contains($businessId); 
 });

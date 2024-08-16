@@ -6,6 +6,7 @@ export const useOrderStore = defineStore("order", {
   state: () => ({
     orderDetails: [],
     userOrderDetails: [],
+    businessId: "",
   }),
   actions: {
     async placeOrder() {
@@ -35,6 +36,7 @@ export const useOrderStore = defineStore("order", {
         });
 
         this.userOrderDetails = response.data.data;
+
         console.log(this.userOrderDetails); // Updated to log userOrderDetails
       } catch (error) {
         console.error("Something went wrong", error);
@@ -56,7 +58,8 @@ export const useOrderStore = defineStore("order", {
           }
         );
 
-        this.orderDetails = response.data.data;
+        this.orderDetails = response.data.data.orders;
+        this.businessId = response.data.data.business_id;
       } catch (error) {
         console.error("Something went wrong", error);
       }

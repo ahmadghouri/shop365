@@ -12,6 +12,7 @@ use App\Http\Controllers\TownController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\TownAdminMiddleware;
+use App\Models\Order;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -90,3 +91,11 @@ Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
         // Orders management
         Route::get('/orders', [OrderController::class, 'viewRestaurantOrders']);
     });
+
+
+Route::post("/test/channel", function() {
+    $order = Order::select("*")->orderByDesc("id")->first();
+    $order2 = \App\Models\OrderItem::select("*")->orderByDesc("id")->first();
+    \App\Events\TestEvent::dispatch($order2);
+    return response()->json(['message' => 'Event dispatched successfully'], 200);
+});

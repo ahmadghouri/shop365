@@ -1,9 +1,9 @@
 <template>
-  <div v-if="product" class="mobile-spacing space-y-6">
+  <div v-if="product" class="mobile-spacing">
     <!-- Back Arrow -->
 
     <div class="flex items-center mt-4">
-      <button @click="goBack" class="h-4 w-4">
+      <button @click="goBack" class="h-4 w-4 -mt-12">
         <!-- Back Arrow Icon -->
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -76,8 +76,8 @@
       </div>
     </div>
   </div>
-  <div v-else>
-    <p>Loading...</p>
+  <div v-else class="mobile-spacing">
+    <p class="text-xl font-semibold">Loading...</p>
     <!-- Customize this loading state as needed -->
   </div>
 </template>

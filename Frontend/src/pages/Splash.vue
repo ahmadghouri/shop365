@@ -35,12 +35,16 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "Home",
-};
-</script>
+<script setup>
+import { laraEcho } from "../echo.config";
+import { onMounted } from "vue";
+onMounted(() => {
+  laraEcho.channel("test-channel").listen("TestEvent", (event) => {
+    console.log("The real time data is", event);
+  });
 
-<style scoped>
-/* Add your styles here */
-</style>
+  return () => {
+    laraEcho.leave("test-channel");
+  };
+});
+</script>

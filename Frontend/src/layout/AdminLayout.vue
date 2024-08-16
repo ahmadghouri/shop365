@@ -1,9 +1,7 @@
 <template>
   <div class="flex flex-col lg:flex-row h-screen bg-gray-100 overflow-hidden">
     <!-- Button to open sidebar on mobile -->
-    <div
-      class="flex justify-between items-center lg:hidden mobile-spacing bg-gray-200 p-4"
-    >
+    <div class="flex justify-between items-center lg:hidden bg-gray-200 p-4">
       <button
         @click="toggleSidebar"
         class="text-gray-500 p-2 bg-gray-200 rounded-md focus:outline-none"
@@ -22,7 +20,7 @@
     <Sidebar :sidebarOpen="sidebarOpen" @closeSidebar="toggleSidebar" />
 
     <!-- Main content -->
-    <main class="flex-1 mobile-spacing overflow-auto lg:py-12 lg:px-12">
+    <main class="flex-1 overflow-auto lg:py-12 lg:px-12">
       <router-view></router-view>
     </main>
   </div>

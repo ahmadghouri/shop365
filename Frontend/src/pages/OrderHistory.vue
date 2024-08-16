@@ -2,7 +2,6 @@
   <div class="mobile-spacing">
     <div class="relative mt-2">
       <!-- Back Arrow Button -->
-<<<<<<< HEAD
 
       <!-- Orders Title and Refresh Button -->
       <div class="flex justify-between items-center">
@@ -23,33 +22,6 @@
           </svg>
         </button>
 
-=======
-      
-
-      <!-- Orders Title and Refresh Button -->
-      <div class="flex justify-between items-center">
-
-        <button
-        @click="goBack"
-        class=""
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="2"
-          stroke="currentColor"
-          class="w-4 h-4 text-gray-700 hover:text-gray-900"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-      </button>
-
->>>>>>> 3fdd77a77af9e8f4a8f2bbcefb996c290df10a68
         <h1 class="text-center text-xl font-semibold">Orders</h1>
         <button
           @click="refreshOrders"

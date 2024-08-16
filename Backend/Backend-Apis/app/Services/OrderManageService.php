@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Events\OrderPlaced;
+use App\Events\TestEvent;
 use App\Models\Business;
 use App\Models\cart;
 use App\Models\Order;
@@ -14,34 +16,29 @@ class OrderManageService
     public function placeOrder()
     {
         $cartItems = Cart::where('user_id', auth()->id())->get();
-    
+
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty'], 200);
         }
-    
-        
+
         $ordersByBusiness = $cartItems->groupBy(function ($cartItem) {
             return $cartItem->product->business_id;
         });
-    
+
         $orders = [];
         $failedBusinesses = [];
-    
+
         foreach ($ordersByBusiness as $businessId => $items) {
             $totalPrice = $items->sum(function ($cartItem) {
                 return $cartItem->product->price * $cartItem->quantity;
             });
-    
-            Log::info("Processing businessId: $businessId, TotalPrice: $totalPrice");
-    
-            // Check if the total price for this business meets the minimum requirement
+
             if ($totalPrice < 500) {
-                $business = Business::find($businessId); // Fetch the business name
+                $business = Business::find($businessId);
                 $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
             }
         }
-    
-        
+
         if (count($failedBusinesses) > 0) {
             return response()->json(
                 [
@@ -51,19 +48,18 @@ class OrderManageService
                 400
             );
         }
-    
-        // Proceed to create orders for all valid businesses
+
         foreach ($ordersByBusiness as $businessId => $items) {
             $totalPrice = $items->sum(function ($cartItem) {
                 return $cartItem->product->price * $cartItem->quantity;
             });
-    
+
             $order = Order::create([
                 'user_id' => auth()->id(),
-                'business_id' => $businessId,
                 'total_price' => $totalPrice,
+                'status' => 'pending',
             ]);
-    
+
             foreach ($items as $cartItem) {
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -71,17 +67,22 @@ class OrderManageService
                     'price' => $cartItem->product->price,
                     'quantity' => $cartItem->quantity,
                 ]);
-    
+
                 $cartItem->delete();
             }
-    
-            // Store the order details
+
+            OrderPlaced::dispatch($order, $businessId);
+
             $orders[] = $order;
         }
-    
-        return response()->json(['message' => 'Order(s) placed successfully', 'orders' => $orders], 200);
+
+        return response()->json([
+            'message' => 'Order(s) placed successfully',
+            'orders' => $orders
+        ], 200);
     }
-    
+
+
 
     public function viewOrders($userId)
     {

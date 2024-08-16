@@ -1,8 +1,6 @@
 <template>
-  <section
-    class="bg-gray-50 min-h-screen flex flex-col mobile-spacing relative"
-  >
-    <div class="flex justify-between items-center mobile-spacing mt-3">
+  <section class="min-h-screen flex flex-col mobile-spacing relative">
+    <div class="flex justify-between items-center mt-3">
       <div class="flex items-center gap-3">
         <button @click="goBack" class="">
           <svg
@@ -41,7 +39,7 @@
           <div class="flex items-center">
             <div class="w-24 h-24 overflow-hidden rounded-md">
               <img
-                class="w-full h-full object-cover"
+                class="w-full h-full object-contain"
                 :src="item.product.image_url"
                 alt="image here"
               />
@@ -84,10 +82,21 @@ import { useCartStore } from "../store/cartStore";
 import { useOrderStore } from "../store/orderStore";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
+import { laraEcho } from "../echo.config";
 
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
 const router = useRouter();
+
+onMounted(() => {
+  laraEcho.channel("test-channel").listen("TestEvent", (event) => {
+    console.log("The real time data is", event);
+  });
+
+  return () => {
+    laraEcho.leave("test-channel");
+  };
+});
 
 onMounted(() => {
   cartStore.getCartItems();
@@ -123,6 +132,7 @@ const orderNow = async () => {
       response.data.message === "Order(s) placed successfully"
     ) {
       cartStore.cartItems = [];
+
       toast.success("Your order has been placed.");
       setTimeout(() => {
         router.push("/home/orderconfirmation");

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TestEvent;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Services\OrderManageService;
 use Exception;
@@ -36,18 +37,23 @@ class OrderController extends Controller
     }
 
     public function viewRestaurantOrders()
-    {
-        $businessId = Auth::user()->business_id;
-        $orders = $this->orderService->viewRestaurantOrders($businessId);
-        return $this->successResponse($orders,"Restaurant Orders", 200);
-    }
+{
+    $businessId = Auth::user()->business_id;
+    $orders = $this->orderService->viewRestaurantOrders($businessId);
+
+    // Merge orders and businessId into a single array
+    $data = array_merge(['orders' => $orders], ['business_id' => $businessId]);
+
+    return $this->successResponse($data, "Restaurant Orders", 200);
+}
+
 
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
             'status' => 'required|string|in:pending,preparing,delivered',
         ]);
-        
+
 
         try {
             $order = $this->orderService->updateOrderStatus($id, $request->status);

@@ -235,7 +235,8 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-import { useOrderStore } from "../../store/orderStore";
+import { useOrderStore } from "../../store/orderStore"; // Adjust the path accordingly
+import { laraEcho } from "../../echo.config";
 
 const orderStore = useOrderStore();
 const orders = ref([]);
@@ -265,19 +266,13 @@ const fetchRestaurantOrders = async () => {
 
 const updateOrderStatus = async (status) => {
   try {
-    // Update the status in the store
     await orderStore.updateStatus(selectedOrder.value.id, status);
-
-    // Optimistically update the status in the local orders array
     orders.value = orders.value.map((order) =>
       order.id === selectedOrder.value.id ? { ...order, status } : order
     );
-
-    // Optionally, close the modal if needed
     closeModal();
   } catch (err) {
     console.error("Error updating order status:", err);
-    // Optionally, you might want to handle the error, e.g., revert the local change
   }
 };
 
@@ -297,19 +292,24 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 const refreshOrders = async () => {
   await fetchRestaurantOrders();
 };
-onMounted(() => {
-  fetchRestaurantOrders();
-});
 
-// Computed property to filter orders based on selected status
-const filteredOrders = computed(() => {
-  if (selectedStatus.value === "") return orders.value;
-  return orders.value.filter((order) => order.status === selectedStatus.value);
-});
-
-// Watch for changes in selectedStatus and fetch new orders if needed
-watch(selectedStatus, async () => {
+onMounted(async () => {
   await fetchRestaurantOrders();
+
+  // Subscribe to the order channel
+  laraEcho
+    .channel("order-channel." + orderStore.businessId)
+    .listen("OrderPlaced", (event) => {
+      // Add the new order to the orders array
+      orders.value.unshift(event.order);
+      orders.value.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+      console.log(orders.value);
+    })
+    .error((error) => {
+      console.error("Echo error:", error);
+    });
 });
 
 const openModal = (order) => {
@@ -321,19 +321,17 @@ const closeModal = () => {
   isModalOpen.value = false;
   selectedOrder.value = null;
 };
+
+// Computed property to filter orders based on selected status
+const filteredOrders = computed(() => {
+  if (selectedStatus.value === "") return orders.value;
+  return orders.value.filter((order) => order.status === selectedStatus.value);
+});
+
+// Watch for changes in selectedStatus and fetch new orders if needed
+watch(selectedStatus, async () => {
+  await fetchRestaurantOrders();
+});
 </script>
 
-<style scoped>
-.bg-blue-100 {
-  background-color: #ebf8ff;
-}
-.border-red-500 {
-  border-color: #f56565;
-}
-.border-yellow-500 {
-  border-color: #ecc94b;
-}
-.border-green-500 {
-  border-color: #48bb78;
-}
-</style>
+<style scoped></style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="mobile-spacing space-y-40" v-if="profile">
+  <div class="mobile-spacing" v-if="profile">
     <div class="flex flex-col relative">
       <div class="relative mt-2">
         <!-- Back Arrow Button -->

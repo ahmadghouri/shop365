@@ -1,5 +1,5 @@
 <template>
-     <section class="mt-4">
+  <section class="mt-4">
     <div class="overflow-x-auto py-4 mb-4">
       <div class="flex space-x-4">
         <div
@@ -19,16 +19,13 @@
 import { ref } from "vue";
 
 const services = ref([
-  ["Food", "/public/food.png"],
-  ["Groccery", "/public/Groccery.png"],
-  ["Doctor", "/public/doctor.png"],
-  ["Food", "/public/Food.png"],
-  ["Groccery", "/public/Groccery.png"],
-  ["Doctor", "/public/doctor.png"],
+  ["Food", "/food1.png"],
+  ["Groccery", "/Groccery1.png"],
+  ["Doctor", "/doctor1.png"],
+  ["Food", "/food1.png"],
+  ["Groccery", "/Groccery1.png"],
+  ["Doctor", "/doctor1.png"],
 ]);
-
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

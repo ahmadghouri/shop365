@@ -246,6 +246,7 @@ const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
 
+// Function to fetch orders from the server
 const fetchRestaurantOrders = async () => {
   try {
     await orderStore.getRestaurantOrders();
@@ -264,6 +265,65 @@ const fetchRestaurantOrders = async () => {
   }
 };
 
+function handleNewOrder(event) {
+  if (!event || !event.mergedData) {
+    console.error("Merged data is missing in event:", event);
+    return;
+  }
+
+  const { order, items } = event.mergedData;
+
+  if (!order) {
+    console.error("Order data is missing in mergedData:", event.mergedData);
+    return;
+  }
+
+  // Transform the incoming order data
+  const transformedOrder = {
+    id: order.id,
+    user_id: order.user_id,
+    total_price: order.total_price,
+    status: order.status,
+    created_at: order.created_at,
+    updated_at: order.updated_at,
+    items: items
+      ? items.map((item) => ({
+          id: item.id,
+          order_id: item.order_id,
+          product_id: item.product_id,
+          price: item.price,
+          quantity: item.quantity,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          product: {
+            id: item.product.id,
+            title: item.product.title,
+            description: item.product.description,
+            price: item.product.price,
+            image: item.product.image,
+            image_url: item.product.image_url,
+            type: item.product.type,
+            created_at: item.product.created_at,
+            updated_at: item.product.updated_at,
+          },
+        }))
+      : [],
+    user: order.user
+      ? {
+          id: order.user.id,
+          phone_no: order.user.phone_no,
+          role: order.user.role,
+          created_at: order.user.created_at,
+          updated_at: order.user.updated_at,
+        }
+      : {},
+  };
+
+  // Update the orders array
+  orders.value = [transformedOrder, ...orders.value];
+}
+
+// Function to update order status
 const updateOrderStatus = async (status) => {
   try {
     await orderStore.updateStatus(selectedOrder.value.id, status);
@@ -276,6 +336,7 @@ const updateOrderStatus = async (status) => {
   }
 };
 
+// Function to format date
 const formatDate = (dateString) => {
   const options = {
     year: "numeric",
@@ -287,36 +348,21 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 
+// Function to capitalize text
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
+// Function to refresh orders
 const refreshOrders = async () => {
   await fetchRestaurantOrders();
 };
 
-onMounted(async () => {
-  await fetchRestaurantOrders();
-
-  // Subscribe to the order channel
-  laraEcho
-    .channel("order-channel." + orderStore.businessId)
-    .listen("OrderPlaced", (event) => {
-      // Add the new order to the orders array
-      orders.value.unshift(event.order);
-      orders.value.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
-      console.log(orders.value);
-    })
-    .error((error) => {
-      console.error("Echo error:", error);
-    });
-});
-
+// Function to open modal
 const openModal = (order) => {
   selectedOrder.value = order;
   isModalOpen.value = true;
 };
 
+// Function to close modal
 const closeModal = () => {
   isModalOpen.value = false;
   selectedOrder.value = null;
@@ -331,6 +377,21 @@ const filteredOrders = computed(() => {
 // Watch for changes in selectedStatus and fetch new orders if needed
 watch(selectedStatus, async () => {
   await fetchRestaurantOrders();
+});
+
+// Set up WebSocket connection on mounted
+onMounted(async () => {
+  await fetchRestaurantOrders();
+
+  laraEcho
+    .channel("order-channel." + orderStore.businessId)
+    .listen("OrderPlaced", (event) => {
+      handleNewOrder(event);
+      console.log(orders.value);
+    })
+    .error((error) => {
+      console.error("Echo error:", error);
+    });
 });
 </script>
 

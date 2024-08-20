@@ -36,8 +36,6 @@ export const useOrderStore = defineStore("order", {
         });
 
         this.userOrderDetails = response.data.data;
-
-        console.log(this.userOrderDetails); // Updated to log userOrderDetails
       } catch (error) {
         console.error("Something went wrong", error);
       }

@@ -41,6 +41,14 @@
             Restaurant Admin
           </router-link>
         </li>
+        <li class="px-4 py-2">
+          <router-link
+            to="/admin"
+            class="block text-gray-700 hover:text-gray-900"
+          >
+            <button @click="logout">Logout</button>
+          </router-link>
+        </li>
       </ul>
       <ul v-else-if="role === 'restaurant_admin'">
         <li class="px-4 py-2">
@@ -57,6 +65,14 @@
             class="block text-gray-700 hover:text-gray-900"
           >
             Products
+          </router-link>
+        </li>
+        <li class="px-4 py-2">
+          <router-link
+            to="/admin"
+            class="block text-gray-700 hover:text-gray-900"
+          >
+            <button @click="logout">Logout</button>
           </router-link>
         </li>
       </ul>
@@ -79,6 +95,10 @@ const emitCloseSidebar = () => {
 };
 
 const role = ref(localStorage.getItem("role"));
+
+const logout = () => {
+  localStorage.removeItem("adminToken");
+};
 
 onMounted(() => {
   role.value = localStorage.getItem("role");

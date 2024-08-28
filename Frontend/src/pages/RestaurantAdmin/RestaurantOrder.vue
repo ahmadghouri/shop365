@@ -237,6 +237,7 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { useOrderStore } from "../../store/orderStore"; // Adjust the path accordingly
 import { laraEcho } from "../../echo.config";
+import { toast } from "vue3-toastify";
 
 const orderStore = useOrderStore();
 const orders = ref([]);
@@ -387,7 +388,7 @@ onMounted(async () => {
     .channel("order-channel." + orderStore.businessId)
     .listen("OrderPlaced", (event) => {
       handleNewOrder(event);
-      console.log(orders.value);
+      toast.success("New Order Received");
     })
     .error((error) => {
       console.error("Echo error:", error);

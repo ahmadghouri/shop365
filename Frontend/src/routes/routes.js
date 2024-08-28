@@ -31,6 +31,14 @@ const routes = [
     path: "/",
     name: "TownService",
     component: Splash,
+    beforeEnter: (to, from, next) => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        next({ name: "Categories" });
+      } else {
+        next();
+      }
+    },
   },
   {
     path: "/register",

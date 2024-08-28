@@ -3,7 +3,7 @@
     <section>
       <div>
         <span class="text-[#888888] text-xl mb-2">
-          Hi {{ name || 'Loading...' }}
+          Hi {{ name || "Loading..." }}
         </span>
         <h1 class="text-yellow-500 text-4xl font-bold">Find Your Food.</h1>
       </div>
@@ -11,14 +11,24 @@
 
     <!-- Hero Image Section -->
     <section class="flex justify-center">
-      <div class="h-[180px] w-[374px] shadow-md flex justify-center items-center p-5 mt-8 gap-4 bg-yellow-500/15 rounded-lg">
+      <div
+        class="h-[180px] w-[374px] shadow-md flex justify-center items-center p-5 mt-8 gap-4 bg-yellow-500/15 rounded-lg"
+      >
         <div class="flex-1 h-full flex items-center">
-          <img src="/public/hero.png" alt="Hero Image" class="h-full w-full object-contain rounded-lg" />
+          <img
+            src="/hero.png"
+            alt="Hero Image"
+            class="h-full w-full object-contain rounded-lg"
+          />
         </div>
-        <div class="flex-1 flex flex-col items-center justify-center text-center">
+        <div
+          class="flex-1 flex flex-col items-center justify-center text-center"
+        >
           <span class="text-xl font-semibold">Free Delivery</span>
           <p class="text-sm text-[#888888]">All Over the city.</p>
-          <button class="mt-4 rounded-full bg-yellow-500 px-4 py-1 text-sm text-white">
+          <button
+            class="mt-4 rounded-full bg-yellow-500 px-4 py-1 text-sm text-white"
+          >
             Order Now
           </button>
         </div>
@@ -26,10 +36,12 @@
     </section>
 
     <!-- Services Component -->
-    <Services />
+    <Services @serviceSelected="filterByService" />
 
-    <h1 class="mt-3 text-2xl font-bold text-left sm:text-3xl md:text-4xl lg:text-5xl text-gray-800">
-      Restaurants
+    <h1
+      class="mt-3 text-2xl font-bold text-left sm:text-3xl md:text-4xl lg:text-5xl text-gray-800"
+    >
+      {{ selectedService.toLocaleUpperCase() || "FOOD" }}
     </h1>
 
     <!-- Filters -->
@@ -50,7 +62,10 @@
     </div>
 
     <!-- Restaurant Categories -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6 md:px-8 lg:px-12">
+    <div
+      v-if="filteredRestaurants.length"
+      class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6 md:px-8 lg:px-12"
+    >
       <router-link
         v-for="category in filteredRestaurants"
         :key="category.id"
@@ -92,8 +107,14 @@
               <!-- Dot Indicator for Open/Closed -->
               <span
                 :class="{
-                  'bg-green-500': isOpen(category.opening_time, category.closing_time),
-                  'bg-red-500': !isOpen(category.opening_time, category.closing_time),
+                  'bg-green-500': isOpen(
+                    category.opening_time,
+                    category.closing_time
+                  ),
+                  'bg-red-500': !isOpen(
+                    category.opening_time,
+                    category.closing_time
+                  ),
                 }"
                 class="w-3 h-3 rounded-full mr-2"
               ></span>
@@ -126,6 +147,7 @@
         </div>
       </router-link>
     </div>
+    <div v-else class="mt-8 text-center text-gray-600">Coming Soon</div>
   </div>
 </template>
 
@@ -140,6 +162,7 @@ import Services from "../components/Services.vue";
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);
 const selectedFilter = ref("All");
+const selectedService = ref("Food");
 const profile = ref(null);
 const name = ref("");
 
@@ -160,24 +183,40 @@ const isOpen = (openingTime, closingTime) => {
 
 const filteredRestaurants = computed(() => {
   if (!businessStore.businesses) return [];
-  
-  if (selectedFilter.value === "All") {
-    return businessStore.businesses;
-  } else if (selectedFilter.value === "opened") {
-    return businessStore.businesses.filter((business) =>
+
+  const typeFilter = selectedService.value.toLowerCase();
+
+  // Filter by selected service type
+  let filtered = businessStore.businesses;
+
+  if (typeFilter) {
+    filtered = filtered.filter(
+      (business) =>
+        business.type && business.type.toLowerCase().includes(typeFilter)
+    );
+  }
+
+  // Apply the selected filter for "All", "opened", or "closed"
+  if (selectedFilter.value === "opened") {
+    filtered = filtered.filter((business) =>
       isOpen(business.opening_time, business.closing_time)
     );
   } else if (selectedFilter.value === "closed") {
-    return businessStore.businesses.filter(
+    filtered = filtered.filter(
       (business) => !isOpen(business.opening_time, business.closing_time)
     );
   }
 
-  return [];
+  // If there are no businesses after filtering, return an empty array to trigger "Coming Soon"
+  return filtered.length ? filtered : [];
 });
 
 const filterProducts = (filter) => {
   selectedFilter.value = filter;
+};
+
+const filterByService = (service) => {
+  selectedService.value = service;
 };
 
 async function getProfileData() {

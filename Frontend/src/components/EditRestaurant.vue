@@ -46,6 +46,17 @@
           required
         />
       </div>
+
+      <div class="mb-4">
+        <label for="image" class="block text-gray-700">Image</label>
+        <input
+          @change="(e) => (form.image = e.target.files[0])"
+          type="file"
+          id="image"
+          class="w-full p-2 border border-gray-300 rounded-md"
+        />
+      </div>
+
       <div class="flex justify-end gap-2">
         <button
           @click="$emit('close')"
@@ -77,15 +88,30 @@ const emit = defineEmits(["close"]);
 
 const businessStore = useBusinessStore();
 
+// Define form data with default values
 const form = ref({
   name: props.restaurant.name,
   type: props.restaurant.type,
   opening_time: props.restaurant.opening_time,
   closing_time: props.restaurant.closing_time,
+  image: null, // Initialize as null for file upload
 });
 
 const handleSubmit = async () => {
-  await businessStore.editBusiness(form.value, props.restaurant.id);
+  const formData = new FormData();
+  formData.append("name", form.value.name);
+  formData.append("type", form.value.type);
+  formData.append("opening_time", form.value.opening_time);
+  formData.append("closing_time", form.value.closing_time);
+
+  // Append the image only if it exists
+  if (form.value.image) {
+    formData.append("image", form.value.image);
+  }
+
+  formData.append("_method", "PUT");
+
+  await businessStore.editBusiness(formData, props.restaurant.id);
   emit("close");
 };
 </script>

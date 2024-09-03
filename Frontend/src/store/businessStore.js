@@ -40,22 +40,48 @@ export const useBusinessStore = defineStore("business", {
       }
     },
 
+    // async editBusiness(editBusiness, id) {
+    //   try {
+    //     const response = await axios.put(
+    //       `${API_BASE_URL}/api/business/${id}`,
+    //       editBusiness
+    //     );
+
+    //     const index = this.businesses.findIndex(
+    //       (business) => business.id === id
+    //     );
+
+    //     if (index !== -1) {
+    //       this.businesses[index] = {
+    //         ...this.businesses[index],
+    //         ...editBusiness,
+    //       };
+    //     }
+    //   } catch (error) {
+    //     console.error("Error editing business:", error);
+    //   }
+    // },
+
     async editBusiness(editBusiness, id) {
       try {
-        const response = await axios.put(
+        const response = await axios.post(
           `${API_BASE_URL}/api/business/${id}`,
-          editBusiness
+          editBusiness,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
+
+        const updatedBusiness = response.data.data; // Use the updated data from the server response
 
         const index = this.businesses.findIndex(
           (business) => business.id === id
         );
 
         if (index !== -1) {
-          this.businesses[index] = {
-            ...this.businesses[index],
-            ...editBusiness,
-          };
+          this.businesses[index] = updatedBusiness; // Update the local state with the server response data
         }
       } catch (error) {
         console.error("Error editing business:", error);

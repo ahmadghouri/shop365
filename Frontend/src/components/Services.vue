@@ -20,6 +20,7 @@
 import { ref, defineEmits } from "vue";
 
 const services = ref([
+  ["Shop365", "/Asset 2.png"],
   ["Food", "/food1.png"],
   ["Grocery", "/Groccery1.png"],
   ["Doctor", "/doctor1.png"],

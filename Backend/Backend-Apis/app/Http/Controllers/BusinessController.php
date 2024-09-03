@@ -62,7 +62,7 @@ class BusinessController extends Controller
      */
     public function update(UpdateRequest $request, Business $business): JsonResponse
     {
-        $business->update($request->only(['type', 'name', 'opening_time', 'closing_time']));
+        $business->update($request->only(['type', 'name', 'opening_time', 'closing_time','image']));
 
         if ($request->hasFile('image')) {
             $imagePath = $this->imageService->uploadImage($request, 'image');

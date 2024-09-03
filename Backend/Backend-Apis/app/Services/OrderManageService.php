@@ -71,7 +71,7 @@ class OrderManageService
                 $cartItem->delete();
             }
 
-            OrderPlaced::dispatch($order, $businessId);
+            // OrderPlaced::dispatch($order, $businessId);
 
             $orders[] = $order;
         }

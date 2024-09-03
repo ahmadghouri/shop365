@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Business;
 use App\Models\Product;
+use App\Models\Size;
 use Exception;
 use Illuminate\Support\Facades\File;
 
@@ -39,6 +40,7 @@ class ProductService
             }
         }
 
+        $product->sizes()->detach();
         $product->delete();
     }
 }

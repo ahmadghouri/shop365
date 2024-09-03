@@ -28,7 +28,9 @@ class ProductController extends Controller
      */
     public function index($businessId)
     {
-        $products = Product::where('business_id', $businessId)->get();
+        $products = Product::where('business_id', $businessId)
+            ->with('sizes') // Eager load sizes and prices
+            ->get();
 
         return $this->successResponse($products,"All the products");
     }
@@ -60,6 +62,7 @@ class ProductController extends Controller
      */
     public function show(Product $product): JsonResponse
     {
+        $product->load('sizes');
         return $this->successResponse($product,"Product details");
     }
 

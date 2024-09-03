@@ -369,7 +369,6 @@ const closeModal = () => {
   selectedOrder.value = null;
 };
 
-// Computed property to filter orders based on selected status
 const filteredOrders = computed(() => {
   if (selectedStatus.value === "") return orders.value;
   return orders.value.filter((order) => order.status === selectedStatus.value);

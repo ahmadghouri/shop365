@@ -35,6 +35,14 @@
       </div>
     </div>
 
+    <!-- No Products Message -->
+    <div
+      v-if="!isLoading && filteredProducts.length === 0"
+      class="text-center text-gray-600 mt-4"
+    >
+      <p>No products are available at the moment.</p>
+    </div>
+
     <!-- Product Grid -->
     <div v-else class="grid grid-cols-2 gap-4">
       <div
@@ -101,8 +109,10 @@ const fetchProducts = async () => {
 };
 
 const filteredProducts = computed(() =>
-  products.value.filter((product) =>
-    product.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+  products.value.filter(
+    (product) =>
+      isOpen(product.business.opening_time, product.business.closing_time) &&
+      product.title.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 );
 

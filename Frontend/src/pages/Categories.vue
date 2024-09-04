@@ -1,11 +1,18 @@
 <template>
-  <div class="mobile-spacing">
+  <div class="mobile-spacing relative">
+    <button
+      @click="handleSearch"
+      class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 py-4 shadow-lg"
+    >
+      <img src="/search.png" alt="" />
+    </button>
+
     <section>
       <div>
         <span class="text-[#888888] text-xl mb-2">
           Hi {{ name || "Loading..." }}
         </span>
-        <h1 class="text-yellow-500 text-4xl font-bold">Find Your Food.</h1>
+        <h1 class="text-yellow-500 text-3xl font-bold">Find What You Want.</h1>
       </div>
     </section>
 
@@ -158,6 +165,7 @@ import moment from "moment-timezone";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import Services from "../components/Services.vue";
+import { useRouter } from "vue-router";
 
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);
@@ -165,6 +173,11 @@ const selectedFilter = ref("All");
 const selectedService = ref("Food");
 const profile = ref(null);
 const name = ref("");
+const router = useRouter();
+
+const handleSearch = () => {
+  router.push("/home/search");
+};
 
 const isOpen = (openingTime, closingTime) => {
   const timezone = "Asia/Karachi";

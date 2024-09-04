@@ -26,13 +26,29 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index($businessId)
+    public function businessProducts($businessId)
     {
-        $products = Product::where('business_id', $businessId)
-            ->with('sizes') // Eager load sizes and prices
-            ->get();
+        $products = Product::where('business_id', $businessId)->get();
 
         return $this->successResponse($products,"All the products");
+    }
+
+    public function index(Request $request)
+    {
+        // Start with a query builder instance
+    $query = Product::query()->select('id','title', 'image', 'price', 'business_id')->with('business:id,name');
+
+    if ($request->has('search')) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', '%' . $search . '%')
+              ->orWhere('type', 'like', '%' . $search . '%');
+        });
+    }
+
+    $all_products = $query->get();
+    return $this->successResponse($all_products, "products");
     }
 
     /**

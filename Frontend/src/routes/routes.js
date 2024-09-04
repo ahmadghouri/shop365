@@ -24,6 +24,7 @@ import Profile from "../pages/Profile.vue";
 import OrderHistory from "../pages/OrderHistory.vue";
 import UserLogin from "../pages/Login.vue";
 import ForgotPassword from "../pages/ForgotPassword.vue";
+import SearchProduct from "../pages/SearchProduct.vue";
 
 const routes = [
   // Public Routes
@@ -82,6 +83,14 @@ const routes = [
         path: "categories",
         name: "Categories",
         component: Categories,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: "search",
+        name: "Search",
+        component: SearchProduct,
         meta: {
           requiresAuth: true,
         },

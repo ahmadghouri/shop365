@@ -7,21 +7,23 @@
         <img src="/public/Menu Icon.png" alt="Menu Icon" />
       </div>
 
-      <div>
-        <span class="text-yellow-500 font-bold text-2xl">Shop</span
+      <div class="cursor-pointer">
+        <button @click="moveToHome">
+          <span class="text-yellow-500 font-bold text-2xl">Shop</span
           ><span class="font-bold text-2xl">365</span>
+        </button>
       </div>
 
       <!-- Cart Icon -->
       <div
         class="bg-yellow-500 rounded-full w-14 h-14 flex justify-center items-center"
       >
-      <router-link to="/home/cart">
-        <font-awesome-icon
-          :icon="['fas', 'shopping-cart']"
-          class="text-white text-2xl"
-        />
-      </router-link>
+        <router-link to="/home/cart">
+          <font-awesome-icon
+            :icon="['fas', 'shopping-cart']"
+            class="text-white text-2xl"
+          />
+        </router-link>
       </div>
     </nav>
 
@@ -33,10 +35,7 @@
         class="fixed inset-0 bg-black/50 z-40 flex"
         @click="closeSidebar"
       >
-        <div
-          class="bg-white w-64 h-full p-6 shadow-lg relative"
-          @click.stop
-        >
+        <div class="bg-white w-64 h-full p-6 shadow-lg relative" @click.stop>
           <!-- Close Button -->
           <button
             @click="toggleSidebar"
@@ -82,8 +81,11 @@ import { ref } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
+import { useRouter } from "vue-router";
 
 library.add(faShoppingCart);
+
+const router = useRouter();
 
 const sidebarOpen = ref(false);
 
@@ -91,6 +93,9 @@ const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value;
 };
 
+const moveToHome = () => {
+  router.push("/home/categories");
+};
 const closeSidebar = () => {
   sidebarOpen.value = false;
 };

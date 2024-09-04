@@ -24,7 +24,7 @@ Route::post('/update-password', [ForgotPassword::class, 'updatePassword']);
 Route::apiResource('/business', BusinessController::class);
 Route::apiResource('/products', ProductController::class);
 
-Route::get('/all-products/{businessId}', [ProductController::class, 'index']);
+Route::get('/all-products/{businessId}', [ProductController::class, 'businessProducts']);
 
 Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 

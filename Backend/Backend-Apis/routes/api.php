@@ -25,6 +25,7 @@ Route::apiResource('/business', BusinessController::class);
 Route::apiResource('/products', ProductController::class);
 
 Route::get('/all-products/{businessId}', [ProductController::class, 'businessProducts']);
+Route::get('/random-products', [ProductController::class, 'randomProductsByBusiness']);
 
 Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 

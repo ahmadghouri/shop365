@@ -36,7 +36,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         // Start with a query builder instance
-    $query = Product::query()->select('id','title', 'image', 'price', 'business_id')->with('business:id,name');
+    $query = Product::query()->select('id','title', 'image', 'price', 'business_id')->with('business');
 
     if ($request->has('search')) {
         $search = $request->search;
@@ -125,4 +125,21 @@ class ProductController extends Controller
         $products = Product::where('business_id', $businessId)->get();
         return $this->successResponse($products, "Products found");
     }
+
+
+    public function randomProductsByBusiness()
+    {
+        $products = Product::select('id', 'title', 'image', 'price', 'business_id')
+            ->with('business:id,name')
+            ->inRandomOrder() // Fetch in random order
+            ->get()
+            ->groupBy('business_id') // Group by business_id
+            ->map(function ($group) {
+                return $group->take(3); // Take 3 products per business
+            })
+            ->values(); // Reset the keys after grouping
+    
+        return $this->successResponse($products, "Three random products from each business");
+    }
+    
 }

@@ -1,6 +1,5 @@
 <template>
   <div class="mobile-spacing -mt-5">
-
     <div class="relative mb-6">
       <button
         @click="goBack"
@@ -47,7 +46,6 @@
     </div>
 
     <!-- Products Section -->
-    
 
     <div class="grid grid-cols-2 gap-4">
       <router-link
@@ -57,20 +55,24 @@
           name: 'ProductDetailsPage',
           params: { id: product.id },
         }"
-        class="product-card bg-white p-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
+        class="bg-white py-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
       >
         <!-- Image Section -->
-        <div class="product-image-container">
+        <div
+          class="w-[120px] h-[120px] overflow-hidden rounded-md flex justify-center items-center"
+        >
           <img
-            class="product-image"
+            class="w-full h-full object-contain"
             :src="product.image_url"
-            alt="Product image"
+            alt="product image"
           />
         </div>
 
         <!-- Text Section -->
-        <div class="text-center mt-4">
-          <h2 class="text-lg font-semibold text-slate-800 mb-2">
+        <div class="text-center mt-2">
+          <h2
+            class="text-lg font-semibold text-slate-800 mb-2 truncate w-[150px]"
+          >
             {{ product.title }}
           </h2>
           <p class="text-sm text-gray-800 font-semibold">

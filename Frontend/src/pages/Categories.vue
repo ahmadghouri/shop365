@@ -106,7 +106,7 @@
         </div>
         <div class="p-4 flex flex-col justify-between">
           <div>
-            <h1 class="text-xl font-semibold text-gray-900 mb-2">
+            <h1 class="text-xl font-semibold text-gray-900 mb-2 truncate">
               {{ category.name }}
             </h1>
 

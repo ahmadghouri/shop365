@@ -40,23 +40,33 @@
       <div
         v-for="product in filteredProducts"
         :key="product.id"
-        class="bg-slate-100 rounded flex flex-col items-center py-4"
+        :class="[
+          'bg-slate-100 rounded flex flex-col items-center py-4 cursor-pointer transition-opacity duration-300',
+          !isOpen(product.business.opening_time, product.business.closing_time)
+            ? 'opacity-50 pointer-events-none'
+            : '',
+        ]"
+        @click="handleProductClick(product)"
       >
-        <div class="max-w-[120px] min-h-[120px]">
+        <div
+          class="w-[120px] h-[120px] overflow-hidden rounded-md flex justify-center items-center"
+        >
           <img
             :src="product.image_url"
             alt="Product image"
-            class="object-contain"
+            class="w-full h-full object-contain"
           />
         </div>
-        <h1 class="text-center font-semibold !leading-tight">
+        <h1
+          class="text-lg font-semibold text-slate-800 mb-2 truncate w-[150px]"
+        >
           {{ product.title }}
         </h1>
         <div class="flex w-full justify-between items-center px-4 mt-2">
           <div class="flex items-center space-x-1">
             <img src="/shop_icon.png" alt="" class="w-3 h-3" />
-            <p class="text-sm text-yellow-500 text-[12px]">
-              {{ product.business.name }}
+            <p class="text-yellow-500 text-[12px]">
+              {{ product.business.name.split(" ")[0] }}
             </p>
           </div>
           <p class="font-semibold text-sm">RS: {{ product.price }}</p>
@@ -69,6 +79,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import axios from "axios";
+import moment from "moment-timezone";
 import { API_BASE_URL } from "../config/api";
 
 const searchQuery = ref("");
@@ -95,8 +106,34 @@ const filteredProducts = computed(() =>
   )
 );
 
+const isOpen = (openingTime, closingTime) => {
+  const timezone = "Asia/Karachi";
+  const currentTime = moment().tz(timezone);
+  const parseTime = (time) => moment.tz(time, "hh:mm:ssA", timezone);
+
+  const open = parseTime(openingTime);
+  let close = parseTime(closingTime);
+
+  if (close.isBefore(open)) {
+    close.add(1, "day");
+  }
+
+  return currentTime.isAfter(open) && currentTime.isBefore(close);
+};
+
 const handleSearch = () => {
   fetchProducts();
+};
+
+const handleProductClick = (product) => {
+  if (isOpen(product.business.opening_time, product.business.closing_time)) {
+    goToProductDetail(product.id);
+  }
+};
+
+const goToProductDetail = (productId) => {
+  // Implement navigation to product detail page
+  console.log("Navigating to product detail page for product:", productId);
 };
 
 fetchProducts();

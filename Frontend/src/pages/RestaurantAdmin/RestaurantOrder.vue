@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-6xl mx-auto p-6 rounded-md">
     <div class="flex justify-between">
-      <h1 class="text-3xl font-bold mb-6">Restaurant Orders</h1>
+      <h1 class="text-2xl md:text-3xl font-bold mb-6">Restaurant Orders</h1>
       <div>
         <button @click="refreshOrders" class="button outline-none">
           Refresh
@@ -86,7 +86,7 @@
 
     <div
       v-if="isModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md mobile-spacing"
     >
       <div class="w-[800px] relative bg-[#FFFFFF] rounded-lg">
         <div
@@ -104,7 +104,7 @@
                 'border-red-500 text-red-500':
                   selectedOrder.status !== 'pending',
               }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
+              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium hidden md:block"
             >
               Pending
             </button>
@@ -117,7 +117,7 @@
                 'border-yellow-500 text-yellow-500':
                   selectedOrder.status !== 'preparing',
               }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
+              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium hidden md:block lg:block"
             >
               Preparing
             </button>
@@ -129,7 +129,7 @@
                 'border-green-500 text-green-500':
                   selectedOrder.status !== 'delivered',
               }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
+              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium hidden md:block"
             >
               Delivered
             </button>
@@ -167,50 +167,84 @@
           </div>
         </div>
 
+        <!-- for mobile only -->
+        <div class="px-7 md:hidden lg:hidden">
+          <select
+            :class="`p-2 border-2 rounded focus:outline-none transition-colors duration-300 ${borderColor}`"
+            class="bg-white text-gray-700"
+          >
+            <option value="" disabled selected>Select</option>
+            <option
+              value=""
+              @click="updateOrderStatus('pending')"
+              class="hover:bg-red-500 focus:bg-red-500 focus:text-white"
+            >
+              Pending
+            </option>
+            <option
+              value=""
+              @click="updateOrderStatus('preparing')"
+              class="hover:bg-yellow-500 focus:bg-yellow-500 focus:text-white"
+            >
+              Preparing
+            </option>
+            <option
+              value=""
+              @click="updateOrderStatus('delivered')"
+              class="hover:bg-green-500 focus:bg-green-500 focus:text-white"
+            >
+              Delivered
+            </option>
+          </select>
+        </div>
+
         <div class="mt-8 px-6 py-4 overflow-y-auto h-[400px]">
           <div v-if="selectedOrder.items.length > 0">
-            <!-- Iterate over items -->
             <div
               v-for="item in selectedOrder.items"
               :key="item.id"
-              class="mb-4"
+              class="relative mb-4 p-4 bg-[#E5E7EB] rounded-lg flex justify-between items-center"
             >
-              <div class="p-4 bg-[#E5E7EB] flex justify-between rounded-lg">
-                <div class="flex items-center gap-10">
-                  <div>
-                    <img
-                      :src="item.product.image_url"
-                      alt="No image"
-                      class="w-[122px] h-[100px] object-cover rounded-lg"
-                    />
-                  </div>
-                  <div class="space-y-1.5">
-                    <p class="text-xl font-semibold">
-                      {{ item.product.title }}
-                    </p>
-                    <p class="text-sm">
-                      Description:
-                      <span class="ml-4 text-[#6d6d6d]">{{
-                        item.product.description
-                      }}</span>
-                    </p>
-                    <p class="text-sm">
-                      Type:
-                      <span class="ml-14 text-[#6d6d6d]">{{
-                        item.product.type
-                      }}</span>
-                    </p>
-                    <p class="text-sm">
-                      Quantity:
-                      <span class="ml-8 text-[#6d6d6d]">{{
-                        item.quantity
-                      }}</span>
-                    </p>
-                  </div>
+              <!-- Product Image and Details Row -->
+              <div class="flex items-center gap-4">
+                <!-- Product Image -->
+                <div class="flex-shrink-0">
+                  <img
+                    :src="item.product.image_url"
+                    alt="No image"
+                    class="w-[100px] h-[100px] object-contain rounded-lg"
+                  />
                 </div>
-                <div>
-                  <p class="text-2xl font-semibold">Price: {{ item.price }}</p>
+
+                <!-- Product Details -->
+                <div class="space-y-2">
+                  <p class="text-lg md:text-xl font-semibold">
+                    {{ item.product.title }}
+                  </p>
+                  <p class="text-sm">
+                    Description:
+                    <span class="ml-2 text-[#6d6d6d]">{{
+                      item.product.description
+                    }}</span>
+                  </p>
+                  <p class="text-sm">
+                    Type:
+                    <span class="ml-2 text-[#6d6d6d]">{{
+                      item.product.type
+                    }}</span>
+                  </p>
+                  <p class="text-sm">
+                    Quantity:
+                    <span class="ml-2 text-[#6d6d6d]">{{ item.quantity }}</span>
+                  </p>
                 </div>
+              </div>
+
+              <!-- Price in Lower Right Corner -->
+              <div class="absolute bottom-4 right-4 text-right">
+                <p class="text-lg md:text-2xl font-semibold">
+                  Price: {{ item.price }}
+                </p>
               </div>
             </div>
           </div>
@@ -265,6 +299,32 @@ const fetchRestaurantOrders = async () => {
     loading.value = false;
   }
 };
+
+const borderColor = computed(() => {
+  switch (selectedStatus.value) {
+    case "pending":
+      return "border-red-500";
+    case "preparing":
+      return "border-yellow-500";
+    case "delivered":
+      return "border-green-500";
+    default:
+      return "border-gray-300";
+  }
+});
+
+const textColor = computed(() => {
+  switch (selectedStatus.value) {
+    case "pending":
+      return "text-red-500";
+    case "preparing":
+      return "text-yellow-500";
+    case "delivered":
+      return "text-green-500";
+    default:
+      return "text-gray-300";
+  }
+});
 
 function handleNewOrder(event) {
   if (!event || !event.mergedData) {

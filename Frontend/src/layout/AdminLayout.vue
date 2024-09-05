@@ -11,7 +11,10 @@
 
       <h1 class="text-lg font-bold">Admin</h1>
 
-      <button class="p-2 text-red-600 hover:bg-red-100 rounded-md">
+      <button
+        class="p-2 text-red-600 hover:bg-red-100 rounded-md"
+        @click="handleLogout"
+      >
         Log out
       </button>
     </div>
@@ -29,8 +32,15 @@
 <script setup>
 import { ref } from "vue";
 import Sidebar from "../components/SideBar.vue";
+import { useRouter } from "vue-router";
 
 const sidebarOpen = ref(false);
+const route = useRouter();
+
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  route.push("/userLogin");
+};
 
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value;

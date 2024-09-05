@@ -66,7 +66,7 @@
           />
         </div>
         <h1
-          class="text-lg font-semibold text-slate-800 mb-2 truncate w-[150px]"
+          class="text-lg text-center font-semibold text-slate-800 mb-2 truncate w-[150px]"
         >
           {{ product.title }}
         </h1>
@@ -89,10 +89,12 @@ import { ref, computed } from "vue";
 import axios from "axios";
 import moment from "moment-timezone";
 import { API_BASE_URL } from "../config/api";
+import { useRouter } from "vue-router";
 
 const searchQuery = ref("");
 const products = ref([]);
 const isLoading = ref(false);
+const route = useRouter();
 
 const fetchProducts = async () => {
   isLoading.value = true;
@@ -142,7 +144,7 @@ const handleProductClick = (product) => {
 };
 
 const goToProductDetail = (productId) => {
-  // Implement navigation to product detail page
+  route.push(`/home/product/${productId}`);
   console.log("Navigating to product detail page for product:", productId);
 };
 

@@ -232,47 +232,35 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
   if (to.meta.requiresAuth) {
-    const token = localStorage.getItem("token");
     if (token) {
-      next();
-    } else {
-      next({ name: "Register" });
-    }
-  } else if (to.meta.requiresAdminAuth) {
-    const adminToken = localStorage.getItem("adminToken");
-    const role = localStorage.getItem("role");
-    if (adminToken) {
-      if (to.name === "AdminLogin") {
-        if (role === "restaurant_admin") {
-          next({ name: "RestaurantOrders" });
-        } else if (role === "admin") {
-          next({ name: "Dashboard" });
+      // If authenticated, allow access
+      if (to.meta.requiresAdminAuth) {
+        if (role === "admin") {
+          next(); // Allow access for admin
+        } else if (role === "restaurant_admin") {
+          if (
+            to.name === "RestaurantAdminDashboard" ||
+            to.name === "RestaurantOrders"
+          ) {
+            next(); // Allow access for restaurant_admin to specific routes
+          } else {
+            next({ name: "RestaurantAdminDashboard" }); // Redirect to RestaurantAdminDashboard if accessing other routes
+          }
         } else {
-          next({ name: "AdminLogin" });
+          next({ name: "AdminLogin" }); // Redirect to AdminLogin if the role is not valid
         }
-      } else if (to.meta.requiresAdminAuth && role === "admin") {
-        next();
-      } else if (
-        to.meta.requiresAdminAuth &&
-        role === "restaurant_admin" &&
-        to.name === "RestaurantOrders"
-      ) {
-        next();
-      } else if (
-        to.meta.requiresAdminAuth &&
-        role === "restaurant_admin" &&
-        to.name === "RestaurantAdminDashboard"
-      ) {
-        next();
       } else {
-        next({ name: "AdminLogin" });
+        next(); // Allow access for non-admin routes
       }
     } else {
-      next({ name: "AdminLogin" });
+      next({ name: "UserLogin" }); // Redirect to UserLogin if not authenticated
     }
   } else {
-    next();
+    next(); // Allow access for routes that do not require authentication
   }
 });
 

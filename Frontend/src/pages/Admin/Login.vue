@@ -74,9 +74,9 @@ const login = async () => {
     });
 
     const { token, data } = response.data;
-    console.log("Login response:", response); // Log the full response for debugging
+
     if (response.status === 200 || response.status === 201) {
-      localStorage.setItem("adminToken", token);
+      localStorage.setItem("token", token);
       localStorage.setItem("role", data.role);
       if (data.role === "admin") {
         router.push("/admin/dashboard");

@@ -12,7 +12,7 @@ export const useUserStore = defineStore("user", {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         this.users = response.data;
@@ -28,7 +28,7 @@ export const useUserStore = defineStore("user", {
           `${API_BASE_URL}/api/admin/users/${id}`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }
         );

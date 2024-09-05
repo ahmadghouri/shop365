@@ -110,11 +110,21 @@ const login = async () => {
       password: password.value,
     });
 
-    const { data } = response;
+    const { token, data } = response.data;
 
-    localStorage.setItem("token", data.token);
+    // localStorage.setItem("token", data.token);
 
-    router.push("/home/categories"); // Redirect to a different route after login
+    if (response.status === 200 || response.status === 201) {
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", data.role);
+      if (data.role === "admin") {
+        router.push("/admin/dashboard");
+      } else if (data.role === "restaurant_admin") {
+        router.push("/admin/restaurantAdminDashboard");
+      } else if (data.role === "end_user") {
+        router.push("/home/categories");
+      }
+    }
   } catch (error) {
     if (error.response) {
       const responseData = error.response.data;

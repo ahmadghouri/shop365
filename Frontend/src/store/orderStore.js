@@ -51,7 +51,7 @@ export const useOrderStore = defineStore("order", {
           `${API_BASE_URL}/api/restaurantAdmin/orders`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }
         );
@@ -70,7 +70,7 @@ export const useOrderStore = defineStore("order", {
           { status },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }
         );

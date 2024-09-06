@@ -168,7 +168,7 @@
         </div>
 
         <!-- for mobile only -->
-        <div class="px-7 md:hidden lg:hidden">
+        <!-- <div class="px-7 md:hidden lg:hidden">
           <select
             :class="`p-2 border-2 rounded focus:outline-none transition-colors duration-300 ${borderColor}`"
             class="bg-white text-gray-700"
@@ -191,6 +191,34 @@
             <option
               value=""
               @click="updateOrderStatus('delivered')"
+              class="hover:bg-green-500 focus:bg-green-500 focus:text-white"
+            >
+              Delivered
+            </option>
+          </select>
+        </div> -->
+
+        <div class="px-7 md:hidden lg:hidden">
+          <select
+            :class="`p-2 border-2 rounded focus:outline-none transition-colors duration-300 ${borderColor}`"
+            class="bg-white text-gray-700"
+            @change="updateOrderStatus($event.target.value)"
+          >
+            <option value="" disabled selected>Select</option>
+            <option
+              value="pending"
+              class="hover:bg-red-500 focus:bg-red-500 focus:text-white"
+            >
+              Pending
+            </option>
+            <option
+              value="preparing"
+              class="hover:bg-yellow-500 focus:bg-yellow-500 focus:text-white"
+            >
+              Preparing
+            </option>
+            <option
+              value="delivered"
               class="hover:bg-green-500 focus:bg-green-500 focus:text-white"
             >
               Delivered

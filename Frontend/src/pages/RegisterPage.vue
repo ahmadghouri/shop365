@@ -6,6 +6,7 @@
       </h1>
 
       <form @submit.prevent="register" class="space-y-6">
+        <!-- Phone Number Input -->
         <div>
           <label
             for="phone"
@@ -27,6 +28,8 @@
             {{ errors.phone_no[0] }}
           </p>
         </div>
+
+        <!-- Password Input -->
         <div>
           <label
             for="password"
@@ -49,6 +52,30 @@
           </p>
         </div>
 
+        <!-- Confirm Password Input -->
+        <div>
+          <label
+            for="confirmPassword"
+            class="block mb-2 text-sm font-medium text-gray-900"
+          >
+            Confirm Password
+          </label>
+          <input
+            v-model="confirmPassword"
+            type="password"
+            name="confirmPassword"
+            id="confirmPassword"
+            placeholder="Confirm your password"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
+            required
+          />
+          <!-- Error Message for Confirm Password -->
+          <p v-if="confirmPasswordError" class="text-sm text-red-600">
+            {{ confirmPasswordError }}
+          </p>
+        </div>
+
+        <!-- Terms and Conditions -->
         <div class="flex items-start">
           <div class="flex items-center h-5">
             <input
@@ -78,8 +105,10 @@
           {{ generalError }}
         </p>
 
+        <!-- Submit Button -->
         <button type="submit" class="button">Create an Account</button>
 
+        <!-- Login Link and Footer -->
         <div class="mt-6">
           <p class="text-sm font-light text-gray-500 text-center">
             Already have an account?
@@ -90,13 +119,12 @@
               Log In
             </router-link>
           </p>
-
           <div class="flex justify-center mt-2">
             <span
               class="inline-flex items-center px-3 italic py-1.5 text-sm font-medium text-yellow-600"
             >
               Powered by
-              <a href="#" class="ml-1 underline"> NBT-HUB </a>
+              <a href="#" class="ml-1 underline">NBT-HUB</a>
             </span>
           </div>
         </div>
@@ -111,11 +139,14 @@ import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import { useRouter } from "vue-router";
 
+// Reactive variables for form fields and state
 const phone = ref("");
 const password = ref("");
+const confirmPassword = ref(""); // New field for confirm password
 const termsAccepted = ref(false);
-const errors = ref({}); // To store validation errors
-const generalError = ref(""); // To store any general error messages
+const errors = ref({});
+const generalError = ref("");
+const confirmPasswordError = ref(""); // Error for confirm password
 const router = useRouter();
 
 const register = async () => {
@@ -124,8 +155,16 @@ const register = async () => {
     return;
   }
 
-  errors.value = {}; // Clear previous errors
-  generalError.value = ""; // Clear previous general error
+  // Clear previous errors
+  errors.value = {};
+  generalError.value = "";
+  confirmPasswordError.value = ""; // Clear confirm password error
+
+  // Check if password and confirm password match
+  if (password.value !== confirmPassword.value) {
+    confirmPasswordError.value = "Passwords do not match.";
+    return;
+  }
 
   try {
     const response = await axios.post(`${API_BASE_URL}/api/register`, {
@@ -143,10 +182,8 @@ const register = async () => {
       const responseData = error.response.data;
 
       if (responseData.errors) {
-        // If there are validation errors, store them
         errors.value = responseData.errors;
       } else {
-        // If it's a general error, store the message
         generalError.value = responseData.message || "An error occurred";
       }
     } else if (error.request) {

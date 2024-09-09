@@ -341,19 +341,6 @@ const borderColor = computed(() => {
   }
 });
 
-const textColor = computed(() => {
-  switch (selectedStatus.value) {
-    case "pending":
-      return "text-red-500";
-    case "preparing":
-      return "text-yellow-500";
-    case "delivered":
-      return "text-green-500";
-    default:
-      return "text-gray-300";
-  }
-});
-
 function handleNewOrder(event) {
   if (!event || !event.mergedData) {
     console.error("Merged data is missing in event:", event);

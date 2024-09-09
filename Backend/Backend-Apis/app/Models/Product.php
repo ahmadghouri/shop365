@@ -12,7 +12,7 @@ class Product extends Model
 
     protected $fillable = ['title', 'description', 'image', 'price', 'business_id'];
 
-    protected $appends = ['image_url'];
+    protected $appends = ['image_url', 'final_price'];
 
     public function getImageUrlAttribute()
     {
@@ -27,4 +27,16 @@ class Product extends Model
     public function sizes() {
         return $this->belongsToMany(Size::class)->withPivot('price');
     }
+
+// Product.php
+public function getFinalPriceAttribute()
+{
+    if ($this->discount > 0) {
+        return $this->price - ($this->price * ($this->discount / 100));
+    }
+    return $this->price;
+}
+
+
+    
 }

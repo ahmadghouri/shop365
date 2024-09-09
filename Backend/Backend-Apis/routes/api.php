@@ -26,6 +26,7 @@ Route::apiResource('/products', ProductController::class);
 
 Route::get('/all-products/{businessId}', [ProductController::class, 'businessProducts']);
 Route::get('/random-products', [ProductController::class, 'randomProductsByBusiness']);
+Route::get('/business/{businessId}/products', [ProductController::class, 'businessProductsDiscount']);
 
 Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 
@@ -91,6 +92,10 @@ Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
 
         // Orders management
         Route::get('/orders', [OrderController::class, 'viewRestaurantOrders']);
+
+        Route::post('/products/discount', [ProductController::class, 'updateDiscount']);
+        Route::get('/products/removeDiscount', [ProductController::class, 'removeDiscount']);
+
     });
 
 

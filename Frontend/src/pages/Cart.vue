@@ -47,7 +47,15 @@
             <div class="ml-4 flex-1">
               <h2 class="text-lg font-medium">{{ item.product.title }}</h2>
               <p class="text-gray-500">Quantity: {{ item.quantity }}</p>
-              <p class="text-yellow-600 font-bold">{{ item.product.price }}</p>
+              <p
+                v-if="item.product.final_price"
+                class="text-yellow-600 font-bold"
+              >
+                {{ item.product.final_price }}
+              </p>
+              <p v-else class="text-yellow-600 font-bold">
+                {{ item.product.price }}
+              </p>
             </div>
             <button
               @click="removeFromCart(item.id)"

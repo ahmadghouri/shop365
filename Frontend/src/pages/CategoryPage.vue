@@ -46,7 +46,6 @@
     </div>
 
     <!-- Products Section -->
-
     <div class="grid grid-cols-2 gap-4">
       <router-link
         v-for="product in filteredProducts"
@@ -59,25 +58,36 @@
       >
         <!-- Image Section -->
         <div
-          class="w-[120px] h-[120px] overflow-hidden rounded-md flex justify-center items-center"
+          class="w-[120px] h-[120px] overflow-hidden rounded-md flex justify-center items-center mb-4"
         >
           <img
-            class="w-full h-full object-contain"
+            class="w-full h-full object-cover"
             :src="product.image_url"
             alt="product image"
           />
         </div>
 
         <!-- Text Section -->
-        <div class="text-center mt-2">
+        <div class="text-center">
           <h2
             class="text-lg font-semibold text-slate-800 mb-2 truncate w-[150px]"
           >
             {{ product.title }}
           </h2>
-          <p class="text-sm text-gray-800 font-semibold">
-            Price: {{ product.price }}
-          </p>
+          <div class="flex flex-col items-center">
+            <!-- Price Section -->
+            <p v-if="product.discount > 0" class="text-sm mb-1">
+              <span class="text-gray-500 line-through text-base">
+                {{ product.price }}
+              </span>
+              <span class="text-red-600 font-bold text-xl ml-2">
+                {{ product.final_price }}
+              </span>
+            </p>
+            <p v-else class="text-gray-800 font-semibold text-base">
+              Rs: {{ product.price }}
+            </p>
+          </div>
         </div>
       </router-link>
     </div>

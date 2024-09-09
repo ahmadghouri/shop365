@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 
 class ProductController extends Controller
@@ -131,15 +132,66 @@ class ProductController extends Controller
     {
         $products = Product::select('id', 'title', 'image', 'price', 'business_id')
             ->with('business:id,name')
-            ->inRandomOrder() // Fetch in random order
+            ->inRandomOrder() 
             ->get()
-            ->groupBy('business_id') // Group by business_id
+            ->groupBy('business_id') 
             ->map(function ($group) {
-                return $group->take(3); // Take 3 products per business
+                return $group->take(3); 
             })
-            ->values(); // Reset the keys after grouping
+            ->values(); 
     
         return $this->successResponse($products, "Three random products from each business");
     }
+    
+
+    public function businessProductsDiscount(Request $request, $businessId)
+    {
+        $discount = $request->get('discount', 0); // Get discount from request, default to 0
+    
+        $products = Product::where('business_id', $businessId)->get();
+    
+        // Apply discount dynamically to each product
+        $products->each(function ($product) use ($discount) {
+            $product->final_price = $product->price - ($product->price * ($discount / 100));
+        });
+    
+        return $this->successResponse($products, "All the products with discounts applied");
+    }
+
+
+
+    public function updateDiscount(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        $user = auth()->user();
+        $businessId = $user->business_id;
+        $products = Product::where('business_id', $businessId)->get();
+        $discount = $request->input('discount');
+
+        $products->each(function ($product) use ($discount) {
+            $product->discount = $discount;
+            $product->save();
+        });
+
+        // $product = Product::findOrFail($productId);
+    
+        return $this->successResponse($products[0]);
+    }
+
+    public function removeDiscount()
+    {
+        $user = auth()->user();
+        $businessId = $user->business_id;   
+        $products = Product::where('business_id', $businessId)->get();
+        $products->each(function ($product) {
+            $product->discount = 0;
+            $product->save();
+        });
+
+        return $this->successResponse(null,'Discount Removed');
+    }
+    
     
 }

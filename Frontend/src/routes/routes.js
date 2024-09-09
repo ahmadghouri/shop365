@@ -25,6 +25,7 @@ import OrderHistory from "../pages/OrderHistory.vue";
 import UserLogin from "../pages/Login.vue";
 import ForgotPassword from "../pages/ForgotPassword.vue";
 import SearchProduct from "../pages/SearchProduct.vue";
+import Discount from "../pages/RestaurantAdmin/Discount.vue";
 
 const routes = [
   // Public Routes
@@ -218,6 +219,14 @@ const routes = [
         path: "restaurantAdminDashboard",
         name: "RestaurantAdminDashboard",
         component: RestaurantAdminDashboard,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "discount",
+        name: "Discount",
+        component: Discount,
         meta: {
           requiresAdminAuth: true,
         },

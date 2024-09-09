@@ -35,7 +35,18 @@
         <h2 class="text-2xl font-semibold text-gray-900">
           {{ product.title }}
         </h2>
-        <p class="text-lg text-gray-800 font-semibold">{{ product.price }}</p>
+        <!-- <p class="text-lg text-gray-800 font-semibold">{{ product.price }}</p> -->
+        <p v-if="product.discount > 0" class="text-sm mb-1">
+          <span class="text-gray-500 line-through text-base">
+            {{ product.price }}
+          </span>
+          <span class="text-red-600 font-bold text-xl ml-2">
+            {{ product.final_price }}
+          </span>
+        </p>
+        <p v-else class="ext-lg text-gray-800 font-semibold">
+          {{ product.price }}
+        </p>
       </div>
 
       <div class="mt-6 space-y-4">

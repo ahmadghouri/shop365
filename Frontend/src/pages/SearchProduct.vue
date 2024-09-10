@@ -1,5 +1,5 @@
 <template>
-  <div class="mobile-spacing">
+  <div class="mobile-spacing lg:mt-4 lg:px-32">
     <!-- Search Bar -->
     <div class="mb-4 flex">
       <input
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Product Grid or Skeleton Loader -->
-    <div v-if="isLoading" class="grid grid-cols-2 gap-4">
+    <div v-if="isLoading" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Skeleton loader for each product card -->
       <div
         v-for="n in 6"
@@ -44,7 +44,7 @@
     </div>
 
     <!-- Product Grid -->
-    <div v-else class="grid grid-cols-2 gap-4">
+    <div v-else class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <div
         v-for="product in filteredProducts"
         :key="product.id"

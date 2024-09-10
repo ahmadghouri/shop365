@@ -1,13 +1,13 @@
 <template>
-  <div class="mobile-spacing relative">
+  <div class="mobile-spacing relative lg:px-16">
     <button
       @click="handleSearch"
-      class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 py-4 shadow-lg"
+      class="fixed bottom-6 left-1/2 lg:left-[95%] transform -translate-x-1/2 z-50 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 py-4 shadow-lg"
     >
       <img src="/search.png" alt="" />
     </button>
 
-    <section>
+    <section class="lg:hidden">
       <div>
         <span class="text-[#888888] text-xl mb-2">
           Hi {{ name || "Loading..." }}
@@ -16,8 +16,48 @@
       </div>
     </section>
 
+    <!-- hero image section for desktop -->
+
+    <section
+      class="hidden lg:flex lg:items-center lg:justify-center lg:py-12 px-20 bg-white rounded-lg mt-8"
+    >
+      <div class="flex flex-col lg:flex-row lg:items-center lg:space-x-8">
+        <!-- Image Section -->
+        <div class="lg:w-1/2 flex flex-col justify-center mt-6 lg:mt-0">
+          <div class="text-center lg:text-left">
+            <span class="text-[#888888] text-xl mb-2 block">
+              Hi {{ name || "Loading..." }}
+            </span>
+            <h1 class="text-yellow-500 text-3xl lg:text-4xl font-bold mb-4">
+              Find What You Want.
+            </h1>
+            <p class="text-gray-600 text-base lg:text-lg">
+              Explore a variety of services that cater to all your needs. Enjoy
+              fast and reliable service anywhere in the city!
+            </p>
+            <!-- Call to Action Button -->
+            <button
+              class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out"
+            >
+              Discover More
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:w-1/2">
+          <img
+            src="/hero.png"
+            alt="Hero Image"
+            class="rounded-lg object-cover w-full h-auto"
+          />
+        </div>
+
+        <!-- Text Section -->
+      </div>
+    </section>
+
     <!-- Hero Image Section -->
-    <section class="flex justify-center">
+    <section class="flex justify-center lg:hidden">
       <div
         class="h-[180px] w-[374px] shadow-md flex justify-center items-center p-5 mt-8 gap-4 bg-yellow-500/15 rounded-lg"
       >
@@ -45,116 +85,118 @@
     <!-- Services Component -->
     <Services @serviceSelected="filterByService" />
 
-    <h1
-      class="mt-3 text-2xl font-bold text-left sm:text-3xl md:text-4xl lg:text-5xl text-gray-800"
-    >
-      {{ selectedService.toLocaleUpperCase() || "FOOD" }}
-    </h1>
-
-    <!-- Filters -->
-    <div class="overflow-x-auto whitespace-nowrap py-4 mb-4">
-      <button
-        v-for="filter in filters"
-        :key="filter"
-        @click="filterProducts(filter)"
-        :class="[
-          'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer',
-          filter === selectedFilter
-            ? 'bg-yellow-500 text-white hover:bg-yellow-500'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-        ]"
+    <section class="lg:px-16">
+      <h1
+        class="mt-3 text-2xl font-bold text-left sm:text-3xl md:text-4xl lg:text-5xl text-gray-800"
       >
-        {{ filter }}
-      </button>
-    </div>
+        {{ selectedService.toLocaleUpperCase() || "FOOD" }}
+      </h1>
 
-    <!-- Restaurant Categories -->
-    <div
-      v-if="filteredRestaurants.length"
-      class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6 md:px-8 lg:px-12"
-    >
-      <router-link
-        v-for="category in filteredRestaurants"
-        :key="category.id"
-        :to="{
-          name: 'CategoryPage',
-          params: { id: category.id },
-          query: { title: category.name },
-        }"
-        :class="[
-          'bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link',
-          !isOpen(category.opening_time, category.closing_time)
-            ? 'pointer-events-none opacity-50'
-            : '',
-        ]"
-        :style="
-          !isOpen(category.opening_time, category.closing_time)
-            ? { cursor: 'not-allowed' }
-            : {}
-        "
-        @click.native.prevent="
-          !isOpen(category.opening_time, category.closing_time) &&
-            $event.preventDefault()
-        "
+      <!-- Filters -->
+      <div class="overflow-x-auto whitespace-nowrap py-4 mb-4">
+        <button
+          v-for="filter in filters"
+          :key="filter"
+          @click="filterProducts(filter)"
+          :class="[
+            'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer',
+            filter === selectedFilter
+              ? 'bg-yellow-500 text-white hover:bg-yellow-500'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+          ]"
+        >
+          {{ filter }}
+        </button>
+      </div>
+
+      <!-- Restaurant Categories -->
+      <div
+        v-if="filteredRestaurants.length"
+        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6"
       >
-        <div class="category-image-container">
-          <img
-            class="category-image"
-            :src="category.image_url"
-            alt="Category Image"
-          />
-        </div>
-        <div class="p-4 flex flex-col justify-between">
-          <div>
-            <h1 class="text-xl font-semibold text-gray-900 mb-2 truncate">
-              {{ category.name }}
-            </h1>
+        <router-link
+          v-for="category in filteredRestaurants"
+          :key="category.id"
+          :to="{
+            name: 'CategoryPage',
+            params: { id: category.id },
+            query: { title: category.name },
+          }"
+          :class="[
+            'bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link',
+            !isOpen(category.opening_time, category.closing_time)
+              ? 'pointer-events-none opacity-50'
+              : '',
+          ]"
+          :style="
+            !isOpen(category.opening_time, category.closing_time)
+              ? { cursor: 'not-allowed' }
+              : {}
+          "
+          @click.native.prevent="
+            !isOpen(category.opening_time, category.closing_time) &&
+              $event.preventDefault()
+          "
+        >
+          <div class="category-image-container">
+            <img
+              class="category-image"
+              :src="category.image_url"
+              alt="Category Image"
+            />
+          </div>
+          <div class="p-4 flex flex-col justify-between">
+            <div>
+              <h1 class="text-xl font-semibold text-gray-900 mb-2 truncate">
+                {{ category.name }}
+              </h1>
 
-            <div class="flex items-center mb-2">
-              <!-- Dot Indicator for Open/Closed -->
+              <div class="flex items-center mb-2">
+                <!-- Dot Indicator for Open/Closed -->
+                <span
+                  :class="{
+                    'bg-green-500': isOpen(
+                      category.opening_time,
+                      category.closing_time
+                    ),
+                    'bg-red-500': !isOpen(
+                      category.opening_time,
+                      category.closing_time
+                    ),
+                  }"
+                  class="w-3 h-3 rounded-full mr-2"
+                ></span>
+
+                <span class="text-sm">
+                  {{
+                    isOpen(category.opening_time, category.closing_time)
+                      ? "Opened"
+                      : "Closed"
+                  }}
+                </span>
+              </div>
+            </div>
+            <div class="mt-4 text-center">
               <span
-                :class="{
-                  'bg-green-500': isOpen(
-                    category.opening_time,
-                    category.closing_time
-                  ),
-                  'bg-red-500': !isOpen(
-                    category.opening_time,
-                    category.closing_time
-                  ),
-                }"
-                class="w-3 h-3 rounded-full mr-2"
-              ></span>
-
-              <span class="text-sm">
+                :class="[
+                  isOpen(category.opening_time, category.closing_time)
+                    ? 'text-yellow-500 hover:text-yellow-700'
+                    : 'text-gray-400',
+                ]"
+                class="font-semibold"
+              >
                 {{
                   isOpen(category.opening_time, category.closing_time)
-                    ? "Opened"
+                    ? "View Details"
                     : "Closed"
                 }}
               </span>
             </div>
           </div>
-          <div class="mt-4 text-center">
-            <span
-              :class="[
-                isOpen(category.opening_time, category.closing_time)
-                  ? 'text-yellow-500 hover:text-yellow-700'
-                  : 'text-gray-400',
-              ]"
-              class="font-semibold"
-            >
-              {{
-                isOpen(category.opening_time, category.closing_time)
-                  ? "View Details"
-                  : "Closed"
-              }}
-            </span>
-          </div>
-        </div>
-      </router-link>
-    </div>
-    <div v-else class="mt-8 text-center text-gray-600">Coming Soon</div>
+        </router-link>
+      </div>
+      <div v-else class="mt-8 text-center text-gray-600">Coming Soon</div>
+    </section>
   </div>
 </template>
 

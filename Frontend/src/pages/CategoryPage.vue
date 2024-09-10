@@ -1,5 +1,5 @@
 <template>
-  <div class="mobile-spacing -mt-5">
+  <div class="mobile-spacing lg:mt-4 lg:px-32">
     <div class="relative mb-6">
       <button
         @click="goBack"
@@ -46,7 +46,7 @@
     </div>
 
     <!-- Products Section -->
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <router-link
         v-for="product in filteredProducts"
         :key="product.id"
@@ -61,7 +61,7 @@
           class="w-[120px] h-[120px] overflow-hidden rounded-md flex justify-center items-center mb-4"
         >
           <img
-            class="w-full h-full object-cover"
+            class="w-full h-full object-contain"
             :src="product.image_url"
             alt="product image"
           />

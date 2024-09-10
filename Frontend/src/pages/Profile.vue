@@ -1,11 +1,12 @@
 <template>
-  <div class="mobile-spacing" v-if="profile">
-    <div class="flex flex-col relative">
-      <div class="relative mt-2">
+  <div class="mobile-spacing lg:w-1/2 lg:mx-auto" v-if="profile">
+    <div class="relative lg:px-32 lg:py-8">
+      <!-- Header with Back Button and Title -->
+      <div class="relative flex items-center justify-between mt-4 lg:mt-8">
         <!-- Back Arrow Button -->
         <button
           @click="goBack"
-          class="absolute left-0 top-1/2 transform -translate-y-1/2"
+          class="absolute left-0 top-1/2 transform -translate-y-1/2 lg:left-0 lg:top-auto lg:relative lg:transform-none"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -13,7 +14,7 @@
             viewBox="0 0 24 24"
             stroke-width="2"
             stroke="currentColor"
-            class="w-4 h-4 text-gray-700 hover:text-gray-900"
+            class="w-6 h-6 text-gray-700 hover:text-gray-900"
           >
             <path
               stroke-linecap="round"
@@ -23,12 +24,17 @@
           </svg>
         </button>
 
-        <!-- Orders Title -->
-        <div class="flex justify-center">
-          <h1 class="text-center text-xl font-semibold">Profile</h1>
+        <!-- Profile Title -->
+        <div class="flex-1 text-center">
+          <h1 class="text-xl font-semibold lg:text-2xl">Profile</h1>
         </div>
+
+        <!-- Empty Div for Alignment (if needed) -->
+        <div></div>
       </div>
-      <div class="flex flex-col mt-6 space-y-4">
+
+      <!-- Profile Content Here -->
+      <div class="flex flex-col space-y-6 lg:space-y-8 mt-6 lg:mt-8">
         <label for="phone" class="mt-1">Phone Number</label>
         <input
           class="max-w-full min-h-12 rounded-lg border-[#ECECEB] border-2 mt-2 p-4"
@@ -58,19 +64,14 @@
           readonly
         ></textarea>
       </div>
-    </div>
-
-    <!-- Fixed buttons at the bottom -->
-    <div
-      class="fixed inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-white p-4"
-    >
-      <button class="button" @click="logout">Logout</button>
+      <button class="button mt-6" @click="logout">Logout</button>
     </div>
   </div>
 
-  <div v-else>
-    <!-- Show a loading spinner or message while data is being fetched -->
-    <p>Loading...</p>
+  <div v-else class="flex justify-center items-center h-screen bg-gray-100">
+    <div
+      class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"
+    ></div>
   </div>
 </template>
 

@@ -1,25 +1,25 @@
 <template>
-  <section class="min-h-screen flex flex-col mobile-spacing relative">
+  <section class="min-h-screen flex flex-col mobile-spacing relative lg:px-32">
     <div class="flex justify-between items-center mt-3">
-      <div class="flex items-center gap-3">
-        <button @click="goBack" class="">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="w-4 h-4 text-gray-700 hover:text-gray-900"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-        <h1 class="text-2xl font-semibold">Cart</h1>
-      </div>
+      <!-- <div class="flex items-center gap-3"> -->
+      <button @click="goBack" class="">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-4 h-4 text-gray-700 hover:text-gray-900"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+      <h1 class="text-2xl font-semibold text-center">Cart</h1>
+      <!-- </div> -->
       <button
         @click="orderNow"
         class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg text-sm px-5 py-2.5"
@@ -69,12 +69,22 @@
       <div v-else class="text-center text-gray-500 mt-10">
         No items in your cart
       </div>
+
+      <div
+        v-if="cartStore.cartItems.length > 0"
+        class="bg-white p-4 rounded-md shadow-md max-w-48 hidden lg:block"
+      >
+        <div class="flex justify-center gap-4 items-center">
+          <h2 class="text-lg font-medium">Total:</h2>
+          <p class="text-yellow-600 font-bold">{{ total }}</p>
+        </div>
+      </div>
     </div>
 
     <!-- Fixed position total box -->
     <div
       v-if="cartStore.cartItems.length > 0"
-      class="bg-white p-4 rounded-md shadow-md fixed bottom-0 left-0 right-0 mx-4 mb-4"
+      class="bg-white p-4 rounded-md shadow-md fixed bottom-0 left-0 right-0 mx-4 mb-4 lg:hidden"
     >
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-medium">Total:</h2>

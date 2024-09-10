@@ -1,9 +1,8 @@
 <template>
-  <div class="mobile-spacing">
+  <!-- Main Container -->
+  <div class="mobile-spacing lg:px-32" v-if="orderDetails.length > 0">
     <div class="relative mt-2">
-      <!-- Back Arrow Button -->
-
-      <!-- Orders Title and Refresh Button -->
+      <!-- Back Arrow Button and Refresh Button -->
       <div class="flex justify-between items-center">
         <button @click="goBack" class="">
           <svg
@@ -36,7 +35,7 @@
     <div
       v-for="order in orderDetails"
       :key="order.id"
-      class="max-w-full min-h-[87px] mt-3 bg-gray-200 rounded-lg flex mobile-spacing justify-between items-center"
+      class="max-w-full min-h-[87px] mt-6 bg-gray-200 rounded-lg flex mobile-spacing justify-between items-center"
     >
       <div>
         <div>
@@ -79,6 +78,13 @@
         </h1>
       </div>
     </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div v-else class="flex justify-center items-center h-screen bg-gray-100">
+    <div
+      class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"
+    ></div>
   </div>
 </template>
 
@@ -140,4 +146,4 @@ const goBack = () => {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped></style>

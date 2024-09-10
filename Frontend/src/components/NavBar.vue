@@ -1,27 +1,37 @@
 <template>
   <div>
     <!-- Navbar -->
-    <nav class="mobile-spacing flex justify-between items-center mt-4">
-      <!-- Menu Icon -->
-      <div @click.stop="toggleSidebar" class="cursor-pointer">
+    <nav
+      class="mobile-spacing flex justify-between items-center mt-4 lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200"
+    >
+      <div @click.stop="toggleSidebar" class="cursor-pointer lg:hidden">
         <img src="/public/Menu Icon.png" alt="Menu Icon" />
       </div>
 
-      <div class="cursor-pointer">
-        <button @click="moveToHome">
-          <span class="text-yellow-500 font-bold text-2xl">Shop</span
-          ><span class="font-bold text-2xl">365</span>
+      <div class="cursor-pointer flex-1 text-center lg:flex-none lg:text-left">
+        <button @click="moveToHome" class="text-2xl font-bold">
+          <span class="text-yellow-500">Shop</span><span>365</span>
         </button>
+      </div>
+
+      <!-- Desktop Menu Links -->
+      <div class="hidden lg:flex lg:space-x-8 lg:items-center">
+        <router-link to="/home/profile" class="text-lg text-gray-800">
+          Profile
+        </router-link>
+        <router-link to="/home/vieworders" class="text-lg text-gray-800">
+          View Orders
+        </router-link>
       </div>
 
       <!-- Cart Icon -->
       <div
-        class="bg-yellow-500 rounded-full w-14 h-14 flex justify-center items-center"
+        class="bg-yellow-500 rounded-full w-14 lg:w-9 h-14 lg:h-9 flex justify-center items-center lg:ml-8"
       >
         <router-link to="/home/cart">
           <font-awesome-icon
             :icon="['fas', 'shopping-cart']"
-            class="text-white text-2xl"
+            class="text-white text-2xl lg:text-lg"
           />
         </router-link>
       </div>
@@ -32,7 +42,7 @@
       <div
         v-if="sidebarOpen"
         ref="sidebarRef"
-        class="fixed inset-0 bg-black/50 z-40 flex"
+        class="fixed inset-0 bg-black/50 z-40 flex lg:hidden"
         @click="closeSidebar"
       >
         <div class="bg-white w-64 h-full p-6 shadow-lg relative" @click.stop>
@@ -110,5 +120,14 @@ const closeSidebar = () => {
 .slide-left-enter,
 .slide-left-leave-to {
   transform: translateX(-100%);
+}
+
+/* Responsive styles for desktop */
+@media (min-width: 1024px) {
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 </style>

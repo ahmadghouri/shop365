@@ -6,10 +6,10 @@
       <div class="mb-4 md:mb-0">
         <img src="../images/splash3.jpg" class="w-full" />
       </div>
-      <div class="flex flex-col space-y-5 text-center md:text-left">
+      <div class="flex flex-col space-y-5 justify-start md:text-left">
         <div class="flex flex-col space-y-5">
           <h1
-            class="text-4xl md:text-4xl px-2 text-left font-semibold text-slate-800"
+            class="text-4xl md:text-5xl text-left font-semibold text-slate-800"
           >
             Welcome to our
             <span class="text-yellow-500 font-bold">Shop</span
@@ -21,7 +21,7 @@
             professional home services like plumbing, electrical work, or
             carpentry, Shop365 has you covered.
           </p>
-          <h2 class="font-semibold text-slate-700 text-left px-2">
+          <h2 class="font-semibold text-slate-700 text-left">
             Powered by NBT-HUB
           </h2>
         </div>

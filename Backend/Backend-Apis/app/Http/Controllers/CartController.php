@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Cart\Add;
+use App\Models\cart;
 use App\Services\CartService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
@@ -56,4 +58,14 @@ class CartController extends Controller
 
         return $this->errorResponse('No product found', 404);
     }
+
+    public function getItemCount()
+    {
+        // Get the total quantity for the authenticated user
+        $totalQuantity = cart::where('user_id', Auth::id())->sum('quantity');
+        
+        return response()->json(['item_count' => $totalQuantity]);
+    }
+    
+    
 }

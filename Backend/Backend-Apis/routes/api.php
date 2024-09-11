@@ -60,6 +60,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Towns
     Route::get('/get-towns', [TownController::class, 'index']);
+
+    Route::get('/cart/item-count', [CartController::class, 'getItemCount']);
 });
 
 // Admin routes

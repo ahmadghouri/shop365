@@ -16,23 +16,36 @@
 
       <!-- Desktop Menu Links -->
       <div class="hidden lg:flex lg:space-x-8 lg:items-center">
-        <router-link to="/home/profile" class="text-lg text-gray-800">
+        <router-link
+          to="/home/profile"
+          class="text-lg text-gray-800 hover:text-yellow-500"
+        >
           Profile
         </router-link>
-        <router-link to="/home/vieworders" class="text-lg text-gray-800">
+        <router-link
+          to="/home/vieworders"
+          class="text-lg text-gray-800 hover:text-yellow-500"
+        >
           View Orders
         </router-link>
       </div>
 
-      <!-- Cart Icon -->
+      <!-- Cart Icon with Counter -->
       <div
-        class="bg-yellow-500 rounded-full w-14 lg:w-9 h-14 lg:h-9 flex justify-center items-center lg:ml-8"
+        class="relative bg-yellow-500 rounded-full w-16 h-16 lg:w-10 lg:h-10 flex justify-center items-center lg:ml-8 shadow-lg transition-transform duration-200 transform hover:scale-105"
       >
         <router-link to="/home/cart">
           <font-awesome-icon
             :icon="['fas', 'shopping-cart']"
-            class="text-white text-2xl lg:text-lg"
+            class="text-white text-3xl lg:text-xl"
           />
+          <!-- Counter Badge -->
+          <span
+            v-if="cartStore.cartCount > 0"
+            class="absolute -top-1 -right-2 lg:-top-1 lg:-right-2 lg:w-5 lg:h-5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs lg:text-xs font-bold rounded-full px-1.5 lg:px-0.5 py-0.5 lg:py-0 w-7 h-7 flex items-center justify-center border border-white"
+          >
+            {{ cartStore.cartCount }}
+          </span>
         </router-link>
       </div>
     </nav>
@@ -87,17 +100,34 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { library } from "@fortawesome/fontawesome-svg-core";
+import { ref, onMounted } from "vue";
+import { useCartStore } from "../store/cartStore";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { library } from "@fortawesome/fontawesome-svg-core";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "vue-router";
+import { watch } from "vue";
 
 library.add(faShoppingCart);
 
+const cartStore = useCartStore();
 const router = useRouter();
-
 const sidebarOpen = ref(false);
+
+// Watch cartCount for changes and log them
+watch(
+  () => cartStore.cartCount,
+  (newCount) => {
+    console.log("Cart count updated:", newCount);
+  }
+);
+// Watch cartCount for changes and log them
+// watch(
+//   () => cartStore.cartCount,
+//   (newCount) => {
+//     console.log("Cart count updated:", newCount);
+//   }
+// );
 
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value;
@@ -106,9 +136,15 @@ const toggleSidebar = () => {
 const moveToHome = () => {
   router.push("/home/categories");
 };
+
 const closeSidebar = () => {
   sidebarOpen.value = false;
 };
+
+// Fetch the cart count when the component is mounted
+onMounted(() => {
+  cartStore.fetchCartCount(); // Ensure this is called
+});
 </script>
 
 <style scoped>

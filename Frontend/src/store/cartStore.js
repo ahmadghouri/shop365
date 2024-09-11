@@ -1,5 +1,3 @@
-// store/cartStore.js
-
 import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
 import axios from "axios";
@@ -7,6 +5,7 @@ import axios from "axios";
 export const useCartStore = defineStore("cart", {
   state: () => ({
     cartItems: [],
+    cartCount: 0, // Add cartCount to the state
   }),
   actions: {
     async addToCart(productInfo) {
@@ -16,8 +15,7 @@ export const useCartStore = defineStore("cart", {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        // Refresh cart items after adding
-        await this.getCartItems();
+        await this.fetchCartCount();
       } catch (error) {
         console.error("Failed to add to cart", error);
       }
@@ -69,6 +67,22 @@ export const useCartStore = defineStore("cart", {
         await this.getCartItems();
       } catch (error) {
         console.error("Failed to update item quantity", error);
+      }
+    },
+
+    async fetchCartCount() {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/cart/item-count`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        this.cartCount = response.data.item_count; // This should trigger reactivity
+      } catch (error) {
+        console.error("Error fetching cart count:", error);
       }
     },
   },

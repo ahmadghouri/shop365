@@ -86,14 +86,14 @@
             <!-- Price Section -->
             <p v-if="product.discount > 0" class="text-sm mb-1">
               <span class="text-gray-500 line-through text-base">
-                {{ product.price }}
+                Rs:{{ product.price }}
               </span>
               <span class="text-red-600 font-bold text-xl ml-2">
-                {{ product.final_price }}
+                Rs:{{ product.final_price }}
               </span>
             </p>
             <p v-else class="text-gray-800 font-semibold text-base">
-              Rs: {{ product.price }}
+              Rs:{{ product.price }}
             </p>
           </div>
         </div>

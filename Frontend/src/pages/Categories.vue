@@ -123,7 +123,7 @@
             query: { title: category.name },
           }"
           :class="[
-            'bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link',
+            'relative bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link',
             !isOpen(category.opening_time, category.closing_time)
               ? 'pointer-events-none opacity-50'
               : '',
@@ -138,19 +138,25 @@
               $event.preventDefault()
           "
         >
-          <div class="category-image-container">
+          <div class="relative category-image-container">
             <img
               class="category-image"
               :src="category.image_url"
               alt="Category Image"
             />
+            <!-- Discount Badge -->
+            <div
+              v-if="category.discount > 0"
+              class="absolute top-5 left-0 -rotate-45 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-1.5 py-0.5 shadow-md transform"
+            >
+              {{ category.discount }}% OFF
+            </div>
           </div>
           <div class="p-4 flex flex-col justify-between">
             <div>
               <h1 class="text-xl font-semibold text-gray-900 mb-2 truncate">
                 {{ category.name }}
               </h1>
-
               <div class="flex items-center mb-2">
                 <!-- Dot Indicator for Open/Closed -->
                 <span
@@ -166,7 +172,6 @@
                   }"
                   class="w-3 h-3 rounded-full mr-2"
                 ></span>
-
                 <span class="text-sm">
                   {{
                     isOpen(category.opening_time, category.closing_time)

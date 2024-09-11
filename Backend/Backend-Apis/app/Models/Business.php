@@ -9,7 +9,7 @@ class Business extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','type', 'image', 'opening_time', 'closing_time'];
+    protected $fillable = ['name','type', 'image', 'opening_time', 'closing_time', 'discount'];
 
     protected $appends = ['image_url'];
 

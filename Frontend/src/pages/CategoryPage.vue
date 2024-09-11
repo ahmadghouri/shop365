@@ -54,8 +54,16 @@
           name: 'ProductDetailsPage',
           params: { id: product.id },
         }"
-        class="bg-white py-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
+        class="bg-white py-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out relative"
       >
+        <!-- Enhanced Discount Badge -->
+        <div
+          v-if="product.discount > 0"
+          class="absolute top-2 left-2 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md transform -rotate-6"
+        >
+          {{ product.discount }}% OFF
+        </div>
+
         <!-- Image Section -->
         <div
           class="w-[120px] h-[120px] overflow-hidden rounded-md flex justify-center items-center mb-4"

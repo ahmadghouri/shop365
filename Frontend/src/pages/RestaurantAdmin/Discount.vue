@@ -13,11 +13,13 @@
           type="number"
           min="0"
           max="100"
-          placeholder="Enter discount percentage"
+          :placeholder="discountPlaceholder"
           class="w-full p-2 border border-gray-300 rounded-md"
           required
         />
       </div>
+
+      <p>{{ discountPlaceholder }}</p>
 
       <button
         type="submit"
@@ -56,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 import { API_BASE_URL } from "../../config/api";
 
@@ -64,11 +66,18 @@ const discount = ref(0);
 const responseMessage = ref("");
 const discountDetails = ref(null);
 
+const discountPlaceholder = computed(() => {
+  return discountDetails.value
+    ? `Current discount: ${discountDetails.value.discount}%`
+    : "Current discount: 0%";
+});
+
 // Load discount details from local storage on component mount
 onMounted(() => {
   const savedDiscount = localStorage.getItem("discountDetails");
   if (savedDiscount) {
     discountDetails.value = JSON.parse(savedDiscount);
+    discount.value = discountDetails.value.discount; // Set discount to reflect current value
   }
 });
 
@@ -87,12 +96,14 @@ const applyDiscount = async () => {
         },
       }
     );
+
     responseMessage.value = "Discount applied successfully!";
     // Update discount details from response
     discountDetails.value = {
       discount: response.data.data.discount,
       created_at: response.data.data.created_at,
     };
+    discount.value = discountDetails.value.discount; // Update the discount value
     // Save discount details to local storage
     localStorage.setItem(
       "discountDetails",
@@ -117,6 +128,7 @@ const removeDiscount = async () => {
     );
     responseMessage.value = "Discount removed successfully!";
     discountDetails.value = null; // Clear discount details
+    discount.value = 0; // Reset discount input
     // Remove discount details from local storage
     localStorage.removeItem("discountDetails");
   } catch (error) {

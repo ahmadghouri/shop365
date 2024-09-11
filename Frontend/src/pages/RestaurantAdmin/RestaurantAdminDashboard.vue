@@ -39,9 +39,9 @@
     <div v-if="selectedProduct" class="mt-4">
       <form @submit.prevent="submitForm" class="space-y-4">
         <div>
-          <label for="title" class="block text-sm font-medium text-gray-700"
-            >Title</label
-          >
+          <label for="title" class="block text-sm font-medium text-gray-700">
+            Title
+          </label>
           <input
             type="text"
             id="title"
@@ -52,9 +52,9 @@
         </div>
 
         <div>
-          <label for="price" class="block text-sm font-medium text-gray-700"
-            >Price</label
-          >
+          <label for="price" class="block text-sm font-medium text-gray-700">
+            Price
+          </label>
           <input
             type="text"
             id="price"
@@ -68,8 +68,9 @@
           <label
             for="description"
             class="block text-sm font-medium text-gray-700"
-            >Description</label
           >
+            Description
+          </label>
           <textarea
             id="description"
             v-model="form.description"
@@ -79,9 +80,9 @@
         </div>
 
         <div>
-          <label for="type" class="block text-sm font-medium text-gray-700"
-            >Type</label
-          >
+          <label for="type" class="block text-sm font-medium text-gray-700">
+            Type
+          </label>
           <input
             type="text"
             id="type"
@@ -120,7 +121,7 @@
             </div>
             <div class="mt-4 flex space-x-4">
               <button
-                @click="deleteProduct(product.id)"
+                @click="confirmDelete(product.id)"
                 class="text-red-500 border-2 w-full font-bold border-red-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               >
                 Delete
@@ -134,6 +135,31 @@
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div
+      v-if="showConfirmModal"
+      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
+        <h2 class="text-lg font-semibold mb-4">Confirm Deletion</h2>
+        <p>Are you sure you want to delete this product?</p>
+        <div class="mt-4 flex justify-end space-x-4">
+          <button
+            @click="deleteProduct(confirmDeleteId)"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-150 ease-in-out"
+          >
+            Yes, Delete
+          </button>
+          <button
+            @click="cancelDelete"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition duration-150 ease-in-out"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -156,6 +182,8 @@ const form = ref({
   description: "",
   type: "",
 });
+const showConfirmModal = ref(false);
+const confirmDeleteId = ref(null);
 
 const loadProductDetails = () => {
   if (selectedProduct.value) {
@@ -190,8 +218,21 @@ const submitForm = async () => {
   toast.success("Product updated successfully!");
 };
 
+const confirmDelete = (productId) => {
+  confirmDeleteId.value = productId;
+  showConfirmModal.value = true;
+};
+
+const cancelDelete = () => {
+  showConfirmModal.value = false;
+  confirmDeleteId.value = null;
+};
+
 const deleteProduct = async (productId) => {
   await productStore.deleteProduct(productId);
+  showConfirmModal.value = false;
+  confirmDeleteId.value = null;
+  toast.success("Product deleted successfully!");
 };
 
 onMounted(async () => {

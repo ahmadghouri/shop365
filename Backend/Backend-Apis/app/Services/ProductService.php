@@ -40,7 +40,6 @@ class ProductService
             }
         }
 
-        $product->sizes()->detach();
         $product->delete();
     }
 }

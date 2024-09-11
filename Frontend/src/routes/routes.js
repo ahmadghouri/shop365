@@ -244,32 +244,46 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
+  // Check if the route requires user authentication
   if (to.meta.requiresAuth) {
     if (token) {
-      // If authenticated, allow access
-      if (to.meta.requiresAdminAuth) {
-        if (role === "admin") {
-          next(); // Allow access for admin
-        } else if (role === "restaurant_admin") {
-          if (
-            to.name === "RestaurantAdminDashboard" ||
-            to.name === "RestaurantOrders"
-          ) {
-            next(); // Allow access for restaurant_admin to specific routes
-          } else {
-            next({ name: "RestaurantAdminDashboard" }); // Redirect to RestaurantAdminDashboard if accessing other routes
-          }
+      if (role === "admin") {
+        next(); // Admin can access any route that requires auth
+      } else if (role === "restaurant_admin") {
+        if (to.meta.requiresAdminAuth) {
+          // If the route requires admin authentication, allow access
+          next();
         } else {
-          next({ name: "AdminLogin" }); // Redirect to AdminLogin if the role is not valid
+          // Redirect restaurant_admin to RestaurantOrders if not accessing admin auth routes
+          if (
+            to.name !== "RestaurantOrders" &&
+            to.name !== "RestaurantAdminDashboard"
+          ) {
+            next({ name: "RestaurantOrders" });
+          } else {
+            next();
+          }
         }
       } else {
-        next(); // Allow access for non-admin routes
+        next(); // For non-admin users, allow access
       }
     } else {
       next({ name: "UserLogin" }); // Redirect to UserLogin if not authenticated
     }
+  } else if (to.meta.requiresAdminAuth) {
+    if (token) {
+      if (role === "admin") {
+        next(); // Allow admin access
+      } else if (role === "restaurant_admin") {
+        next(); // Allow restaurant_admin to access any route that requires admin auth
+      } else {
+        next({ name: "AdminLogin" }); // Redirect to AdminLogin if the role doesn't match
+      }
+    } else {
+      next({ name: "AdminLogin" }); // Redirect to AdminLogin if no token
+    }
   } else {
-    next(); // Allow access for routes that do not require authentication
+    next(); // Allow access to public routes
   }
 });
 

@@ -39,19 +39,21 @@
         <div
           class="text-center mt-2 lg:text-left flex justify-between items-center"
         >
-          <h2 class="text-2xl lg:text-3xl font-semibold text-gray-900 truncate">
+          <h2
+            class="text-2xl lg:text-3xl lg:max-w-20 font-semibold text-gray-900 truncate"
+          >
             {{ product.title }}
           </h2>
           <p v-if="product.discount > 0" class="text-sm lg:text-lg mb-1">
-            <span class="text-gray-500 line-through text-base lg:text-lg">
-              {{ product.price }}
+            <span class="text-gray-500 line-through text-base lg:text-sm">
+              Rs:{{ product.price }}
             </span>
             <span class="text-red-600 font-bold text-xl ml-2 lg:text-2xl">
-              {{ product.final_price }}
+              Rs:{{ product.final_price }}
             </span>
           </p>
           <p v-else class="text-lg lg:text-xl text-gray-800 font-semibold">
-            {{ product.price }}
+            Rs:{{ product.price }}
           </p>
         </div>
 

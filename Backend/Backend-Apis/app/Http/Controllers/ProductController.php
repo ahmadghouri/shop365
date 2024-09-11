@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Products\StoreRequest;
 use App\Http\Requests\Products\UpdateRequest;
+use App\Models\Business;
 use App\Models\Product;
 use App\Services\ImageService;
 use App\Services\ProductService;
@@ -176,21 +177,39 @@ class ProductController extends Controller
         });
 
         // $product = Product::findOrFail($productId);
+        $business = Business::findOrFail($businessId);
+        $business->discount = $discount;
+        $business->save();
     
         return $this->successResponse($products[0]);
     }
 
     public function removeDiscount()
     {
+        // Ensure the user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+    
+        // Get the authenticated user and their business ID
         $user = auth()->user();
-        $businessId = $user->business_id;   
+        $businessId = $user->business_id;
+    
+        // Get all products associated with the business
         $products = Product::where('business_id', $businessId)->get();
+        
+        // Reset the discount for each product
         $products->each(function ($product) {
             $product->discount = 0;
             $product->save();
         });
-
-        return $this->successResponse(null,'Discount Removed');
+    
+        // Update the business to remove its discount
+        $business = Business::findOrFail($businessId);
+        $business->discount = 0;
+        $business->save();
+    
+        return response()->json(['message' => 'Discount removed successfully']);
     }
     
     

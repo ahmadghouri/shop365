@@ -142,21 +142,25 @@
     <!-- Confirmation Modal -->
     <div
       v-if="showConfirmModal"
-      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50"
+      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50 p-4"
     >
-      <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
-        <h2 class="text-lg font-semibold mb-4">Confirm Deletion</h2>
-        <p>Are you sure you want to delete this product?</p>
-        <div class="mt-4 flex justify-end space-x-4">
+      <div class="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full md:w-1/3">
+        <h2 class="text-lg font-semibold mb-4 text-center">Confirm Deletion</h2>
+        <p class="text-center mb-4">
+          Are you sure you want to delete this product?
+        </p>
+        <div
+          class="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4"
+        >
           <button
             @click="deleteProduct(confirmDeleteId)"
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-150 ease-in-out"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-150 ease-in-out w-full md:w-auto"
           >
             Yes, Delete
           </button>
           <button
             @click="cancelDelete"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition duration-150 ease-in-out"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition duration-150 ease-in-out w-full md:w-auto"
           >
             Cancel
           </button>

@@ -80,7 +80,6 @@ class ProductController extends Controller
      */
     public function show(Product $product): JsonResponse
     {
-        $product->load('sizes');
         return $this->successResponse($product,"Product details");
     }
 

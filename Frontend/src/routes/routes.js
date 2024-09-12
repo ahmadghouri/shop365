@@ -231,6 +231,14 @@ const routes = [
           requiresAdminAuth: true,
         },
       },
+      {
+        path: "profile",
+        name: "Profile",
+        component: Profile,
+        meta: {
+          requiresAuth: true,
+        },
+      },
     ],
   },
 ];

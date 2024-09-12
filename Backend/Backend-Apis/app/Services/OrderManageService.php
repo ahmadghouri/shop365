@@ -81,7 +81,7 @@ class OrderManageService
 
         // Dispatch the event
         // OrderPlaced::dispatch($order, $businessId);
-
+        event(new OrderPlaced($order, $businessId));
         $orders[] = $order;
     }
 

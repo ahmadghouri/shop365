@@ -100,21 +100,21 @@ import { useCartStore } from "../store/cartStore";
 import { useOrderStore } from "../store/orderStore";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
-import { laraEcho } from "../echo.config";
+// import { laraEcho } from "../echo.config";
 
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
 const router = useRouter();
 
-onMounted(() => {
-  laraEcho.channel("test-channel").listen("TestEvent", (event) => {
-    console.log("The real time data is", event);
-  });
+// onMounted(() => {
+//   laraEcho.channel("test-channel").listen("TestEvent", (event) => {
+//     console.log("The real time data is", event);
+//   });
 
-  return () => {
-    laraEcho.leave("test-channel");
-  };
-});
+//   return () => {
+//     laraEcho.leave("test-channel");
+//   };
+// });
 
 onMounted(() => {
   cartStore.getCartItems();

@@ -36,15 +36,15 @@
 </template>
 
 <script setup>
-import { laraEcho } from "../echo.config";
+// import { laraEcho } from "../echo.config";
 import { onMounted } from "vue";
-onMounted(() => {
-  laraEcho.channel("test-channel").listen("TestEvent", (event) => {
-    console.log("The real time data is", event);
-  });
+// onMounted(() => {
+//   laraEcho.channel("test-channel").listen("TestEvent", (event) => {
+//     console.log("The real time data is", event);
+//   });
 
-  return () => {
-    laraEcho.leave("test-channel");
-  };
-});
+//   return () => {
+//     laraEcho.leave("test-channel");
+//   };
+// });
 </script>

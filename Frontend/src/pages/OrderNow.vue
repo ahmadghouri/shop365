@@ -21,15 +21,13 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useOrderStore } from "../store/orderStore.js";
-import { laraEcho } from "../echo.config.js";
+// import { laraEcho } from "../echo.config.js";
 
 const router = useRouter();
 
 const goToHome = () => {
   router.push("/home/categories");
 };
-
-
 </script>
 
 <style scoped>

@@ -35,6 +35,7 @@ export const useBusinessStore = defineStore("business", {
           newBusiness
         );
         this.businesses.push(response.data);
+        await this.getBusinesses();
       } catch (error) {
         console.error("Error adding business:", error);
       }

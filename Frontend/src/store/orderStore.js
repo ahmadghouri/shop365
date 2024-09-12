@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
 import axios from "axios";
+import { useCartStore } from "./cartStore";
 
 export const useOrderStore = defineStore("order", {
   state: () => ({
@@ -20,6 +21,8 @@ export const useOrderStore = defineStore("order", {
             },
           }
         );
+        const cartStore = useCartStore();
+        cartStore.cartCount = 0;
         return response;
       } catch (error) {
         console.error("Order didn't take place", error);

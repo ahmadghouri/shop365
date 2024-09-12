@@ -320,6 +320,9 @@ const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
 
+// Audio notification setup
+const audio = new Audio("/notification-sound.mp3"); // Path to your audio file
+
 // Function to fetch orders from the server
 const fetchRestaurantOrders = async () => {
   try {
@@ -352,20 +355,19 @@ const borderColor = computed(() => {
   }
 });
 
-function handleNewOrder(event) {
+const handleNewOrder = (event) => {
   if (!event || !event.mergedData) {
     console.error("Merged data is missing in event:", event);
     return;
   }
 
-  const { order, items } = event.mergedData;
+  const { order, items, audioUrl } = event.mergedData;
 
   if (!order) {
     console.error("Order data is missing in mergedData:", event.mergedData);
     return;
   }
 
-  // Transform the incoming order data
   const transformedOrder = {
     id: order.id,
     user_id: order.user_id,
@@ -407,9 +409,8 @@ function handleNewOrder(event) {
     newOrder: true,
   };
 
-  // Update the orders array
   orders.value = [transformedOrder, ...orders.value];
-}
+};
 
 // Function to update order status
 const updateOrderStatus = async (status) => {
@@ -467,20 +468,6 @@ watch(selectedStatus, async () => {
 });
 
 // Set up WebSocket connection on mounted
-// onMounted(async () => {
-//   await fetchRestaurantOrders();
-
-//   laraEcho
-//     .channel("order-channel." + orderStore.businessId)
-//     .listen("OrderPlaced", (event) => {
-//       handleNewOrder(event);
-//       toast.success("New Order Received");
-//     })
-//     .error((error) => {
-//       console.error("Echo error:", error);
-//     });
-// });
-
 onMounted(async () => {
   await fetchRestaurantOrders();
   console.log(window.Echo);

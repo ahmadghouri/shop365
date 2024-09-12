@@ -28,7 +28,7 @@ class OrderPlaced implements ShouldBroadcastNow
         $this->order = $order;
         $this->user = $order->user;
         $this->orderItems = $order->items()->with('product')->get();
-        $this->businessId = $businessId; // Pass the business ID
+        $this->businessId = $businessId; 
     }
 
     /**
@@ -53,7 +53,7 @@ class OrderPlaced implements ShouldBroadcastNow
             'mergedData' => [
                 'order' => $this->order,
                 'items' => $this->orderItems,
-            ],
+            ]
         ];
     }
 }

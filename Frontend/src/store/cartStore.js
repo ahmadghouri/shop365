@@ -65,6 +65,7 @@ export const useCartStore = defineStore("cart", {
 
         // Refresh cart items to ensure state is in sync with server
         await this.getCartItems();
+        await this.fetchCartCount();
       } catch (error) {
         console.error("Failed to update item quantity", error);
       }

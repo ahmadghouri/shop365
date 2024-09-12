@@ -31,8 +31,19 @@
       <div
         v-for="order in filteredOrders"
         :key="order.id"
-        class="p-4 relative bg-white shadow-md flex flex-col lg:max-w-[362px] min-h-[257px] rounded-lg"
+        :class="[
+          'p-4 relative bg-white shadow-md flex flex-col lg:max-w-[362px] min-h-[257px] rounded-lg transition-all duration-300',
+          order.newOrder
+            ? 'ring-2 ring-red-500 ring-offset-4 ring-offset-white scale-105'
+            : '',
+        ]"
       >
+        <div
+          v-if="order.newOrder"
+          class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg"
+        >
+          New
+        </div>
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="text-lg font-semibold">Order ID: {{ order.id }}</h2>
@@ -298,7 +309,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useOrderStore } from "../../store/orderStore"; // Adjust the path accordingly
-import { laraEcho } from "../../echo.config";
+import "../../echo.config";
 import { toast } from "vue3-toastify";
 
 const orderStore = useOrderStore();
@@ -393,6 +404,7 @@ function handleNewOrder(event) {
           updated_at: order.user.updated_at,
         }
       : {},
+    newOrder: true,
   };
 
   // Update the orders array
@@ -455,18 +467,36 @@ watch(selectedStatus, async () => {
 });
 
 // Set up WebSocket connection on mounted
+// onMounted(async () => {
+//   await fetchRestaurantOrders();
+
+//   laraEcho
+//     .channel("order-channel." + orderStore.businessId)
+//     .listen("OrderPlaced", (event) => {
+//       handleNewOrder(event);
+//       toast.success("New Order Received");
+//     })
+//     .error((error) => {
+//       console.error("Echo error:", error);
+//     });
+// });
+
 onMounted(async () => {
   await fetchRestaurantOrders();
+  console.log(window.Echo);
 
-  laraEcho
-    .channel("order-channel." + orderStore.businessId)
-    .listen("OrderPlaced", (event) => {
-      handleNewOrder(event);
-      toast.success("New Order Received");
-    })
-    .error((error) => {
-      console.error("Echo error:", error);
-    });
+  if (window.Echo) {
+    window.Echo.channel("order-channel." + orderStore.businessId)
+      .listen("OrderPlaced", (event) => {
+        handleNewOrder(event);
+        toast.success("New Order Received");
+      })
+      .error((error) => {
+        console.error("Echo error:", error);
+      });
+  } else {
+    console.error("Echo instance is not defined");
+  }
 });
 </script>
 

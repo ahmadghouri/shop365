@@ -57,11 +57,6 @@ export const useProductStore = defineStore("products", {
 
     async updateProduct(productInfo, id) {
       try {
-        console.log("Sending request to update product:", {
-          url: `${API_BASE_URL}/api/products/${id}`,
-          productInfo,
-        });
-
         const response = await axios.post(
           `${API_BASE_URL}/api/products/${id}`,
           productInfo,
@@ -72,11 +67,6 @@ export const useProductStore = defineStore("products", {
           }
         );
 
-        console.log("API response:", response);
-
-        const updatedProduct = response.data.data;
-        console.log("Updated product from response:", updatedProduct);
-
         const index = this.products.findIndex((product) => product.id === id);
 
         if (index !== -1) {
@@ -84,7 +74,6 @@ export const useProductStore = defineStore("products", {
             ...this.products[index],
             ...productInfo,
           };
-          console.log("Updated product list:", this.products);
         } else {
           console.warn("Product not found in the list for update.");
         }

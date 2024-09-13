@@ -98,6 +98,13 @@
         >
           Submit
         </button>
+        <button
+          type="button"
+          @click="closeForm"
+          class="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition duration-150 ease-in-out"
+        >
+          Cancel
+        </button>
       </form>
     </div>
 
@@ -208,6 +215,7 @@ const closeForm = () => {
     description: "",
     type: "",
   };
+  router.push({ path: router.currentRoute.value.fullPath });
 };
 
 const openFormForUpdate = (product) => {
@@ -216,10 +224,24 @@ const openFormForUpdate = (product) => {
 };
 
 const submitForm = async () => {
-  await productStore.updateProduct(form.value, selectedProduct.value.id);
-  closeForm();
-  router.push({ name: "RestaurantAdminDashboard" });
-  toast.success("Product updated successfully!");
+  const formData = new FormData();
+  formData.append("title", form.value.title);
+  formData.append("description", form.value.description);
+  formData.append("price", form.value.price.toString()); // Convert to string
+
+  if (form.value.image) {
+    formData.append("image", form.value.image);
+  }
+
+  formData.append("_method", "PUT");
+
+  try {
+    await productStore.updateProduct(formData, selectedProduct.value.id);
+    closeForm();
+    toast.success("Product updated successfully, Refresh to see the update");
+  } catch (error) {
+    console.error("Error updating product:", error);
+  }
 };
 
 const confirmDelete = (productId) => {

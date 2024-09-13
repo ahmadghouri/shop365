@@ -91,9 +91,9 @@ class ProductController extends Controller
         $product->update($request->validated());
         
         if ($request->has('image')) {
-            // Validate and handle the image upload
             $imagePath = $this->imageService->uploadImage($request, 'image');
-            $validatedData['image'] = $imagePath;
+            $product->image = $imagePath;
+            $product->save();
         }
         
     

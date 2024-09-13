@@ -1,55 +1,59 @@
 <template>
-  <div class="p-6 bg-white rounded-lg shadow-md">
-    <h2 class="text-xl font-semibold mb-4">Edit Product</h2>
+  <div class="bg-white px-12 py-6 rounded-lg shadow-lg">
+    <h2 class="text-xl font-bold mb-4">Edit Product</h2>
     <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
       <div class="mb-4">
-        <label for="title" class="block text-sm font-medium text-gray-700"
-          >Title</label
-        >
+        <label for="title" class="block text-gray-700">Title</label>
         <input
           v-model="form.title"
           type="text"
           id="title"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          class="w-full p-2 border border-gray-300 rounded-md"
           required
         />
       </div>
       <div class="mb-4">
-        <label for="description" class="block text-sm font-medium text-gray-700"
-          >Description</label
-        >
+        <label for="description" class="block text-gray-700">Description</label>
         <input
           v-model="form.description"
           type="text"
           id="description"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          class="w-full p-2 border border-gray-300 rounded-md"
           required
         />
       </div>
       <div class="mb-4">
-        <label for="price" class="block text-sm font-medium text-gray-700"
-          >Price</label
-        >
+        <label for="price" class="block text-gray-700">Price</label>
         <input
           v-model="form.price"
           type="text"
           id="price"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          class="w-full p-2 border border-gray-300 rounded-md"
           required
         />
       </div>
 
-      <div class="flex justify-end">
+      <div class="mb-4">
+        <label for="image" class="block text-gray-700">Image</label>
+        <input
+          @change="(e) => (form.image = e.target.files[0])"
+          type="file"
+          id="image"
+          class="w-full p-2 border border-gray-300 rounded-md"
+        />
+      </div>
+
+      <div class="flex justify-end gap-2">
         <button
-          type="button"
           @click="$emit('close')"
-          class="bg-gray-500 text-white px-4 py-2 rounded-md mr-2"
+          type="button"
+          class="bg-gray-500 px-4 py-2 text-white rounded-md"
         >
           Cancel
         </button>
         <button
           type="submit"
-          class="bg-blue-500 text-white px-4 py-2 rounded-md"
+          class="bg-blue-500 px-4 py-2 text-white rounded-md"
         >
           Save
         </button>
@@ -59,8 +63,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
-import { useProductStore } from "../store/productStore.js";
+import { ref } from "vue";
+import { useProductStore } from "../store/productStore";
 
 const props = defineProps({
   product: Object,
@@ -69,16 +73,29 @@ const props = defineProps({
 const emit = defineEmits(["close", "save"]);
 
 const form = ref({
-  title: "",
-  description: "",
-  price: "",
+  title: props.product.title,
+  description: props.product.description,
+  price: props.product.price,
+  image: null, // Initialize as null for file upload
 });
 
 const productStore = useProductStore();
 
 const handleSubmit = async () => {
+  const formData = new FormData();
+  formData.append("title", form.value.title);
+  formData.append("description", form.value.description);
+  formData.append("price", form.value.price);
+
+  // Append the image only if it exists
+  if (form.value.image) {
+    formData.append("image", form.value.image);
+  }
+
+  formData.append("_method", "PUT");
+
   try {
-    await productStore.updateProduct(form.value, props.product.id);
+    await productStore.updateProduct(formData, props.product.id);
     emit("save");
     emit("close");
   } catch (error) {
@@ -87,4 +104,6 @@ const handleSubmit = async () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+/* Add styles if needed */
+</style>

@@ -1,11 +1,11 @@
 <template>
   <div class="mobile-spacing lg:mt-4 lg:px-32">
+    <!-- Category Title -->
     <div class="relative mb-6">
       <button
         @click="goBack"
         class="absolute left-0 top-1/2 transform -translate-y-1/2"
       >
-        <!-- Back Arrow Icon -->
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-4 w-4 text-gray-800 hover:text-gray-500 transition duration-150"
@@ -28,6 +28,7 @@
         {{ categoryTitle }}
       </h1>
     </div>
+
     <!-- Horizontal Scrollable Filter Section -->
     <div class="overflow-x-auto whitespace-nowrap mb-8">
       <button
@@ -46,7 +47,7 @@
     </div>
 
     <!-- Products Section -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
       <router-link
         v-for="product in filteredProducts"
         :key="product.id"
@@ -54,9 +55,9 @@
           name: 'ProductDetailsPage',
           params: { id: product.id },
         }"
-        class="bg-white py-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out relative"
+        class="bg-white py-6 px-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out relative"
       >
-        <!-- Enhanced Discount Badge -->
+        <!-- Discount Badge -->
         <div
           v-if="product.discount > 0"
           class="absolute top-2 left-2 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md transform -rotate-6"
@@ -75,15 +76,15 @@
           />
         </div>
 
-        <!-- Text Section -->
-        <div class="text-center">
-          <h2
-            class="text-lg font-semibold text-slate-800 mb-2 truncate w-[150px]"
-          >
+        <!-- Title & Price Section using Flexbox -->
+        <div class="flex flex-col justify-between flex-grow text-center w-full">
+          <!-- Title -->
+          <h2 class="text-sm lg:text-lg font-medium text-slate-800 mb-2 px-2">
             {{ product.title }}
           </h2>
-          <div class="flex flex-col items-center">
-            <!-- Price Section -->
+
+          <!-- Price Section - Stick it at the bottom -->
+          <div class="mt-auto">
             <p v-if="product.discount > 0" class="text-sm mb-1">
               <span class="text-gray-500 line-through text-base">
                 Rs:{{ product.price }}

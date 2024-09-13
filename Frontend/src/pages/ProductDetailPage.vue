@@ -40,7 +40,7 @@
           class="text-center mt-2 lg:text-left flex justify-between items-center"
         >
           <h2
-            class="text-2xl lg:text-3xl lg:max-w-20 font-semibold text-gray-900 truncate"
+            class="text-2xl text-left lg:text-3xl lg:max-w-full font-semibold text-gray-900"
           >
             {{ product.title }}
           </h2>

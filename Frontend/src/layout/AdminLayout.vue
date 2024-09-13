@@ -53,7 +53,7 @@
               <span>Discount</span>
             </routerLink>
             <routerLink
-              to="/admin/profile"
+              :to="{ name: 'AdminProfile' }"
               class="flex flex-col items-center justify-center"
             >
               <img src="/user.png" alt="" class="w-5 h-5" />

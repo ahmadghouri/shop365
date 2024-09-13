@@ -145,7 +145,7 @@ const routes = [
       },
       {
         path: "profile",
-        name: "Profile",
+        name: "UserProfile",
         component: Profile,
         meta: {
           requiresAuth: true,
@@ -233,7 +233,7 @@ const routes = [
       },
       {
         path: "profile",
-        name: "Profile",
+        name: "AdminProfile",
         component: Profile,
         meta: {
           requiresAuth: true,

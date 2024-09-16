@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Product;
 use App\Models\Size;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 
 class ProductService
@@ -27,6 +28,26 @@ class ProductService
         $product->save();
 
         return $product;
+    }
+
+    public function add(array $data)
+    {
+        $business = Auth::user();
+
+        if (!$business) {
+            throw new Exception("Business not found");
+        }
+
+        $product = new Product();
+        $product->title = $data['title'];
+        $product->description = $data['description'];
+        $product->price = $data['price'];
+        $product->type = $data['type'];
+        $product->business_id = $business->business_id; 
+        $product->save();
+
+        return $product;
+
     }
 
 

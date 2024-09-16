@@ -1,6 +1,13 @@
 <template>
   <div class="container mx-auto mobile-spacing">
-    <h1 class="text-xl font-semibold mb-4">Select a Product</h1>
+    <div class="flex justify-between items-center">
+      <h1 class="text-xl font-semibold mb-4">Select a Product</h1>
+      <router-link
+        class="bg-blue-500 px-5 py-1 mb-4 text-white rounded-md"
+        to="/admin/store-product"
+        >ADD</router-link
+      >
+    </div>
     <div class="relative mb-4">
       <select
         v-model="selectedProduct"
@@ -16,6 +23,7 @@
           {{ product.title }}
         </option>
       </select>
+
       <div
         class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
       >

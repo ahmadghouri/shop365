@@ -100,21 +100,10 @@ import { useCartStore } from "../store/cartStore";
 import { useOrderStore } from "../store/orderStore";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
-// import { laraEcho } from "../echo.config";
 
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
 const router = useRouter();
-
-// onMounted(() => {
-//   laraEcho.channel("test-channel").listen("TestEvent", (event) => {
-//     console.log("The real time data is", event);
-//   });
-
-//   return () => {
-//     laraEcho.leave("test-channel");
-//   };
-// });
 
 onMounted(() => {
   cartStore.getCartItems();
@@ -135,9 +124,11 @@ const removeFromCart = async (id) => {
   }
 };
 
+// Compute total price considering discounts
 const total = computed(() => {
   return cartStore.cartItems.reduce((sum, item) => {
-    return sum + item.product.price * item.quantity;
+    const price = item.product.final_price || item.product.price;
+    return sum + price * item.quantity;
   }, 0);
 });
 
@@ -150,7 +141,6 @@ const orderNow = async () => {
       response.data.message === "Order(s) placed successfully"
     ) {
       cartStore.cartItems = [];
-
       toast.success("Your order has been placed.");
       setTimeout(() => {
         router.push("/home/orderconfirmation");

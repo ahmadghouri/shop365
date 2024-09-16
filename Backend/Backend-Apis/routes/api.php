@@ -98,6 +98,8 @@ Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
         Route::post('/products/discount', [ProductController::class, 'updateDiscount']);
         Route::get('/products/removeDiscount', [ProductController::class, 'removeDiscount']);
 
+        Route::post('/add-products',[ProductController::class, 'addProduct']);
+
     });
 
 

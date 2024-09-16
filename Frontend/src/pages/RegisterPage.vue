@@ -85,6 +85,7 @@
               v-model="termsAccepted"
               class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-yellow-400"
               required
+              checked
             />
           </div>
           <div class="ml-3 text-sm">

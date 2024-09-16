@@ -85,7 +85,6 @@
               v-model="termsAccepted"
               class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-yellow-400"
               required
-              checked
             />
           </div>
           <div class="ml-3 text-sm">
@@ -144,7 +143,7 @@ import { useRouter } from "vue-router";
 const phone = ref("");
 const password = ref("");
 const confirmPassword = ref(""); // New field for confirm password
-const termsAccepted = ref(false);
+const termsAccepted = ref(true);
 const errors = ref({});
 const generalError = ref("");
 const confirmPasswordError = ref(""); // Error for confirm password

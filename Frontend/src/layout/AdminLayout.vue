@@ -21,16 +21,16 @@
 
     <Sidebar :sidebarOpen="sidebarOpen" @closeSidebar="toggleSidebar" />
 
-    <main class="flex-1 overflow-auto lg:py-12 lg:px-12">
+    <main class="flex-1 overflow-auto lg:py-12 lg:px-12 pb-24 lg:pb-0">
+      <!-- Add padding-bottom to create space for the task bar on mobile -->
       <router-view></router-view>
     </main>
 
+    <!-- task bar -->
     <div class="lg:hidden z-10 relative">
-      <div
-        class="w-full bg-gray-200 min-h-full absolute bottom-0 mobile-spacing"
-      >
+      <div class="w-full bg-gray-200 absolute bottom-0 mobile-spacing">
         <div>
-          <ul class="flex justify-between items-center lg:hidden">
+          <ul class="flex justify-between items-center lg:hidden py-2">
             <routerLink
               to="/admin/restaurantOrders"
               class="flex flex-col items-center justify-center"

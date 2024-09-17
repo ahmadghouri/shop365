@@ -32,6 +32,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 // Define reactive states
 const vendors = ref([]);
@@ -44,14 +45,11 @@ const token = localStorage.getItem("token");
 const fetchVendors = async () => {
   loading.value = true;
   try {
-    const response = await axios.get(
-      "http://localhost:8000/api/admin/vendors",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${API_BASE_URL}/api/admin/vendors`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     vendors.value = response.data.data;
   } catch (err) {
     error.value = err.response ? err.response.data.message : err.message;

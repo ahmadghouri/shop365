@@ -27,6 +27,7 @@ import ForgotPassword from "../pages/ForgotPassword.vue";
 import SearchProduct from "../pages/SearchProduct.vue";
 import Discount from "../pages/RestaurantAdmin/Discount.vue";
 import StoreProduct from "../components/Vendor/StoreProduct.vue";
+import ViewAdmins from "../components/ViewAdmins.vue";
 
 const routes = [
   // Public Routes
@@ -196,6 +197,14 @@ const routes = [
         path: "users",
         name: "Users",
         component: UserAdmin,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "vendors",
+        name: "Vendors",
+        component: ViewAdmins,
         meta: {
           requiresAdminAuth: true,
         },

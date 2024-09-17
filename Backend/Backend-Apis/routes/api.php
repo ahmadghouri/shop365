@@ -65,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Admin routes
+// Admin routes
 Route::middleware(['auth:sanctum', AdminMiddleware::class])
     ->prefix('/admin')
     ->group(function () {
@@ -78,9 +79,9 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
         Route::put('/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 
-        // Towns
+        // This line was missing a semicolon
+        Route::get('/vendors', [AdminController::class, 'getAdmins']);
     });
-
 // Town admin routes
 Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
     ->prefix('/restaurantAdmin')
@@ -98,14 +99,12 @@ Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
         Route::post('/products/discount', [ProductController::class, 'updateDiscount']);
         Route::get('/products/removeDiscount', [ProductController::class, 'removeDiscount']);
 
-        Route::post('/add-products',[ProductController::class, 'addProduct']);
-
+        Route::post('/add-products', [ProductController::class, 'addProduct']);
     });
 
-
-Route::post("/test/channel", function() {
-    $order = Order::select("*")->orderByDesc("id")->first();
-    $order2 = \App\Models\OrderItem::select("*")->orderByDesc("id")->first();
+Route::post('/test/channel', function () {
+    $order = Order::select('*')->orderByDesc('id')->first();
+    $order2 = \App\Models\OrderItem::select('*')->orderByDesc('id')->first();
     \App\Events\TestEvent::dispatch($order2);
     return response()->json(['message' => 'Event dispatched successfully'], 200);
 });

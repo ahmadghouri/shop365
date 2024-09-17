@@ -38,7 +38,15 @@
             to="/admin/restaurantAdmin"
             class="block text-gray-700 hover:text-gray-900"
           >
-            Restaurant Admin
+            Register Admin
+          </router-link>
+        </li>
+        <li class="px-4 py-2">
+          <router-link
+            to="/admin/vendors"
+            class="block text-gray-700 hover:text-gray-900"
+          >
+            View Vendors
           </router-link>
         </li>
         <li class="px-4 py-2">

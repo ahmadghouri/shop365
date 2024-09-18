@@ -116,7 +116,6 @@ const categoryTitle = ref(route.query.title);
 const filters = ref(["All", "Burger", "Pizza", "Pasta", "Fries", "Drinks"]);
 const selectedFilter = ref("All");
 
-// Filtered products based on the selected filter (case insensitive)
 const filteredProducts = computed(() => {
   if (selectedFilter.value === "All") {
     return productStore.products;

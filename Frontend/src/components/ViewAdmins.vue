@@ -22,9 +22,15 @@
         class="bg-white p-4 rounded-lg shadow-md border border-gray-200"
       >
         <h2 class="text-lg font-semibold text-gray-800">{{ vendor.name }}</h2>
-        <p class="text-sm text-gray-500">Phone: {{ vendor.phone_no }}</p>
         <p class="text-sm text-gray-500">
-          Business ID: {{ vendor.business_id }}
+          Phone:
+          {{ vendor.phone_no }}
+        </p>
+        <p class="text-sm text-gray-500">
+          Business :
+          <span class="font-semibold text-slate-900">{{
+            vendor.business_name
+          }}</span>
         </p>
         <p class="text-sm text-gray-500">
           Created At: {{ new Date(vendor.created_at).toLocaleDateString() }}

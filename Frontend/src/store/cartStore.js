@@ -5,7 +5,7 @@ import axios from "axios";
 export const useCartStore = defineStore("cart", {
   state: () => ({
     cartItems: [],
-    cartCount: 0, // Add cartCount to the state
+    cartCount: 0,
   }),
   actions: {
     async addToCart(productInfo) {

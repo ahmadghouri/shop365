@@ -103,6 +103,16 @@
       <div v-else class="text-center text-gray-400 mt-10">
         No items in your cart
       </div>
+
+      <div
+        v-if="cartStore.cartItems.length > 0"
+        class="bg-white p-4 rounded-md shadow-md max-w-48 hidden lg:block"
+      >
+        <div class="flex justify-center gap-4 items-center">
+          <h2 class="text-lg font-medium">Total:</h2>
+          <p class="text-yellow-600 font-bold">{{ total }}</p>
+        </div>
+      </div>
     </div>
 
     <!-- Fixed position total box for mobile -->

@@ -56,7 +56,6 @@
           <div class="flex items-center space-x-2">
             <button
               @click="decreaseQuantity(item)"
-              :disabled="item.quantity === 1"
               class="bg-gray-100 p-2 rounded-full text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
@@ -157,9 +156,11 @@ const decreaseQuantity = async (item) => {
   try {
     if (item.quantity > 1) {
       await cartStore.updateItemQuantity(item.id, item.quantity - 1);
+    } else {
+      await cartStore.removeItem(item.id);
     }
   } catch (error) {
-    console.error(error);
+    console.error("Failed to decrease quantity", error);
   }
 };
 

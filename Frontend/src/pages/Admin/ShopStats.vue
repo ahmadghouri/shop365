@@ -13,24 +13,24 @@
     <!-- Business Stats Section -->
     <div
       v-else
-      class="container mx-auto md:py-10 md:px-8 mobile-spacing min-h-screen bg-gray-50"
+      class="container mx-auto py-6 px-4 sm:py-10 sm:px-8 mobile-spacing min-h-screen bg-gray-50"
     >
       <!-- Page Title -->
       <h1
-        class="text-4xl font-light text-center mb-12 text-gray-800 tracking-wide"
+        class="text-2xl sm:text-4xl font-light text-center mb-8 sm:mb-12 text-gray-800 tracking-wide"
       >
         Business Statistics
       </h1>
 
       <!-- Filter Options -->
-      <div class="text-center mb-8">
+      <div class="text-center mb-6 sm:mb-8">
         <button
           @click="applyFilter('all')"
           :class="{
             'bg-blue-500 text-white': selectedFilter === 'all',
             'bg-gray-100 text-gray-700': selectedFilter !== 'all',
           }"
-          class="py-2 px-4 rounded-md mx-2"
+          class="py-2 px-3 sm:px-4 rounded-md mx-1 sm:mx-2 text-sm sm:text-base"
         >
           All Time
         </button>
@@ -40,7 +40,7 @@
             'bg-blue-500 text-white': selectedFilter === 'today',
             'bg-gray-100 text-gray-700': selectedFilter !== 'today',
           }"
-          class="py-2 px-4 rounded-md mx-2"
+          class="py-2 px-3 sm:px-4 rounded-md mx-1 sm:mx-2 text-sm sm:text-base"
         >
           Today
         </button>
@@ -50,7 +50,7 @@
             'bg-blue-500 text-white': selectedFilter === 'week',
             'bg-gray-100 text-gray-700': selectedFilter !== 'week',
           }"
-          class="py-2 px-4 rounded-md mx-2"
+          class="py-2 px-3 sm:px-4 rounded-md mx-1 sm:mx-2 text-sm sm:text-base"
         >
           Last Week
         </button>
@@ -60,7 +60,7 @@
             'bg-blue-500 text-white': selectedFilter === 'month',
             'bg-gray-100 text-gray-700': selectedFilter !== 'month',
           }"
-          class="py-2 px-4 rounded-md mx-2"
+          class="py-2 px-3 sm:px-4 rounded-md mx-1 sm:mx-2 text-sm sm:text-base"
         >
           Last Month
         </button>
@@ -72,24 +72,29 @@
       </div>
 
       <!-- Business Stats Cards -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+      <div
+        v-else
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10"
+      >
         <!-- Business Stat Card -->
         <div
           v-for="business in businesses"
           :key="business.id"
-          class="p-8 bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105"
+          class="p-6 sm:p-8 bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105"
         >
-          <h2 class="text-2xl font-semibold mb-3 text-gray-800">
+          <h2
+            class="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 text-gray-800"
+          >
             {{ business.name }}
           </h2>
-          <div class="flex flex-col space-y-2">
+          <div class="flex flex-col space-y-1 sm:space-y-2">
             <div class="text-gray-600">
               <span class="font-semibold text-gray-900">Total Orders:</span>
-              <span class="ml-2">{{ business.total_orders }}</span>
+              <span class="ml-1 sm:ml-2">{{ business.total_orders }}</span>
             </div>
             <div class="text-gray-600">
               <span class="font-semibold text-gray-900">Total Revenue:</span>
-              <span class="ml-2"
+              <span class="ml-1 sm:ml-2"
                 >PKR {{ business.total_revenue.toLocaleString() }}</span
               >
             </div>
@@ -103,6 +108,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api";
 
 // State to store business stats, loading state, and selected filter
 const businesses = ref([]);
@@ -117,7 +123,7 @@ const fetchBusinessStats = async (filter = "all") => {
   loading.value = true;
   try {
     const response = await axios.get(
-      `http://localhost:8000/api/admin/business-stats?filter=${filter}`,
+      `${API_BASE_URL}/api/admin/business-stats?filter=${filter}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

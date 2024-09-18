@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="relative">
     <!-- Navbar -->
     <nav
-      class="mobile-spacing flex justify-between items-center mt-4 lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200"
+      class="mobile-spacing sticky top-0 flex justify-between bg-white items-center lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200"
     >
       <div @click.stop="toggleSidebar" class="cursor-pointer lg:hidden">
         <img src="/public/Menu Icon.png" alt="Menu Icon" />

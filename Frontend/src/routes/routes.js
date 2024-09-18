@@ -28,6 +28,7 @@ import SearchProduct from "../pages/SearchProduct.vue";
 import Discount from "../pages/RestaurantAdmin/Discount.vue";
 import StoreProduct from "../components/Vendor/StoreProduct.vue";
 import ViewAdmins from "../components/ViewAdmins.vue";
+import ShopStats from "../pages/Admin/ShopStats.vue";
 
 const routes = [
   // Public Routes
@@ -205,6 +206,14 @@ const routes = [
         path: "vendors",
         name: "Vendors",
         component: ViewAdmins,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "stats",
+        name: "Stats",
+        component: ShopStats,
         meta: {
           requiresAdminAuth: true,
         },

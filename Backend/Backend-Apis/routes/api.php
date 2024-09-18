@@ -15,6 +15,7 @@ use App\Http\Middleware\TownAdminMiddleware;
 use App\Models\Order;
 use Illuminate\Support\Facades\Route;
 
+
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -69,6 +70,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', AdminMiddleware::class])
     ->prefix('/admin')
     ->group(function () {
+
+        Route::get('/business-stats', [BusinessController::class, 'getBusinessStats']);
+
         // Admins management
         Route::post('/createAdmins', [AdminController::class, 'createTownAdmin']);
 

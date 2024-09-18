@@ -2,8 +2,13 @@
   <div class="p-6">
     <h1 class="text-2xl font-semibold mb-6 text-gray-700">Vendor Admins</h1>
 
-    <div v-if="loading" class="text-center">
-      <span class="text-yellow-500 font-semibold">Loading...</span>
+    <div
+      v-if="loading"
+      class="flex justify-center items-center h-screen bg-gray-100"
+    >
+      <div
+        class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"
+      ></div>
     </div>
 
     <div v-else-if="error" class="text-center text-red-500">

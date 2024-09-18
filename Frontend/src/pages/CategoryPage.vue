@@ -55,7 +55,7 @@
           name: 'ProductDetailsPage',
           params: { id: product.id },
         }"
-        class="bg-white py-6 px-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out relative"
+        class="bg-white py-6 px-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-2xl transition-shadow duration-300 ease-in-out relative"
       >
         <!-- Discount Badge -->
         <div
@@ -98,6 +98,29 @@
             </p>
           </div>
         </div>
+
+        <!-- Minimal Add to Cart Button with Icon -->
+        <button
+          @click.prevent="addToCart(product)"
+          class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
+          </svg>
+          <span class="hidden sm:inline">Add to Cart</span>
+          <span class="sm:hidden">Add</span>
+        </button>
       </router-link>
     </div>
   </div>
@@ -106,11 +129,14 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "../store/productStore";
+import { useCartStore } from "../store/cartStore";
+import { toast } from "vue3-toastify";
 import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
 const productStore = useProductStore();
+const cartStore = useCartStore();
 
 const categoryTitle = ref(route.query.title);
 const filters = ref(["All", "Burger", "Pizza", "Pasta", "Fries", "Drinks"]);
@@ -133,6 +159,20 @@ const filterProducts = (filter) => {
 // Go back to the previous page
 const goBack = () => {
   router.back();
+};
+
+const addToCart = async (product) => {
+  const cartItem = {
+    product_id: product.id,
+    quantity: 1,
+  };
+
+  try {
+    await cartStore.addToCart(cartItem);
+    toast.success("Product added to cart successfully!");
+  } catch (error) {
+    toast.error("Failed to add product to cart.");
+  }
 };
 
 onMounted(() => {

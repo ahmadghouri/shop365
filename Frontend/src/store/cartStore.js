@@ -46,6 +46,7 @@ export const useCartStore = defineStore("cart", {
 
         // Refresh cart items to ensure state is in sync with server
         await this.getCartItems();
+        this.cartCount = this.cartCount - 1;
       } catch (error) {
         console.error("Failed to remove item from cart", error);
       }

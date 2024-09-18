@@ -8,8 +8,10 @@ use App\Models\Business;
 use App\Services\BusinessService;
 use App\Services\ImageService;
 use Exception;
+use Illuminate\Container\Attributes\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB as FacadesDB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -86,5 +88,18 @@ class BusinessController extends Controller
         } catch (\Exception $e) {
             return $this->errorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
+    }
+
+
+    public function getBusinessStats(Request $request)
+    {
+        try {
+           $filter = $request->query('filter', 'all');
+           $businessStats = $this->businessService->stats($filter);
+           return $this->successResponse($businessStats);
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+
     }
 }

@@ -35,6 +35,11 @@ class User extends Authenticatable
         return $this->hasMany(Complaint::class);
     }
 
+    public function business()
+    {
+        return $this->belongsTo(Business::class, 'business_id');
+    }
+
 
     /**
      * The attributes that should be hidden for serialization.

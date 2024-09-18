@@ -100,6 +100,5 @@ class BusinessController extends Controller
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
-
     }
 }

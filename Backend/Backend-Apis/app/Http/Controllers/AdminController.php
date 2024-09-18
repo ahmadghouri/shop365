@@ -30,12 +30,16 @@ class AdminController extends Controller
 
     public function getAdmins()
     {
-        $admins = User::where('role', 'restaurant_admin')->get();
-
+        $admins = User::where('role', 'restaurant_admin')
+                      ->join('businesses', 'users.business_id', '=', 'businesses.id')
+                      ->select('users.id', 'users.name', 'users.phone_no', 'users.created_at', 'businesses.name as business_name')
+                      ->get();
+    
         if ($admins) {
             return $this->successResponse($admins);
         }
-
+    
         return $this->errorResponse();
     }
+    
 }

@@ -36,6 +36,29 @@ class ProductController extends Controller
         return $this->successResponse($products, 'All the products');
     }
 
+    public function businessProductsTypes($businessId)
+    {
+        $types = Product::where('business_id', $businessId)->select('type')->distinct()->get();
+
+        return $this->successResponse($types);
+    }
+
+    public function businessProductsFiltered(Request $request, $businessId)
+    {
+        $type = $request->get('type');
+
+        $query = Product::where('business_id', $businessId);
+
+        if(!empty($type))
+        {
+            $query->where('type', $type);
+        }
+
+        $products = $query->get();
+
+        return $this->successResponse($products);
+    }
+
     public function index(Request $request)
     {
         // Start with a query builder instance

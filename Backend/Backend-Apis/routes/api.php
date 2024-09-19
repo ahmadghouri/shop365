@@ -33,6 +33,9 @@ Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 
 Route::apiResource('/towns', TownController::class);
 
+Route::get('businessTypes/{businessId}', [ProductController::class, 'businessProductsTypes']);
+Route::get('products/{businessId}/filtered', [ProductController::class, 'businessProductsFiltered']);
+
 // Routes requiring authentication
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add-details', [AuthController::class, 'addDetails']);

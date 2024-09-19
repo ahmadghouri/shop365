@@ -167,6 +167,17 @@ const addToCart = async (product) => {
     quantity: 1,
   };
 
+  const nav = document.querySelector(".navbar-cart-icon");
+  const productElement = event.target.closest(".bg-white");
+  const productImage = productElement.querySelector("img");
+
+  if (nav && productImage) {
+    const startRect = productImage.getBoundingClientRect();
+    const endRect = nav.getBoundingClientRect();
+
+    createFlyingElement(productImage.src, startRect, endRect);
+  }
+
   try {
     await cartStore.addToCart(cartItem);
     // toast.success("Product added to cart successfully!");
@@ -174,6 +185,51 @@ const addToCart = async (product) => {
     toast.error("Failed to add product to cart.");
   }
 };
+
+function createFlyingElement(productImage, startRect, endRect) {
+  const flyingElement = document.createElement("img");
+  flyingElement.src = productImage;
+  flyingElement.style.position = "fixed";
+  flyingElement.style.left = `${startRect.left}px`;
+  flyingElement.style.top = `${startRect.top}px`;
+  flyingElement.style.width = `${startRect.width}px`;
+  flyingElement.style.height = `${startRect.height}px`;
+  flyingElement.style.objectFit = "contain";
+  flyingElement.style.zIndex = "9999";
+  flyingElement.style.opacity = "0.8";
+  flyingElement.style.pointerEvents = "none";
+
+  document.body.appendChild(flyingElement);
+
+  const isMobile = window.innerWidth <= 768;
+
+  const mobileAdjustment = isMobile ? 1.1 : 1;
+
+  flyingElement.animate(
+    [
+      {
+        left: `${startRect.left}px`,
+        top: `${startRect.top}px`,
+        width: `${startRect.width}px`,
+        height: `${startRect.height}px`,
+        opacity: 0.8,
+      },
+      {
+        left: `${endRect.left * mobileAdjustment}px`,
+        top: `${endRect.top * mobileAdjustment}px`,
+        width: "20px",
+        height: "20px",
+        opacity: 0.5,
+      },
+    ],
+    {
+      duration: 800,
+      easing: "ease-in-out",
+    }
+  ).onfinish = () => {
+    document.body.removeChild(flyingElement);
+  };
+}
 
 onMounted(() => {
   productStore.getProducts(route.params.id);

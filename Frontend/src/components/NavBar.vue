@@ -32,7 +32,7 @@
 
       <!-- Cart Icon with Counter -->
       <div
-        class="relative bg-yellow-500 rounded-full w-16 h-16 lg:w-10 lg:h-10 flex justify-center items-center lg:ml-8 shadow-lg transition-transform duration-200 transform hover:scale-105"
+        class="relative bg-yellow-500 rounded-full w-16 h-16 lg:w-10 lg:h-10 flex justify-center items-center lg:ml-8 shadow-lg transition-transform duration-200 transform hover:scale-105 navbar-cart-icon"
       >
         <router-link to="/home/cart">
           <font-awesome-icon

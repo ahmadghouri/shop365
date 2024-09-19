@@ -235,7 +235,8 @@ const submitForm = async () => {
   const formData = new FormData();
   formData.append("title", form.value.title);
   formData.append("description", form.value.description);
-  formData.append("price", form.value.price.toString()); // Convert to string
+  formData.append("price", form.value.price.toString());
+  formData.append("type", form.value.type);
 
   if (form.value.image) {
     formData.append("image", form.value.image);

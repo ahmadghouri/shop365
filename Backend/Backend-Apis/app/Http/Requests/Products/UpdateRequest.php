@@ -26,6 +26,7 @@ class UpdateRequest extends BaseRequest
             "title" => 'nullable|string|max:255',
             "description" => 'nullable|string',
             "price" => 'nullable|string',
+            "type" => 'nullable|string'
         ];
     }
 }

@@ -32,6 +32,16 @@
           required
         />
       </div>
+      <div class="mb-4">
+        <label for="type" class="block text-gray-700">Type</label>
+        <input
+          v-model="form.type"
+          type="text"
+          id="type"
+          class="w-full p-2 border border-gray-300 rounded-md"
+          required
+        />
+      </div>
 
       <div class="mb-4">
         <label for="image" class="block text-gray-700">Image</label>
@@ -76,6 +86,7 @@ const form = ref({
   title: props.product.title,
   description: props.product.description,
   price: props.product.price,
+  type: props.product.type,
   image: null, // Initialize as null for file upload
 });
 
@@ -86,6 +97,7 @@ const handleSubmit = async () => {
   formData.append("title", form.value.title);
   formData.append("description", form.value.description);
   formData.append("price", form.value.price);
+  formData.append("type", form.value.type);
 
   // Append the image only if it exists
   if (form.value.image) {

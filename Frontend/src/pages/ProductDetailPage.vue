@@ -25,9 +25,12 @@
     <div class="flex flex-col lg:flex-row lg:gap-10 mt-6 lg:mt-10">
       <!-- Product Image -->
       <div class="lg:w-1/2 flex justify-center items-center">
-        <div class="rounded-lg overflow-hidden w-32 h-32 lg:w-96 lg:h-96">
+        <div
+          class="rounded-lg overflow-hidden w-32 h-32 lg:w-96 lg:h-96 bg-transparent"
+        >
           <img
-            class="object-contain w-full h-full"
+            ref="productImage"
+            class="object-contain w-full h-full image"
             :src="product.image_url"
             alt="Product image"
           />
@@ -119,6 +122,7 @@ const router = useRouter();
 const cartStore = useCartStore();
 const productStore = useProductStore();
 const quantity = ref(1);
+const productImageRef = ref(null);
 
 onMounted(async () => {
   await productStore.getProduct(route.params.id);
@@ -133,17 +137,73 @@ const addToCart = async () => {
     quantity: quantity.value,
   };
 
+  const nav = document.querySelector(".navbar-cart-icon");
+  const productImage = document.querySelector(".image");
+
+  if (nav && productImage) {
+    const start = productImage.getBoundingClientRect();
+    const end = nav.getBoundingClientRect();
+
+    createFlyingElement(productImage.src, start, end);
+  }
+
   try {
     await cartStore.addToCart(cartItem);
-    toast.success("Product added to cart successfully!");
+    // toast.success("Product added to cart successfully!");
   } catch (error) {
     toast.error("Failed to add product to cart.");
   }
 };
 
+function createFlyingElement(productImage, start, end) {
+  console.log("Creating flying element");
+
+  const flyingElement = document.createElement("img");
+  flyingElement.src = productImage;
+  flyingElement.style.position = "fixed";
+  flyingElement.style.top = `${start.top}px`;
+  flyingElement.style.left = `${start.left}px`;
+  flyingElement.style.width = `${start.width}px`;
+  flyingElement.style.height = `${start.height}px`;
+  flyingElement.style.objectFit = "contain";
+  flyingElement.style.zIndex = "9999";
+  flyingElement.style.opacity = "0.8";
+  flyingElement.style.pointerEvents = "none";
+
+  document.body.appendChild(flyingElement);
+
+  const isMobile = window.innerWidth <= 768;
+  const mobileAdjustment = isMobile ? 1.1 : 1;
+
+  flyingElement.animate(
+    [
+      {
+        left: `${start.left}px`,
+        top: `${start.top}px`,
+        width: `${start.width}px`,
+        height: `${start.height}px`,
+        opacity: 0.8,
+      },
+      {
+        left: `${end.left * mobileAdjustment}px`,
+        top: `${end.top * mobileAdjustment}px`,
+        width: "20px",
+        height: "20px",
+        opacity: 0.5,
+      },
+    ],
+    {
+      duration: 800,
+      easing: "ease-in-out",
+    }
+  ).onfinish = () => {
+    document.body.removeChild(flyingElement);
+  };
+}
+
 const handleOrderNow = async () => {
-  await addToCart(); // Add the item to the cart
-  router.push({ name: "Cart" }); // Navigate to the cart page
+  await addToCart();
+  router.push({ name: "Cart" });
 };
 
 const increaseQuantity = () => {

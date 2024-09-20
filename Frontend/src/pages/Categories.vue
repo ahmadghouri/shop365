@@ -37,6 +37,7 @@
             </p>
             <!-- Call to Action Button -->
             <button
+              @click="scrollToShops"
               class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out"
             >
               Discover More
@@ -75,6 +76,7 @@
           <p class="text-sm text-[#888888]">All Over the city.</p>
           <button
             class="mt-4 rounded-full bg-yellow-500 px-4 py-1 text-sm text-white"
+            @click="scrollToShops"
           >
             Order Now
           </button>
@@ -85,7 +87,7 @@
     <!-- Services Component -->
     <Services @serviceSelected="filterByService" />
 
-    <section class="lg:px-16">
+    <section ref="shopsSection" class="lg:px-16">
       <h1
         class="mt-3 text-2xl font-bold text-left sm:text-3xl md:text-4xl lg:text-5xl text-gray-800"
       >
@@ -221,6 +223,16 @@ const selectedService = ref("Food");
 const profile = ref(null);
 const name = ref("");
 const router = useRouter();
+const shopsSection = ref(null);
+
+const scrollToShops = () => {
+  if (shopsSection.value) {
+    shopsSection.value.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+};
 
 const handleSearch = () => {
   router.push("/home/search");

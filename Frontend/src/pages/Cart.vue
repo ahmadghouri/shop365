@@ -245,7 +245,7 @@ const orderNow = async () => {
         const failedBusinesses = response.data.failed_businesses.join(", ");
         errorMessage += ` The following restaurants have an order amount less than 500: ${failedBusinesses}.`;
       }
-      toast.error(errorMessage);
+      showError(errorMessage);
     }
   } catch (error) {
     let errorMessage = "Something went wrong.";

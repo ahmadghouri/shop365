@@ -28,6 +28,24 @@
       </div>
     </div>
 
+    <div
+      v-if="showErrorPopup"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+    >
+      <div
+        class="bg-white mobile-spacing lg:p-6 rounded-lg shadow-xl max-w-md w-full mx-4"
+      >
+        <h2 class="text-xl font-bold mb-4 text-red-600">Error</h2>
+        <p class="text-gray-700 mb-4">{{ errorMessage }}</p>
+        <button
+          @click="closeErrorPopup"
+          class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+
     <div class="flex-1 overflow-y-auto mt-6 mb-20">
       <div v-if="cartStore.cartItems.length > 0">
         <div
@@ -37,26 +55,38 @@
         >
           <div class="w-20 h-20 rounded-lg overflow-hidden">
             <img
+              v-if="item.product"
               class="w-full h-full object-contain"
               :src="item.product.image_url"
               alt="Product Image"
+            />
+            <img
+              v-else
+              class="w-full h-full object-cover"
+              src="https://via.placeholder.com/100x100.png?text=Unavailable"
+              alt="Product Unavailable"
             />
           </div>
 
           <div class="flex-1">
             <h2 class="text-lg font-medium text-gray-800">
-              {{ item.product.title }}
+              {{ item.product ? item.product.title : "Product unavailable" }}
             </h2>
             <p class="text-sm text-gray-500 mt-1">
               Quantity: {{ item.quantity }}
             </p>
             <p class="text-lg font-semibold text-yellow-600 mt-1">
-              {{ item.product.final_price || item.product.price }}
+              {{
+                item.product
+                  ? item.product.final_price || item.product.price
+                  : 0
+              }}
             </p>
             <div class="flex items-center space-x-2 mt-2">
               <button
                 @click="decreaseQuantity(item)"
                 class="bg-gray-100 p-2 rounded-full text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="!item.product"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -79,6 +109,7 @@
               <button
                 @click="increaseQuantity(item)"
                 class="bg-gray-100 p-2 rounded-full text-gray-600 hover:bg-gray-200"
+                :disabled="!item.product"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -140,7 +171,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useCartStore } from "../store/cartStore";
 import { useOrderStore } from "../store/orderStore";
 import { useRouter } from "vue-router";
@@ -150,11 +181,17 @@ const cartStore = useCartStore();
 const orderStore = useOrderStore();
 const router = useRouter();
 
-onMounted(() => {
-  cartStore.getCartItems();
+const showErrorPopup = ref(false);
+const errorMessage = ref("");
+
+onMounted(async () => {
+  try {
+    await cartStore.getCartItems();
+  } catch (error) {
+    showError("Failed to load cart items. Please try again.");
+  }
 });
 
-// Handle increasing the item quantity
 const increaseQuantity = async (item) => {
   try {
     await cartStore.updateItemQuantity(item.id, item.quantity + 1);
@@ -163,7 +200,6 @@ const increaseQuantity = async (item) => {
   }
 };
 
-// Handle decreasing the item quantity
 const decreaseQuantity = async (item) => {
   try {
     if (item.quantity > 1) {
@@ -176,15 +212,22 @@ const decreaseQuantity = async (item) => {
   }
 };
 
-// Compute total price considering discounts
 const total = computed(() => {
   return cartStore.cartItems.reduce((sum, item) => {
-    const price = item.product.final_price || item.product.price;
-    return sum + price * item.quantity;
+    if (item.product) {
+      const price = item.product.final_price || item.product.price;
+      return sum + price * item.quantity;
+    }
+    return sum;
   }, 0);
 });
 
 const orderNow = async () => {
+  if (total.value <= 0) {
+    // Display the error popup if total is less than or equal to zero
+    showError("You cannot place an order with a total amount of 0.");
+    return;
+  }
   try {
     const response = await orderStore.placeOrder();
 
@@ -214,8 +257,18 @@ const orderNow = async () => {
         errorMessage += ` The following restaurants have an order amount less than 500: ${failedBusinesses}.`;
       }
     }
-    toast.error(errorMessage);
+    showError(errorMessage);
   }
+};
+
+const showError = (message) => {
+  errorMessage.value = message;
+  showErrorPopup.value = true;
+};
+
+const closeErrorPopup = () => {
+  showErrorPopup.value = false;
+  errorMessage.value = "";
 };
 
 const goBack = () => {

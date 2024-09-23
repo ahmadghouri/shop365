@@ -53,7 +53,14 @@
           >
             {{ product.title }}
           </h2>
-          <p v-if="product.discount > 0" class="text-sm lg:text-lg mb-1">
+          <p
+            v-if="product.discount > 0"
+            :class="
+              product.type.toLowerCase() == 'services'
+                ? 'hidden'
+                : 'text-sm lg:text-lg mb-1'
+            "
+          >
             <span class="text-gray-500 line-through text-base lg:text-sm">
               Rs:{{ product.price }}
             </span>
@@ -61,7 +68,14 @@
               Rs:{{ product.final_price }}
             </span>
           </p>
-          <p v-else class="text-lg lg:text-xl text-gray-800 font-semibold">
+          <p
+            v-else
+            :class="
+              product.type.toLowerCase()
+                ? 'hidden'
+                : 'text-lg lg:text-xl text-gray-800 font-semibold'
+            "
+          >
             Rs:{{ product.price }}
           </p>
         </div>

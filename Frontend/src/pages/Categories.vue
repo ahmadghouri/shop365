@@ -88,14 +88,32 @@
     <Services @serviceSelected="filterByService" />
 
     <section ref="shopsSection" class="lg:px-16">
-      <h1
+      <!-- <div
+        v-if="isLoading"
+        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6"
+      >
+        <div
+          v-for="i in 8"
+          :key="i"
+          class="animate-pulse bg-white shadow-lg rounded-lg overflow-hidden"
+          style="height: 250px"
+        >
+          <div class="h-2/5 bg-gray-300"></div>
+          <div class="p-4">
+            <div class="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+            <div class="h-3 bg-gray-300 rounded w-1/2 mb-2"></div>
+            <div class="h-3 bg-gray-300 rounded w-1/4"></div>
+          </div>
+        </div>
+      </div> -->
+      <!-- <h1
         class="mt-3 text-2xl font-bold text-left sm:text-3xl md:text-4xl lg:text-5xl text-gray-800"
       >
         {{ selectedService.toLocaleUpperCase() || "FOOD" }}
-      </h1>
+      </h1> -->
 
       <!-- Filters -->
-      <div class="overflow-x-auto whitespace-nowrap py-4 mb-4">
+      <!-- <div class="overflow-x-auto whitespace-nowrap py-4 mb-4">
         <button
           v-for="filter in filters"
           :key="filter"
@@ -109,7 +127,7 @@
         >
           {{ filter }}
         </button>
-      </div>
+      </div> -->
 
       <!-- Restaurant Categories -->
       <div
@@ -145,6 +163,7 @@
               class="category-image"
               :src="category.image_url"
               alt="Category Image"
+              loading="lazy"
             />
             <!-- Discount Badge -->
             <div
@@ -224,6 +243,7 @@ const profile = ref(null);
 const name = ref("");
 const router = useRouter();
 const shopsSection = ref(null);
+const isLoading = ref(true);
 
 const scrollToShops = () => {
   if (shopsSection.value) {
@@ -289,6 +309,7 @@ const filterProducts = (filter) => {
 
 const filterByService = (service) => {
   selectedService.value = service;
+  localStorage.setItem("selectedService", service);
 };
 
 async function getProfileData() {
@@ -306,8 +327,16 @@ async function getProfileData() {
 }
 
 onMounted(async () => {
-  await businessStore.getBusinesses();
-  await getProfileData();
+  const serviceFromStorage = localStorage.getItem("selectedService");
+  if (serviceFromStorage) {
+    selectedService.value = serviceFromStorage;
+  }
+
+  try {
+    await Promise.all([businessStore.getBusinesses(), getProfileData()]);
+  } catch (error) {
+    console.error("Error loading data:", error);
+  }
 });
 </script>
 
@@ -324,5 +353,20 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: cover; /* Ensure image covers the container */
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-pulse {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+  background-size: 1000px 100%;
 }
 </style>

@@ -45,8 +45,30 @@
       </button>
     </div>
 
+    <!-- Skeleton Loading Animation -->
+    <div
+      v-if="isLoading"
+      class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+    >
+      <div
+        v-for="i in 8"
+        :key="i"
+        class="animate-pulse bg-white py-6 px-4 rounded-md flex flex-col items-center shadow-lg"
+        style="height: 300px"
+      >
+        <div class="w-[120px] h-[120px] bg-gray-300 rounded-md mb-4"></div>
+        <div class="w-3/4 h-4 bg-gray-300 rounded mb-2"></div>
+        <div class="w-1/2 h-3 bg-gray-300 rounded mb-2"></div>
+        <div class="w-1/4 h-3 bg-gray-300 rounded mb-4"></div>
+        <div class="w-full h-8 bg-gray-300 rounded-full mt-auto"></div>
+      </div>
+    </div>
+
     <!-- Products Section -->
-    <div v-if="filteredProducts" class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+    <div
+      v-else-if="filteredProducts.length > 0"
+      class="grid grid-cols-2 lg:grid-cols-4 gap-6"
+    >
       <router-link
         v-for="product in filteredProducts"
         :key="product.id"
@@ -83,7 +105,11 @@
           </h2>
 
           <!-- Price Section - Stick it at the bottom -->
-          <div class="mt-auto">
+          <div
+            :class="
+              product.type.toLowerCase() == 'services' ? 'hidden' : 'mt-auto'
+            "
+          >
             <p v-if="product.discount > 0" class="text-sm mb-1">
               <span class="text-gray-500 line-through text-base">
                 Rs:{{ product.price }}
@@ -147,12 +173,12 @@
       </router-link>
     </div>
 
-    <div v-else class="flex justify-center items-center h-screen bg-gray-100">
-      <div
-        class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"
-      ></div>
+    <!-- No Products Found Message -->
+    <div v-else class="text-center py-10">
+      <p class="text-xl text-gray-600">No products found.</p>
     </div>
 
+    <!-- Contact Popup -->
     <div
       v-if="showContactPopup"
       class="fixed inset-0 bg-black mobile-spacing bg-opacity-50 flex items-center justify-center z-50"
@@ -193,6 +219,7 @@ const filters = ref([]);
 const selectedFilter = ref("All");
 const showContactPopup = ref(false);
 const selectedProduct = ref(null);
+const isLoading = ref(true);
 
 const filteredProducts = computed(() => {
   if (selectedFilter.value === "All") {
@@ -213,15 +240,12 @@ const closeContactPopup = () => {
   selectedProduct.value = null;
 };
 
-// Filter products based on the selected filter
 const filterProducts = (filter) => {
   selectedFilter.value = filter;
 };
 
 const fetchFilters = async () => {
   try {
-    console.log(businessId);
-
     const response = await axios.get(
       `${API_BASE_URL}/api/businessTypes/${businessId}`
     );
@@ -234,12 +258,10 @@ const fetchFilters = async () => {
   }
 };
 
-// Go back to the previous page
 const goBack = () => {
   router.back();
 };
 
-// Add product to cart with animation
 const addToCart = async (product) => {
   const cartItem = {
     product_id: product.id,
@@ -259,7 +281,6 @@ const addToCart = async (product) => {
 
   try {
     await cartStore.addToCart(cartItem);
-    // toast.success("Product added to cart successfully!");
   } catch (error) {
     toast.error("Failed to add product to cart.");
   }
@@ -309,9 +330,11 @@ function createFlyingElement(productImage, startRect, endRect) {
   };
 }
 
-onMounted(() => {
-  productStore.getProducts(route.params.id);
-  fetchFilters(); // Fetch filters when the component is mounted
+onMounted(async () => {
+  isLoading.value = true;
+  await productStore.getProducts(route.params.id);
+  await fetchFilters();
+  isLoading.value = false;
 });
 </script>
 
@@ -330,5 +353,20 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-pulse {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+  background-size: 1000px 100%;
 }
 </style>

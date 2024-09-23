@@ -52,28 +52,29 @@
       </div>
       <div class="mb-4">
         <label for="image" class="block text-sm font-medium text-gray-700"
-          >Image</label
+          >Image (Max 15KB)</label
         >
         <input
           @change="handleFileChange"
           type="file"
           id="image"
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          accept="image/*"
           required
         />
+        <p v-if="imageError" class="text-red-500 text-xs mt-1">
+          {{ imageError }}
+        </p>
       </div>
 
       <div>
         <label
           for="restaurant"
           class="mt-1 block mb-2 text-sm font-medium text-gray-900"
+          >Restaurant</label
         >
-          Restaurant
-        </label>
         <select
           name="restaurants"
-          id="restaurnats"
+          id="restaurants"
           v-model="form.business"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
           required
@@ -99,6 +100,7 @@
         <button
           type="submit"
           class="bg-blue-500 text-white px-4 py-2 rounded-md"
+          :disabled="imageError"
         >
           Add
         </button>
@@ -116,6 +118,7 @@ import { useRouter } from "vue-router";
 const businessStore = useBusinessStore();
 const route = useRouter();
 const productStore = useProductStore();
+const imageError = ref("");
 const form = ref({
   title: "",
   description: "",
@@ -124,19 +127,26 @@ const form = ref({
   image: "",
   business: "",
 });
+
 const handleFileChange = (event) => {
   const file = event.target.files[0];
-  if (file && file.type.startsWith("image/")) {
-    form.value.image = file;
+  if (file && file.size > 15 * 1024) {
+    imageError.value = "Image size must be less than 15KB.";
+    form.value.image = ""; // Clear the image field if there's an error
   } else {
-    alert("Please select a valid image file.");
+    imageError.value = "";
+    form.value.image = file;
   }
 };
 
 const emit = defineEmits(["close"]);
 
 const handleSubmit = async () => {
-  console.log(form.value.business);
+  if (form.value.image && form.value.image.size > 15 * 1024) {
+    imageError.value = "Image size must be less than 15KB.";
+    return; // Prevent submission if the image is too large
+  }
+
   try {
     const formData = new FormData();
     formData.append("title", form.value.title);

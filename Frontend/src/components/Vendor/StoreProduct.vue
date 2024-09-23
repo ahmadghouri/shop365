@@ -108,7 +108,7 @@ const router = useRouter();
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (file && file.size > 15 * 1024) {
-    imageError.value = "Image size must be less than 256KB.";
+    imageError.value = "Image size must be less than 15KB.";
     image.value = null;
   } else {
     imageError.value = "";
@@ -118,7 +118,7 @@ const handleFileUpload = (event) => {
 
 const handleSubmit = async () => {
   if (!image.value) {
-    alert("Please upload a valid image.");
+    imageError.value = "Please upload a valid image.";
     return;
   }
 

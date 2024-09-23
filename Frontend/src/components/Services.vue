@@ -52,6 +52,8 @@ const services = ref([
   ["Doctor", "/doctor1.png"],
   ["Vehicle", "/car1.png"],
   ["Mobile", "/mobile1.png"],
+  ["Electronics", "/electronics.png"],
+  ["Toys", "/toys.png"],
   ["Services", "/services1.png"],
 ]);
 

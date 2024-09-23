@@ -46,7 +46,7 @@
     </div>
 
     <!-- Products Section -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+    <div v-if="filteredProducts" class="grid grid-cols-2 lg:grid-cols-4 gap-6">
       <router-link
         v-for="product in filteredProducts"
         :key="product.id"
@@ -98,8 +98,32 @@
           </div>
         </div>
 
+        <button
+          v-if="product.type.toLowerCase() === 'services'"
+          @click.prevent="openContactPopup(product)"
+          class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          <span class="hidden sm:inline">Contact Now</span>
+          <span class="sm:hidden">Contact</span>
+        </button>
+
         <!-- Minimal Add to Cart Button with Icon -->
         <button
+          v-else
           @click.prevent="addToCart(product)"
           class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
         >
@@ -122,6 +146,30 @@
         </button>
       </router-link>
     </div>
+
+    <div v-else class="flex justify-center items-center h-screen bg-gray-100">
+      <div
+        class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"
+      ></div>
+    </div>
+
+    <div
+      v-if="showContactPopup"
+      class="fixed inset-0 bg-black mobile-spacing bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white mobile-spacing md:p-8 rounded-lg max-w-md w-full">
+        <h2 class="text-2xl font-bold mb-4">{{ selectedProduct.title }}</h2>
+        <p class="text-gray-700 mb-6">{{ selectedProduct.description }}</p>
+        <div class="flex justify-end">
+          <button
+            @click="closeContactPopup"
+            class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-full hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -143,6 +191,8 @@ const businessId = route.params.id;
 const categoryTitle = ref(route.query.title);
 const filters = ref([]);
 const selectedFilter = ref("All");
+const showContactPopup = ref(false);
+const selectedProduct = ref(null);
 
 const filteredProducts = computed(() => {
   if (selectedFilter.value === "All") {
@@ -152,6 +202,16 @@ const filteredProducts = computed(() => {
     product.type.toLowerCase().includes(selectedFilter.value.toLowerCase())
   );
 });
+
+const openContactPopup = (product) => {
+  selectedProduct.value = product;
+  showContactPopup.value = true;
+};
+
+const closeContactPopup = () => {
+  showContactPopup.value = false;
+  selectedProduct.value = null;
+};
 
 // Filter products based on the selected filter
 const filterProducts = (filter) => {

@@ -31,7 +31,6 @@ import ViewAdmins from "../components/ViewAdmins.vue";
 import ShopStats from "../pages/Admin/ShopStats.vue";
 
 const routes = [
-  // Public Routes
   {
     path: "/",
     name: "TownService",

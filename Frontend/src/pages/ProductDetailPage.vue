@@ -38,7 +38,13 @@
       </div>
 
       <!-- Product Information -->
-      <div class="bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2">
+      <div
+        :class="
+          product.type.toLowerCase() !== 'services'
+            ? 'bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2'
+            : 'bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2 lg:flex lg:flex-col lg:justify-center'
+        "
+      >
         <div
           class="text-center mt-2 lg:text-left flex justify-between items-center"
         >
@@ -70,7 +76,7 @@
           </div>
         </div>
 
-        <div class="mt-6">
+        <div class="mt-6" v-if="product.type.toLowerCase() != 'services'">
           <label class="font-semibold text-gray-900">Quantity</label>
           <div
             class="flex items-center mt-2 border border-gray-300 rounded-md overflow-hidden w-max mx-auto lg:mx-0"
@@ -94,9 +100,36 @@
         </div>
 
         <!-- Buttons for Order and Add to Cart -->
-        <div class="mt-8 flex flex-col items-center lg:items-start space-y-3">
+        <div
+          v-if="product.type.toLowerCase() != 'services'"
+          class="mt-8 flex flex-col items-center lg:items-start space-y-3"
+        >
           <button class="button" @click="handleOrderNow">Order Now</button>
           <button class="button-border" @click="addToCart">Add To Cart</button>
+        </div>
+
+        <div v-else class="mt-8 flex items-center">
+          <button class="button" @click.prevent="openContactPopup(product)">
+            Book Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="showContactPopup"
+      class="fixed inset-0 bg-black mobile-spacing bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white mobile-spacing md:p-8 rounded-lg max-w-md w-full">
+        <h2 class="text-2xl font-bold mb-4">{{ selectedProduct.title }}</h2>
+        <p class="text-gray-700 mb-6">{{ selectedProduct.description }}</p>
+        <div class="flex justify-end">
+          <button
+            @click="closeContactPopup"
+            class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-full hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -123,6 +156,18 @@ const cartStore = useCartStore();
 const productStore = useProductStore();
 const quantity = ref(1);
 const productImageRef = ref(null);
+const showContactPopup = ref(false);
+const selectedProduct = ref(null);
+
+const openContactPopup = (product) => {
+  selectedProduct.value = product;
+  showContactPopup.value = true;
+};
+
+const closeContactPopup = () => {
+  showContactPopup.value = false;
+  selectedProduct.value = null;
+};
 
 onMounted(async () => {
   await productStore.getProduct(route.params.id);

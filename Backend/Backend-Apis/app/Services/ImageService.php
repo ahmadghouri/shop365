@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Container\Attributes\Log;
+use Illuminate\Support\Facades\Log as FacadesLog;
 
 class ImageService
 {
@@ -14,8 +16,10 @@ class ImageService
     {
         try {
             $image = $request->file($requestName);
+            FacadesLog::info('Upload Image Request', ['request' => $request->all()]);
 
             if ($image) {
+
                 $fileName = $fileName ?? Str::random(10);
                 $extension = $fileExtension ?: $image->getClientOriginalExtension();
 

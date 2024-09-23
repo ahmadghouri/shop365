@@ -65,7 +65,7 @@
 
         <div>
           <label for="image" class="block text-sm font-medium text-gray-700"
-            >Image (Max 256KB)</label
+            >Image (Max 15KB)</label
           >
           <input
             type="file"
@@ -107,7 +107,7 @@ const router = useRouter();
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
-  if (file && file.size > 256 * 1024) {
+  if (file && file.size > 15 * 1024) {
     imageError.value = "Image size must be less than 256KB.";
     image.value = null;
   } else {

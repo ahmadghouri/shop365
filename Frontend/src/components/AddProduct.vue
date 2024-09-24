@@ -89,7 +89,8 @@
           </option>
         </select>
       </div>
-      <div class="flex justify-end">
+
+      <div class="flex justify-end mt-4">
         <button
           type="button"
           @click="$emit('close')"
@@ -100,7 +101,6 @@
         <button
           type="submit"
           class="bg-blue-500 text-white px-4 py-2 rounded-md"
-          :disabled="imageError"
         >
           Add
         </button>
@@ -114,7 +114,9 @@ import { ref, onMounted } from "vue";
 import { useProductStore } from "../store/productStore.js";
 import { useBusinessStore } from "../store/businessStore.js";
 import { useRouter } from "vue-router";
+import { toast } from "vue3-toastify";
 
+// Initialize the stores and form
 const businessStore = useBusinessStore();
 const route = useRouter();
 const productStore = useProductStore();
@@ -128,6 +130,7 @@ const form = ref({
   business: "",
 });
 
+// Handle file change and image size validation
 const handleFileChange = (event) => {
   const file = event.target.files[0];
   if (file && file.size > 15 * 1024) {
@@ -139,11 +142,16 @@ const handleFileChange = (event) => {
   }
 };
 
-const emit = defineEmits(["close"]);
-
+// Handle form submission
 const handleSubmit = async () => {
+  if (imageError.value) {
+    toast.error("Please fix the errors before submitting.");
+    return;
+  }
+
   if (form.value.image && form.value.image.size > 15 * 1024) {
     imageError.value = "Image size must be less than 15KB.";
+    toast.error("Image size exceeds the limit.");
     return; // Prevent submission if the image is too large
   }
 
@@ -157,12 +165,15 @@ const handleSubmit = async () => {
     formData.append("business", form.value.business);
 
     await productStore.storeProduct(formData);
+    toast.success("Product added successfully!");
     route.push(`/admin/dashboard`);
   } catch (error) {
     console.error("Error submitting form:", error);
+    toast.error("Failed to add the product.");
   }
 };
 
+// Load businesses on mount
 onMounted(async () => {
   await businessStore.getBusinesses();
 });

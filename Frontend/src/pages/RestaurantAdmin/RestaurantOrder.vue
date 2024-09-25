@@ -320,7 +320,8 @@ const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
 
-// Function to fetch orders from the server
+const I = new Audio("/notification.mp3");
+I.volume = 0.25;
 const fetchRestaurantOrders = async () => {
   try {
     await orderStore.getRestaurantOrders();
@@ -473,6 +474,17 @@ watch(selectedStatus, async () => {
   await fetchRestaurantOrders();
 });
 
+const notificationAudio = new Audio("/notification.mp3");
+notificationAudio.volume = 1;
+
+// Function to play audio
+const playNotificationSound = () => {
+  notificationAudio.play().catch((error) => {
+    console.warn("Audio playback failed:", error);
+    // Fallback: You could show a visual notification here if audio fails
+  });
+};
+
 // Set up WebSocket connection on mounted
 onMounted(async () => {
   await fetchRestaurantOrders();
@@ -482,8 +494,7 @@ onMounted(async () => {
     window.Echo.channel("order-channel." + orderStore.businessId)
       .listen("OrderPlaced", (event) => {
         handleNewOrder(event);
-        console.log(event);
-
+        playNotificationSound();
         toast.success("New Order Received");
       })
       .error((error) => {
@@ -492,6 +503,16 @@ onMounted(async () => {
   } else {
     console.error("Echo instance is not defined");
   }
+
+  // Add a one-time click event listener to the document
+  document.addEventListener(
+    "click",
+    () => {
+      // This empty playback attempt allows future automatic playback
+      notificationAudio.play().catch(() => {});
+    },
+    { once: true }
+  );
 });
 </script>
 

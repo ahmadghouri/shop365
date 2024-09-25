@@ -320,9 +320,6 @@ const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
 
-// Audio notification setup
-const audio = new Audio("/notification-sound.mp3"); // Path to your audio file
-
 // Function to fetch orders from the server
 const fetchRestaurantOrders = async () => {
   try {
@@ -401,13 +398,22 @@ const handleNewOrder = (event) => {
       ? {
           id: order.user.id,
           phone_no: order.user.phone_no,
+          name: order.user.name,
           role: order.user.role,
+          household: {
+            address: order.user.household.address,
+            town: {
+              town_name: order.user.household.town.town_name,
+            },
+          },
           created_at: order.user.created_at,
           updated_at: order.user.updated_at,
         }
       : {},
     newOrder: true,
   };
+
+  console.log(transformedOrder);
 
   orders.value = [transformedOrder, ...orders.value];
 };
@@ -476,6 +482,8 @@ onMounted(async () => {
     window.Echo.channel("order-channel." + orderStore.businessId)
       .listen("OrderPlaced", (event) => {
         handleNewOrder(event);
+        console.log(event);
+
         toast.success("New Order Received");
       })
       .error((error) => {

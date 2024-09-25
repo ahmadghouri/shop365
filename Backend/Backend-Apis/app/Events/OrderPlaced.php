@@ -25,7 +25,7 @@ class OrderPlaced implements ShouldBroadcastNow
      */
     public function __construct(Order $order, $businessId)
     {
-        $this->order = $order;
+        $this->order = $order->load('user.household.town');
         $this->user = $order->user;
         $this->orderItems = $order->items()->with('product')->get();
         $this->businessId = $businessId; 

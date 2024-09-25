@@ -224,7 +224,6 @@ const total = computed(() => {
 
 const orderNow = async () => {
   if (total.value <= 0) {
-    // Display the error popup if total is less than or equal to zero
     showError("You cannot place an order with a total amount of 0.");
     return;
   }
@@ -236,9 +235,7 @@ const orderNow = async () => {
       response.data.message === "Order(s) placed successfully"
     ) {
       cartStore.cartItems = [];
-      setTimeout(() => {
-        router.push("/home/orderconfirmation");
-      }, 1000);
+      router.push("/home/orderconfirmation");
     } else {
       let errorMessage = response.data.message || "Something went wrong.";
       if (response.data.failed_businesses?.length > 0) {

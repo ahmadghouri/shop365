@@ -16,17 +16,14 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
-        return secure_url('/be' .$this->image);
-        //return url('' . $this->image);
+        //return secure_url('/be' .$this->image);
+        return url('' . $this->image);
     }
 
     public function business(){
         return $this->belongsTo(Business::class);
     }
 
-    public function sizes() {
-        return $this->belongsToMany(Size::class)->withPivot('price');
-    }
 
 // Product.php
 public function getFinalPriceAttribute()

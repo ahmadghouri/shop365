@@ -76,10 +76,10 @@ const services = ref([
   ["Grocery", "/Groccery1.png"],
   ["Doctor", "/doctor1.png"],
   ["Vehicle", "/car1.png"],
-  ["Mobile & Computer", "/mobile1.png"],
-  ["Home Decor", "/Decor.png"],
+  ["Mobile", "/mobile1.png"],
+  ["Home", "/Decor.png"],
   ["Electronics", "/electronics.png"],
-  ["Toys & Gifts", "/toys.png"],
+  ["Toys", "/toys.png"],
   ["Services", "/services1.png"],
 ]);
 

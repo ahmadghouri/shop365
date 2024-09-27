@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -10,9 +11,13 @@ class UserController extends Controller
     
     public function index()
     {
+        $order_count = 0;
         $users = User::where('role', 'end_user')
-        ->with(['household.town'])  // Eager load `household` and `town`
+        ->with(['household.town']) 
+        ->withCount(['orders']) 
         ->get();
+
+        
 
         return response()->json($users);
     }

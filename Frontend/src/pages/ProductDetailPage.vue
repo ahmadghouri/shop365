@@ -38,13 +38,7 @@
       </div>
 
       <!-- Product Information -->
-      <div
-        :class="
-          product.type.toLowerCase() !== 'services'
-            ? 'bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2'
-            : 'bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2 lg:flex lg:flex-col lg:justify-center'
-        "
-      >
+      <div class="bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2">
         <div
           class="text-center mt-2 lg:text-left flex justify-between items-center"
         >
@@ -53,31 +47,19 @@
           >
             {{ product.title }}
           </h2>
-          <p
-            v-if="product.discount > 0"
-            :class="
-              product.type.toLowerCase() == 'services'
-                ? 'hidden'
-                : 'text-sm lg:text-lg mb-1'
-            "
-          >
-            <span class="text-gray-500 line-through text-base lg:text-sm">
+          <div v-if="product.type.toLowerCase() !== 'services'">
+            <p v-if="product.discount > 0" class="text-sm lg:text-lg mb-1">
+              <span class="text-gray-500 line-through text-base lg:text-sm">
+                Rs:{{ product.price }}
+              </span>
+              <span class="text-red-600 font-bold text-xl ml-2 lg:text-2xl">
+                Rs:{{ product.final_price }}
+              </span>
+            </p>
+            <p v-else class="text-lg lg:text-xl text-gray-800 font-semibold">
               Rs:{{ product.price }}
-            </span>
-            <span class="text-red-600 font-bold text-xl ml-2 lg:text-2xl">
-              Rs:{{ product.final_price }}
-            </span>
-          </p>
-          <p
-            v-else
-            :class="
-              product.type.toLowerCase()
-                ? 'hidden'
-                : 'text-lg lg:text-xl text-gray-800 font-semibold'
-            "
-          >
-            Rs:{{ product.price }}
-          </p>
+            </p>
+          </div>
         </div>
 
         <!-- Description and Quantity Controls -->
@@ -90,7 +72,7 @@
           </div>
         </div>
 
-        <div class="mt-6" v-if="product.type.toLowerCase() != 'services'">
+        <div class="mt-6" v-if="product.type.toLowerCase() !== 'services'">
           <label class="font-semibold text-gray-900">Quantity</label>
           <div
             class="flex items-center mt-2 border border-gray-300 rounded-md overflow-hidden w-max mx-auto lg:mx-0"
@@ -115,7 +97,7 @@
 
         <!-- Buttons for Order and Add to Cart -->
         <div
-          v-if="product.type.toLowerCase() != 'services'"
+          v-if="product.type.toLowerCase() !== 'services'"
           class="mt-8 flex flex-col items-center lg:items-start space-y-3"
         >
           <button class="button" @click="handleOrderNow">Order Now</button>

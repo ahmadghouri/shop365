@@ -1,45 +1,65 @@
 <template>
-  <div class="bg-gray-100 min-h-screen">
+  <div class="bg-gray-50 min-h-screen p-6">
     <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-gray-800">All Users</h1>
+      <h1 class="text-3xl font-semibold text-gray-900">User Management</h1>
+      <select
+        v-model="sortOrder"
+        class="bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-200"
+      >
+        <option value="desc">Highest Orders First</option>
+        <option value="asc">Lowest Orders First</option>
+      </select>
     </div>
 
-    <!-- User Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
-        v-for="user in userStore.users"
+        v-for="(user, index) in sortedUsers"
         :key="user.id"
-        class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col gap-4 p-4"
+        :class="[
+          'relative group bg-white shadow-sm rounded-lg overflow-hidden flex flex-col transition-transform duration-200',
+          isTopThree(index)
+            ? 'border-2 border-yellow-400 bg-yellow-50'
+            : 'hover:shadow-lg',
+        ]"
       >
-        <div class="">
-          <div class="flex flex-col">
-            <p class="text-xl font-semibold text-gray-800 mb-1">
-              {{ user.name || "No Name" }}
-            </p>
-            <p class="text-md mb-1">Phone:{{ user.phone_no }}</p>
+        <div class="p-4 flex-grow">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <p class="text-lg font-semibold text-gray-800">
+                {{ user.name || "No Name" }}
+                <span
+                  v-if="isTopThree(index)"
+                  class="ml-2 text-xs bg-yellow-300 text-gray-700 px-2 py-0.5 rounded-full"
+                >
+                  Top {{ index + 1 }}
+                </span>
+              </p>
+              <p class="text-sm text-gray-500">{{ user.phone_no }}</p>
+            </div>
+            <div
+              class="text-sm font-medium px-3 py-1 rounded-full"
+              :class="
+                isTopThree(index)
+                  ? 'bg-yellow-300 text-yellow-900'
+                  : 'bg-gray-200 text-gray-700'
+              "
+            >
+              {{ user.orders_count }} Order{{
+                user.orders_count !== 1 ? "s" : ""
+              }}
+            </div>
           </div>
-          <div class="text-gray-500">
+
+          <div class="text-gray-600 text-sm">
             <p class="mb-1">
-              Address: {{ user.household?.address || "No Address" }}
+              <span class="font-medium">Address:</span>
+              {{ user.household?.address || "No Address" }}
             </p>
-            <p class="mb-1">
-              Town: {{ user.household?.town?.town_name || "No Town" }}
+            <p>
+              <span class="font-medium">Town:</span>
+              {{ user.household?.town?.town_name || "No Town" }}
             </p>
           </div>
-        </div>
-        <div class="flex gap-2">
-          <button
-            @click="editUser(user)"
-            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-          >
-            Edit
-          </button>
-          <button
-            @click="deleteUser(user.id)"
-            class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
-          >
-            Delete
-          </button>
         </div>
       </div>
     </div>
@@ -47,11 +67,11 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useUserStore } from "../../store/userStore";
 
 const userStore = useUserStore();
-console.log(userStore);
+const sortOrder = ref("desc");
 
 const fetchUsers = async () => {
   await userStore.getUsers();
@@ -61,16 +81,21 @@ onMounted(() => {
   fetchUsers();
 });
 
-// Dummy methods for edit and delete (you should implement these methods)
-const editUser = (user) => {
-  console.log("Edit user:", user);
-};
+const sortedUsers = computed(() => {
+  return [...userStore.users].sort((a, b) => {
+    if (sortOrder.value === "desc") {
+      return b.orders_count - a.orders_count;
+    } else {
+      return a.orders_count - b.orders_count;
+    }
+  });
+});
 
-const deleteUser = async (userId) => {
-  await userStore.deleteUser(userId);
+const isTopThree = (index) => {
+  return index < 3 && sortOrder.value === "desc";
 };
 </script>
 
 <style scoped>
-/* Custom styles if needed */
+/* Optional custom styles for further refinement */
 </style>

@@ -28,6 +28,18 @@
         >
           View Orders
         </router-link>
+        <router-link
+          to="/home/services"
+          class="text-lg text-gray-800 hover:text-yellow-500"
+        >
+          Services
+        </router-link>
+        <router-link
+          to="/home/contact"
+          class="text-lg text-gray-800 hover:text-yellow-500"
+        >
+          Contact Us
+        </router-link>
       </div>
 
       <!-- Cart Icon with Counter -->
@@ -90,6 +102,16 @@
             <li>
               <router-link to="/home/vieworders" class="text-lg text-gray-800">
                 <button @click="toggleSidebar">View Orders</button>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/home/services" class="text-lg text-gray-800">
+                <button @click="toggleSidebar">Services</button>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/home/contact" class="text-lg text-gray-800">
+                <button @click="toggleSidebar">Contact</button>
               </router-link>
             </li>
           </ul>

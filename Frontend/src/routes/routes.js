@@ -11,6 +11,7 @@ import CategoryPage from "../pages/CategoryPage.vue";
 import ProductDetailsPage from "../pages/ProductDetailPage.vue";
 import UserLayout from "../layout/UserLayout.vue";
 import Services from "../pages/Services.vue";
+import Contact from "../pages/Contact.vue";
 
 // Admin Pages
 import AdminLayout from "../layout/AdminLayout.vue";
@@ -142,6 +143,14 @@ const routes = [
         path: "services",
         name: "Services",
         component: Services,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: "contact",
+        name: "Contact",
+        component: Contact,
         meta: {
           requiresAuth: true,
         },

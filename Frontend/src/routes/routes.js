@@ -278,17 +278,14 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  // Check if the route requires user authentication
   if (to.meta.requiresAuth) {
     if (token) {
       if (role === "admin") {
-        next(); // Admin can access any route that requires auth
+        next();
       } else if (role === "restaurant_admin") {
         if (to.meta.requiresAdminAuth) {
-          // If the route requires admin authentication, allow access
           next();
         } else {
-          // Redirect restaurant_admin to RestaurantOrders if not accessing admin auth routes
           if (
             to.name !== "RestaurantOrders" &&
             to.name !== "RestaurantAdminDashboard"
@@ -299,10 +296,10 @@ router.beforeEach((to, from, next) => {
           }
         }
       } else {
-        next(); // For non-admin users, allow access
+        next();
       }
     } else {
-      next({ name: "UserLogin" }); // Redirect to UserLogin if not authenticated
+      next({ name: "UserLogin" });
     }
   } else if (to.meta.requiresAdminAuth) {
     if (token) {
@@ -317,7 +314,12 @@ router.beforeEach((to, from, next) => {
       next({ name: "AdminLogin" }); // Redirect to AdminLogin if no token
     }
   } else {
-    next(); // Allow access to public routes
+    // Check if the user is already logged in when accessing login/register pages
+    if (token && (to.name === "UserLogin" || to.name === "Register")) {
+      next({ name: "Categories" }); // Redirect to Categories if already logged in
+    } else {
+      next(); // Allow access to public routes
+    }
   }
 });
 

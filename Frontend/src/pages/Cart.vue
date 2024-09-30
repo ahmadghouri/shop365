@@ -47,6 +47,52 @@
     </div>
 
     <div class="flex-1 overflow-y-auto mt-6 mb-20">
+      <div
+        v-if="isProcessing"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+      >
+        <div class="text-center">
+          <svg class="mx-auto w-24 h-24 lg:w-32 lg:h-32" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              stroke="#FDE68A"
+              stroke-width="8"
+              fill="none"
+            />
+            <path
+              class="order-progress"
+              d="M50 10 A40 40 0 0 1 90 50"
+              stroke="#FBBF24"
+              stroke-width="8"
+              fill="none"
+              stroke-linecap="round"
+            >
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from="0 50 50"
+                to="360 50 50"
+                dur="1.5s"
+                repeatCount="indefinite"
+              />
+            </path>
+            <circle cx="50" cy="50" r="20" fill="#FBBF24">
+              <animate
+                attributeName="r"
+                values="20;22;20"
+                dur="1.5s"
+                repeatCount="indefinite"
+              />
+            </circle>
+          </svg>
+          <p class="mt-4 text-white text-xl font-semibold animate-pulse">
+            Processing Order...
+          </p>
+        </div>
+      </div>
+
       <div v-if="cartStore.cartItems.length > 0">
         <div
           v-for="item in cartStore.cartItems"
@@ -183,6 +229,7 @@ const router = useRouter();
 
 const showErrorPopup = ref(false);
 const errorMessage = ref("");
+const isProcessing = ref(false);
 
 onMounted(async () => {
   try {
@@ -227,6 +274,7 @@ const orderNow = async () => {
     showError("You cannot place an order with a total amount of 0.");
     return;
   }
+  isProcessing.value = true;
   try {
     const response = await orderStore.placeOrder();
 
@@ -234,8 +282,8 @@ const orderNow = async () => {
       response.status === 200 &&
       response.data.message === "Order(s) placed successfully"
     ) {
-      cartStore.cartItems = [];
       router.push("/home/orderconfirmation");
+      cartStore.cartItems = [];
     } else {
       let errorMessage = response.data.message || "Something went wrong.";
       if (response.data.failed_businesses?.length > 0) {
@@ -255,6 +303,8 @@ const orderNow = async () => {
       }
     }
     showError(errorMessage);
+  } finally {
+    isProcessing.value = false;
   }
 };
 
@@ -273,4 +323,19 @@ const goBack = () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.order-progress {
+  stroke-dasharray: 126;
+  stroke-dashoffset: 126;
+  animation: progress 1.5s ease-out infinite;
+}
+
+@keyframes progress {
+  0% {
+    stroke-dashoffset: 126;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+</style>

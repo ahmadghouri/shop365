@@ -88,6 +88,13 @@
     <Services @serviceSelected="filterByService" />
 
     <section ref="shopsSection" class="lg:px-16">
+      <div v-if="isLoading" class="flex justify-center mt-6">
+        <div class="loader">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
       <!-- <div
         v-if="isLoading"
         class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6"
@@ -131,7 +138,7 @@
 
       <!-- Restaurant Categories -->
       <div
-        v-if="filteredRestaurants.length"
+        v-if="!isLoading && filteredRestaurants.length"
         class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6"
       >
         <router-link
@@ -221,7 +228,9 @@
           </div>
         </router-link>
       </div>
-      <div v-else class="mt-8 text-center text-gray-600">Coming Soon</div>
+      <div v-else-if="!isLoading" class="mt-8 text-center text-gray-600">
+        Coming Soon
+      </div>
     </section>
   </div>
 </template>
@@ -332,6 +341,10 @@ onMounted(async () => {
     selectedService.value = serviceFromStorage;
   }
 
+  setInterval(() => {
+    isLoading.value = false;
+  }, 2000);
+
   try {
     await Promise.all([businessStore.getBusinesses(), getProfileData()]);
   } catch (error) {
@@ -368,5 +381,37 @@ onMounted(async () => {
   animation: shimmer 2s infinite linear;
   background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
   background-size: 1000px 100%;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+}
+
+.loader span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
+  background-color: rgb(234 179 8); /* Change color as needed */
+  border-radius: 50%;
+  animation: bounce 0.6s infinite alternate;
+}
+
+.loader span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loader span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-15px);
+  }
 }
 </style>

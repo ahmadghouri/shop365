@@ -165,17 +165,17 @@ class ProductController extends Controller
     public function businessProductsDiscount(Request $request, $businessId)
     {
         $discount = $request->get('discount', 0); // Get discount from request, default to 0
-
+    
         $products = Product::where('business_id', $businessId)->get();
-
+    
         // Apply discount dynamically to each product
         $products->each(function ($product) use ($discount) {
             $product->final_price = $product->price - $product->price * ($discount / 100);
         });
-
+    
         return $this->successResponse($products, 'All the products with discounts applied');
     }
-
+    
     public function updateDiscount(Request $request)
     {
         if (!Auth::check()) {

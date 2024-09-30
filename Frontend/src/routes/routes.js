@@ -10,6 +10,7 @@ import OrderNow from "../pages/OrderNow.vue";
 import CategoryPage from "../pages/CategoryPage.vue";
 import ProductDetailsPage from "../pages/ProductDetailPage.vue";
 import UserLayout from "../layout/UserLayout.vue";
+import Services from "../pages/Services.vue";
 
 // Admin Pages
 import AdminLayout from "../layout/AdminLayout.vue";
@@ -133,6 +134,14 @@ const routes = [
         path: "order",
         name: "OrderNow",
         component: OrderNow,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: "services",
+        name: "Services",
+        component: Services,
         meta: {
           requiresAuth: true,
         },

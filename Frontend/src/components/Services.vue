@@ -71,11 +71,11 @@
 import { ref, defineEmits } from "vue";
 
 const services = ref([
-  ["Shop365", "/Asset 2.png"],
+  // ["Shop365", "/Asset 2.png"],
   ["Food", "/food1.png"],
   ["Grocery", "/Groccery1.png"],
   ["Doctor", "/doctor1.png"],
-  ["Vehicle", "/car1.png"],
+  // ["Vehicle", "/car1.png"],
   ["Mobile", "/mobile1.png"],
   ["Home", "/Decor.png"],
   // ["Electronics", "/electronics.png"],
@@ -92,6 +92,4 @@ const selectService = (service) => {
 };
 </script>
 
-<style scoped>
-/* Add any additional styles here if needed */
-</style>
+<style scoped></style>

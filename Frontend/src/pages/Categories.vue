@@ -47,7 +47,7 @@
 
         <div class="lg:w-1/2">
           <img
-            src="/hero.png"
+            src="/hero.svg"
             alt="Hero Image"
             class="rounded-lg object-cover w-full h-auto"
           />
@@ -64,7 +64,7 @@
       >
         <div class="flex-1 h-full flex items-center">
           <img
-            src="/hero.png"
+            src="/hero.svg"
             alt="Hero Image"
             class="h-full w-full object-contain rounded-lg"
           />

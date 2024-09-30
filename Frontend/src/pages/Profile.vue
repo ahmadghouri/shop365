@@ -3,7 +3,6 @@
     <div class="relative lg:px-32 lg:py-8">
       <!-- Header with Back Button and Title -->
       <div class="relative flex items-center justify-between mt-4 lg:mt-8">
-        <!-- Back Arrow Button -->
         <button
           @click="goBack"
           class="absolute left-0 top-1/2 transform -translate-y-1/2 lg:left-0 lg:top-auto lg:relative lg:transform-none"
@@ -23,13 +22,9 @@
             />
           </svg>
         </button>
-
-        <!-- Profile Title -->
         <div class="flex-1 text-center">
           <h1 class="text-xl font-semibold lg:text-2xl">Profile</h1>
         </div>
-
-        <!-- Empty Div for Alignment (if needed) -->
         <div></div>
       </div>
 
@@ -37,16 +32,16 @@
       <div class="flex flex-col space-y-6 lg:space-y-8 mt-6 lg:mt-8">
         <label for="phone" class="mt-1">Phone Number</label>
         <input
+          v-model="phone"
           class="max-w-full min-h-12 rounded-lg border-[#ECECEB] border-2 mt-2 p-4"
           type="text"
-          :value="profile.user?.phone_no || ''"
         />
 
         <label for="name" class="mt-1">Name</label>
         <input
+          v-model="name"
           class="max-w-full min-h-12 rounded-lg border-[#ECECEB] border-2 mt-2 p-4"
           type="text"
-          :value="profile.user.name || 'No Name'"
         />
 
         <label for="password" class="mt-1">Password</label>
@@ -59,11 +54,13 @@
 
         <label for="address" class="mt-1">Address</label>
         <textarea
+          v-model="address"
           class="rounded-lg border-[#ECECEB] border-2 mt-2 p-4"
-          :value="computedAddress"
-          readonly
         ></textarea>
       </div>
+
+      <!-- Save Button to Update Profile -->
+      <button class="button mt-6" @click="updateProfile">Save</button>
       <button class="button mt-6" @click="logout">Logout</button>
     </div>
   </div>
@@ -76,24 +73,18 @@
 </template>
 
 <script setup>
-import axios from "axios";
-import { ref, onMounted, computed } from "vue";
-import { API_BASE_URL } from "../config/api";
+import { ref, onMounted } from "vue";
+import { useUserStore } from "../store/userStore"; // Pinia store import
 import { useRouter } from "vue-router";
+import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 const profile = ref(null);
 const router = useRouter();
-
-const computedAddress = computed(() => {
-  if (profile.value && profile.value.household && profile.value.town) {
-    return (
-      `${profile.value.household.address || ""} ${
-        profile.value.town.town_name || ""
-      }`.trim() || "No Address"
-    );
-  }
-  return "No Address";
-});
+const profile_id = ref();
+const phone = ref("");
+const name = ref("");
+const address = ref("");
 
 const logout = () => {
   localStorage.removeItem("token");
@@ -111,12 +102,46 @@ async function getProfileData() {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
-    profile.value = response.data.data; // Adjust according to actual API response structure
+    profile.value = response.data.data;
+    profile_id.value = response.data.data.user.id;
+    phone.value = profile.value.user?.phone_no || "";
+    name.value = profile.value.user?.name || "No Name";
+    address.value = profile.value.household?.address || "No Address";
   } catch (error) {
     console.error(error);
-    // Handle errors, e.g., show an error message to the user
   }
 }
+
+// Use the store to update user
+const userStore = useUserStore();
+
+const updateProfile = async () => {
+  const updatedData = {
+    phone_no: phone.value,
+    name: name.value,
+    address: address.value,
+  };
+
+  try {
+    // Send the update request to the API
+    await axios.put(
+      `${API_BASE_URL}/api/update/${profile_id.value}`,
+      updatedData,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    // Optionally, refresh profile data after the update
+    await getProfileData();
+    alert("Profile updated successfully!"); // Success message
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    alert("Failed to update profile."); // Error message
+  }
+};
 
 onMounted(async () => {
   await getProfileData();

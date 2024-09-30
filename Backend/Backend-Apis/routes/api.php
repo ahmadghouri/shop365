@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\ForgotPassword;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ComplainController;
+use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TownController;
@@ -36,6 +37,8 @@ Route::apiResource('/towns', TownController::class);
 Route::get('businessTypes/{businessId}', [ProductController::class, 'businessProductsTypes']);
 Route::get('products/{businessId}/filtered', [ProductController::class, 'businessProductsFiltered']);
 
+Route::put('/update/{id}', [UserController::class, 'update'])->name('admin.users.update');
+Route::put('/update/household', [HouseholdController::class, 'update']);
 // Routes requiring authentication
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add-details', [AuthController::class, 'addDetails']);
@@ -43,7 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Complaints
     Route::post('/complaints', [ComplainController::class, 'store']);
     Route::get('/profile', [AuthController::class, 'profile']);
-
+    
     // Cart
     // routes/api.php
     Route::prefix('cart')->group(function () {
@@ -83,7 +86,6 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
 
         Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
         Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
-        Route::put('/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 
         // This line was missing a semicolon

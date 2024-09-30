@@ -12,7 +12,7 @@ class CartService
         $cartItem = cart::where('user_id', auth()->id())
             ->where('product_id', $data['product_id'])
             ->first();
-
+    
         if ($cartItem) {
             $cartItem->quantity += $data['quantity'];
             $cartItem->save();
@@ -23,9 +23,10 @@ class CartService
             $cartItem->quantity = $data['quantity'];
             $cartItem->save();
         }
-
+    
         return $cartItem;
     }
+    
 
     public function viewCart()
     {

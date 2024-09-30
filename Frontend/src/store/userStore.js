@@ -5,6 +5,7 @@ import axios from "axios";
 export const useUserStore = defineStore("user", {
   state: () => ({
     users: [],
+    user: [],
   }),
 
   actions: {
@@ -38,6 +39,26 @@ export const useUserStore = defineStore("user", {
       } catch (error) {
         console.error(error);
       }
+    },
+
+    async updateUser(id, updatedData) {
+      try {
+        const response = await axios.put(`${API_BASE_URL}/api/update/${id}`, {
+          updatedData,
+        });
+      } catch (error) {
+        console.error("Error adding business:", error);
+      }
+    },
+
+    async getSingleProfile() {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+      } catch (error) {}
     },
   },
 });

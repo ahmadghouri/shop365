@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -32,17 +33,42 @@ class BusinessService
         return $business;
     }
 
-    public function delete($id) {
-        $product = Business::findOrFail($id);
+    public function delete($id)
+    {
+        DB::beginTransaction();
+        try {
+            $business = Business::findOrFail($id);
 
-        if($product->image){
-            $imagepath = public_path($product->image);
-            if(File::exists($imagepath)){
-                File::delete($imagepath);
+            $products = Product::withTrashed()->where('business_id', $id)->get();
+            if ($products->isNotEmpty()) {
+                $products->each->forceDelete(); 
             }
+
+            $users = User::where('business_id', $id)->get();
+            if ($users->isNotEmpty()) {
+                $users->each->forceDelete();
+            }
+
+            if ($business->image) {
+                $imagePath = public_path($business->image);
+                if (File::exists($imagePath)) {
+                    File::delete($imagePath);
+                }
+            }
+
+            $business->delete(); 
+
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Error deleting business: ' . $e->getMessage());
+            throw new Exception('Error deleting business: ' . $e->getMessage());
         }
-        $product->delete();
     }
+    
+    
+    
+    
 
 
     public function stats($filter)

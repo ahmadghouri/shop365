@@ -180,9 +180,11 @@
               {{ category.discount }}% OFF
             </div>
           </div>
-          <div class="p-4 flex flex-col justify-between">
+          <div class="p-4 flex flex-col justify-between h-[60%]">
             <div>
-              <h1 class="text-xl font-semibold text-gray-900 mb-2 truncate">
+              <h1
+                class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 h-14 lg:h-auto"
+              >
                 {{ category.name }}
               </h1>
               <div class="flex items-center mb-2">
@@ -209,7 +211,7 @@
                 </span>
               </div>
             </div>
-            <div class="mt-4 text-center">
+            <div class="mt-auto text-center">
               <span
                 :class="[
                   isOpen(category.opening_time, category.closing_time)

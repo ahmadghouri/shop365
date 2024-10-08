@@ -4,6 +4,9 @@ export default {
   darkMode: "class",
   theme: {
     extend: {
+      lineClamp: {
+        2: "2",
+      },
       colors: {
         primary: {
           50: "#eff6ff",

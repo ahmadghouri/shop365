@@ -101,4 +101,18 @@ public function getBusinessStats(Request $request)
         return $this->errorResponse($e->getMessage());
     }
 }
+
+
+public function updateStatus(Request $request, Business $business): JsonResponse
+{
+    $status = $request->input('status', 'active');
+    
+    if (in_array($status, ['active', 'inactive'])) {
+        $business->update(['status' => $status]);
+        return $this->successResponse($business, 'Business status updated successfully.');
+    } else {
+        return $this->errorResponse('Invalid status', 400);
+    }
+}
+
 }

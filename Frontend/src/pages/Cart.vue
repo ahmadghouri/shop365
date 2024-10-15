@@ -213,6 +213,45 @@
         class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-300 to-yellow-500"
       ></div>
     </div>
+
+    <!-- New Order Confirmation Popup -->
+    <div
+      v-if="showOrderConfirmation"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+    >
+      <div
+        class="bg-white mobile-spacing lg:p-6 rounded-lg shadow-xl max-w-md w-full mx-4 text-center"
+      >
+        <svg
+          class="mx-auto w-16 h-16 text-green-500 mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          ></path>
+        </svg>
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Order Confirmed!</h2>
+        <p class="text-gray-600 mb-4">
+          Your order has been successfully placed.
+        </p>
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+          <div
+            class="bg-green-500 h-2.5 rounded-full"
+            :style="{ width: `${confirmationProgress}%` }"
+          ></div>
+        </div>
+        <p class="text-sm text-gray-500">
+          Redirecting to home page in
+          {{ Math.ceil(confirmationTimer / 1000) }} seconds...
+        </p>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -221,7 +260,6 @@ import { computed, onMounted, ref } from "vue";
 import { useCartStore } from "../store/cartStore";
 import { useOrderStore } from "../store/orderStore";
 import { useRouter } from "vue-router";
-import { toast } from "vue3-toastify";
 
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
@@ -230,6 +268,9 @@ const router = useRouter();
 const showErrorPopup = ref(false);
 const errorMessage = ref("");
 const isProcessing = ref(false);
+const showOrderConfirmation = ref(false);
+const confirmationTimer = ref(5000); // 30 seconds
+const confirmationProgress = ref(0);
 
 onMounted(async () => {
   try {
@@ -282,8 +323,8 @@ const orderNow = async () => {
       response.status === 200 &&
       response.data.message === "Order(s) placed successfully"
     ) {
-      router.push("/home/orderconfirmation");
-      cartStore.cartItems = [];
+      showOrderConfirmation.value = true;
+      startConfirmationTimer();
     } else {
       let errorMessage = response.data.message || "Something went wrong.";
       if (response.data.failed_businesses?.length > 0) {
@@ -306,6 +347,22 @@ const orderNow = async () => {
   } finally {
     isProcessing.value = false;
   }
+};
+
+const startConfirmationTimer = () => {
+  const interval = 100; // Update every 100ms for smooth animation
+  const timer = setInterval(() => {
+    confirmationTimer.value -= interval;
+    confirmationProgress.value =
+      ((5000 - confirmationTimer.value) / 5000) * 100;
+
+    if (confirmationTimer.value <= 0) {
+      clearInterval(timer);
+      showOrderConfirmation.value = false;
+      cartStore.cartItems = [];
+      router.push("/home/categories");
+    }
+  }, interval);
 };
 
 const showError = (message) => {

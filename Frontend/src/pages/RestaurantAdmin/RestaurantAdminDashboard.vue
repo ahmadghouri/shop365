@@ -8,6 +8,8 @@
         >ADD</router-link
       >
     </div>
+
+    <!-- Product Selection -->
     <div class="relative mb-4">
       <select
         v-model="selectedProduct"
@@ -32,7 +34,6 @@
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
         >
           <path
             stroke-linecap="round"
@@ -44,8 +45,10 @@
       </div>
     </div>
 
+    <!-- Product Form -->
     <div v-if="selectedProduct" class="mt-4">
       <form @submit.prevent="submitForm" class="space-y-4">
+        <!-- Existing form fields for title, price, description, and type -->
         <div>
           <label for="title" class="block text-sm font-medium text-gray-700">
             Title
@@ -100,22 +103,49 @@
           />
         </div>
 
-        <button
-          type="submit"
-          class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-150 ease-in-out"
-        >
-          Submit
-        </button>
-        <button
-          type="button"
-          @click="closeForm"
-          class="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition duration-150 ease-in-out"
-        >
-          Cancel
-        </button>
+        <!-- Discount Field -->
+        <div>
+          <label for="discount" class="block text-sm font-medium text-gray-700">
+            Discount (%)
+          </label>
+          <input
+            type="number"
+            id="discount"
+            v-model="discount"
+            min="0"
+            max="100"
+            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Enter discount percentage"
+          />
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex space-x-4">
+          <button
+            type="submit"
+            class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-150 ease-in-out"
+          >
+            Update Product
+          </button>
+          <button
+            type="button"
+            @click="applyDiscountToProduct"
+            class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-150 ease-in-out"
+          >
+            Apply Discount
+          </button>
+          <button
+            type="button"
+            @click="closeForm"
+            class="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition duration-150 ease-in-out"
+          >
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
 
+    <!-- Product List -->
     <div v-else>
       <h1 class="text-2xl font-semibold mb-4">Product List</h1>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -130,14 +160,20 @@
                 <h2 class="text-xl font-semibold">{{ product.title }}</h2>
                 <p class="text-gray-600">{{ product.description }}</p>
               </div>
-              <div class="mt-1">
-                <span class="text-lg font-bold">{{ product.price }}</span>
+              <div class="mt-1 text-right">
+                <span class="text-lg font-bold block">{{ product.price }}</span>
+                <span
+                  v-if="product.discount > 0"
+                  class="text-sm text-green-600"
+                >
+                  {{ product.discount }}% OFF
+                </span>
               </div>
             </div>
             <div class="mt-4 flex space-x-4">
               <button
                 @click="confirmDelete(product.id)"
-                class="text-red-500 border-2 w-full font-bold border-red-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                class="text-red-500 border-2 w-full border-red-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               >
                 Delete
               </button>
@@ -201,6 +237,7 @@ const form = ref({
   description: "",
   type: "",
 });
+const discount = ref(0); // New discount field
 const showConfirmModal = ref(false);
 const confirmDeleteId = ref(null);
 
@@ -212,6 +249,7 @@ const loadProductDetails = () => {
       description: selectedProduct.value.description,
       type: selectedProduct.value.type,
     };
+    discount.value = selectedProduct.value.discount || 0; // Load existing discount if available
   }
 };
 
@@ -223,6 +261,7 @@ const closeForm = () => {
     description: "",
     type: "",
   };
+  discount.value = 0;
   router.push({ path: router.currentRoute.value.fullPath });
 };
 
@@ -247,9 +286,27 @@ const submitForm = async () => {
   try {
     await productStore.updateProduct(formData, selectedProduct.value.id);
     closeForm();
-    toast.success("Product updated successfully, Refresh to see the update");
+    toast.success("Product updated successfully. Refresh to see the update.");
   } catch (error) {
     console.error("Error updating product:", error);
+    toast.error("Failed to update product.");
+  }
+};
+
+const applyDiscountToProduct = async () => {
+  if (discount.value === null || discount.value < 0 || discount.value > 100) {
+    toast.error("Please enter a valid discount between 0 and 100.");
+    return;
+  }
+
+  try {
+    await productStore.applyDiscount(selectedProduct.value.id, discount.value);
+    toast.success("Discount applied successfully!");
+    // Update the discount in the selectedProduct
+    selectedProduct.value.discount = discount.value;
+  } catch (error) {
+    console.error("Error applying discount:", error);
+    toast.error("Failed to apply discount.");
   }
 };
 

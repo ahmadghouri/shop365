@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Business\StoreRequest;
 use App\Http\Requests\Business\UpdateRequest;
 use App\Models\Business;
+use App\Models\User;
 use App\Services\BusinessService;
 use App\Services\ImageService;
 use Exception;
 use Illuminate\Container\Attributes\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB as FacadesDB;
@@ -114,5 +116,16 @@ public function updateStatus(Request $request, Business $business): JsonResponse
         return $this->errorResponse('Invalid status', 400);
     }
 }
+
+    public function getNumber($admin_id) 
+    {
+        $admin = User::where('business_id', $admin_id)->first();
+        if(!$admin) 
+        {
+            throw new ModelNotFoundException("Admin does not exist");
+        }
+
+        return $this->successResponse($admin->phone_no);
+    }
 
 }

@@ -39,6 +39,8 @@ Route::get('products/{businessId}/filtered', [ProductController::class, 'busines
 
 Route::put('/update/{id}', [UserController::class, 'update'])->name('admin.users.update');
 Route::put('/update/household', [HouseholdController::class, 'update']);
+
+Route::get('/getNumber/{businessId}', [BusinessController::class, 'getNumber']);
 // Routes requiring authentication
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add-details', [AuthController::class, 'addDetails']);
@@ -109,6 +111,9 @@ Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
         Route::get('/products/removeDiscount', [ProductController::class, 'removeDiscount']);
 
         Route::post('/add-products', [ProductController::class, 'addProduct']);
+
+
+        Route::post('/products/{productId}/apply-discount', [ProductController::class, 'applyDiscountToProduct']);
     });
 
 Route::post('/test/channel', function () {

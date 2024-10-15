@@ -243,4 +243,41 @@ class ProductController extends Controller
             return $this->errorResponse($e->getMessage(), 400);
         }
     }
+
+
+    public function applyDiscountToProduct(Request $request, $productId)
+{
+    // Ensure the user is authenticated
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Unauthorized'], 401);
+    }
+
+    // Validate the discount input
+    $request->validate([
+        'discount' => 'required|numeric|min:0|max:100', // Ensure discount is between 0 and 100
+    ]);
+
+    $user = auth()->user();
+    $businessId = $user->business_id;
+
+    // Find the product
+    $product = Product::where('id', $productId)
+                      ->where('business_id', $businessId)
+                      ->first();
+
+    if (!$product) {
+        return response()->json(['message' => 'Product not found'], 404);
+    }
+
+    // Apply the discount and calculate the final price
+    $discount = $request->input('discount');
+    $product->discount = $discount;
+    $product->price = $product->price - ($product->price * ($discount / 100)); // Calculate final price
+
+    // Save the updated product
+    $product->save();
+
+    return $this->successResponse($product, 'Discount applied to the product');
+}
+
 }

@@ -7,6 +7,7 @@ export const useProductStore = defineStore("products", {
     products: [],
     product: null,
     restaurantProducts: [],
+    number: "",
   }),
   actions: {
     async getProducts(id) {
@@ -15,7 +16,6 @@ export const useProductStore = defineStore("products", {
           `${API_BASE_URL}/api/all-products/${id}`
         );
         this.products = response.data.data;
-        console.log("Fetched products:", this.products);
       } catch (error) {
         console.error("Failed to fetch products", error);
       }
@@ -97,6 +97,49 @@ export const useProductStore = defineStore("products", {
         this.products = response.data.data;
       } catch (error) {
         console.error("Failed to fetch products", error);
+      }
+    },
+
+    async applyDiscount(productId, discount) {
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/restaurantAdmin/products/${productId}/apply-discount`,
+          { discount },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const updatedProduct = response.data.data;
+
+        // Update the product in the store with the new discount
+        const index = this.products.findIndex(
+          (product) => product.id === productId
+        );
+        if (index !== -1) {
+          this.products[index] = {
+            ...this.products[index],
+            discount: updatedProduct.discount,
+            final_price: updatedProduct.final_price, // assuming the backend returns the updated price
+          };
+        }
+        console.log(
+          `Discount applied: ${updatedProduct.discount}% to product ID: ${productId}`
+        );
+      } catch (error) {
+        console.error("Failed to apply discount", error);
+      }
+    },
+
+    async getNumber(businessId) {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/getNumber/${businessId}`
+        );
+        this.number = response.data.data;
+      } catch (error) {
+        console.error("Error editing business:", error);
       }
     },
   },

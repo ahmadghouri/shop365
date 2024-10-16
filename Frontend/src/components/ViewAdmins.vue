@@ -68,8 +68,13 @@
             <input
               type="text"
               v-model="editVendor.phone_no"
+              @input="validatePhoneNumber"
               class="border p-2 rounded w-full"
             />
+            <!-- Display error message for phone number -->
+            <p v-if="phoneError" class="text-red-500 text-sm">
+              {{ phoneError }}
+            </p>
           </div>
           <div class="flex justify-end">
             <button
@@ -103,6 +108,7 @@ const loading = ref(false);
 const error = ref(null);
 const showEditModal = ref(false);
 const editVendor = ref({ name: "", phone_no: "", id: null });
+const phoneError = ref(""); // Reactive variable for phone error
 
 // Token (replace with your actual token handling logic)
 const token = localStorage.getItem("token");
@@ -128,16 +134,32 @@ const fetchVendors = async () => {
 const openEditModal = (vendor) => {
   editVendor.value = { ...vendor }; // clone the vendor to editVendor
   showEditModal.value = true;
+  phoneError.value = ""; // Reset phone error when opening the modal
 };
 
 // Close the edit modal
 const closeEditModal = () => {
   showEditModal.value = false;
   editVendor.value = { name: "", phone_no: "", id: null }; // reset the form
+  phoneError.value = ""; // Reset phone error on modal close
+};
+
+// Validate phone number
+const validatePhoneNumber = () => {
+  const phoneNumber = editVendor.value.phone_no;
+  if (phoneNumber.length !== 11) {
+    phoneError.value = "Phone number must be 11 digits long.";
+  } else {
+    phoneError.value = ""; // Clears error if valid
+  }
 };
 
 // Update admin
 const updateAdmin = async () => {
+  // Ensure validation before proceeding
+  validatePhoneNumber();
+  if (phoneError.value) return; // Prevent update if there is an error
+
   try {
     await axios.put(
       `${API_BASE_URL}/api/admin/admins/${editVendor.value.id}`,

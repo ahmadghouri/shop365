@@ -48,6 +48,7 @@ Route::put('/update/household', [HouseholdController::class, 'update']);
 
 Route::get('/getNumber/{businessId}', [BusinessController::class, 'getNumber']);
 // Routes requiring authentication
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add-details', [AuthController::class, 'addDetails']);
 
@@ -98,6 +99,8 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
 
         // This line was missing a semicolon
         Route::get('/vendors', [AdminController::class, 'getAdmins']);
+
+        Route::put('/admins/{id}', [AdminController::class, 'updateAdmin']);
     });
 // Town admin routes
 Route::middleware(['auth:sanctum', TownAdminMiddleware::class])

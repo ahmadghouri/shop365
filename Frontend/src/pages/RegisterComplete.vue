@@ -114,7 +114,7 @@ const register = async () => {
       `${API_BASE_URL}/api/add-details`,
       {
         name: name.value,
-        address: formattedAddress,
+        address: address.value,
         town: town.value,
       },
       {

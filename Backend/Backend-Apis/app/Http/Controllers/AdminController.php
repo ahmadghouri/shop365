@@ -28,6 +28,27 @@ class AdminController extends Controller
         }
     }
 
+    public function updateAdmin($id, Request $request) 
+    {
+        $admin = User::find($id);
+
+        if(!$admin) {
+            return response()->json(['error' => 'Admin not found'], 404);
+        }
+
+        if($request->has('name')) {
+            $admin->name = $request->input('name');
+        }
+
+        if ($request->has('phone_no')) {
+            $admin->phone_no = $request->input('phone_no');
+        }
+
+        $admin->save();
+
+        return response()->json(['message' => 'Admin updated successfully', 'admin' => $admin]);
+    }
+
     public function getAdmins()
     {
         $admins = User::where('role', 'restaurant_admin')

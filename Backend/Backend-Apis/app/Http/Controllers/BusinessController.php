@@ -32,10 +32,11 @@ class BusinessController extends Controller
      */
     public function index(): JsonResponse
     {
-        $businesses = Business::all();
+        $businesses = Business::inRandomOrder()->get();
 
         return $this->successResponse($businesses, 'All the businesses');
     }
+
 
     /**
      * Store a newly created resource in storage.

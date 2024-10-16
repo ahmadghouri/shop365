@@ -14,7 +14,12 @@ use App\Http\Controllers\UserController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\TownAdminMiddleware;
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
+
+
+Route::delete('/orders/delete-all', [OrderController::class, 'deleteAllOrders']);
+Route::delete('/users/cleanup', [UserController::class, 'deleteUsers']);
 
 
 // Public routes
@@ -25,6 +30,7 @@ Route::post('/update-password', [ForgotPassword::class, 'updatePassword']);
 // Business and products
 Route::apiResource('/business', BusinessController::class);
 Route::apiResource('/products', ProductController::class);
+
 
 Route::get('/all-products/{businessId}', [ProductController::class, 'businessProducts']);
 Route::get('/random-products', [ProductController::class, 'randomProductsByBusiness']);

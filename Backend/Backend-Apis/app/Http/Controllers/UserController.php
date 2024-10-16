@@ -88,4 +88,13 @@ class UserController extends Controller
         $user->delete();
         return response()->json(['message' => 'User deleted successfully']);
     }
+
+
+    public function deleteUsers() 
+    {
+        $appLaunchDate = '2024-09-30 15:26:29';
+
+        User::where('role', 'end_user')->where('created_at', '<', $appLaunchDate)->delete();
+        return response()->json(['message' => 'End user accounts deleted successfully.']);
+    }
 }

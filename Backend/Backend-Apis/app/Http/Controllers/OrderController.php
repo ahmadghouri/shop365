@@ -8,6 +8,7 @@ use App\Services\OrderManageService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -63,6 +64,28 @@ class OrderController extends Controller
         } catch (Exception $e) {
 
             return $this->errorResponse('Order not found or update failed',404);
+        }
+    }
+
+
+    public function deleteAllOrders()
+    {
+        // Begin a transaction
+        DB::beginTransaction();
+        try {
+            // Delete all records from order_items
+            DB::table('order_items')->truncate();
+            // Delete all records from orders
+            DB::table('orders')->truncate();
+
+            // Commit the transaction
+            DB::commit();
+            
+            return response()->json(['success' => true, 'message' => 'All orders and order items have been deleted successfully.']);
+        } catch (\Exception $e) {
+            // Rollback the transaction if something goes wrong
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to delete orders and order items.'], 500);
         }
     }
 }

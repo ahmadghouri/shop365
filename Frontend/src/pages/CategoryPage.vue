@@ -51,6 +51,33 @@
       </a>
     </div>
 
+    <div class="mb-6">
+      <div class="relative max-w-md mx-auto">
+        <input
+          v-model="searchTerm"
+          @input="debounceSearch"
+          type="text"
+          placeholder="Search products..."
+          class="w-full px-4 py-2 pl-10 pr-4 text-gray-700 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+        />
+        <div
+          class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+        >
+          <svg
+            class="h-5 w-5 text-gray-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
     <!-- Horizontal Scrollable Filter Section -->
     <div class="overflow-x-auto whitespace-nowrap mb-8">
       <button
@@ -212,13 +239,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useProductStore } from "../store/productStore";
 import { useCartStore } from "../store/cartStore";
 import { toast } from "vue3-toastify";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
+import debounce from "lodash/debounce";
 
 const route = useRoute();
 const router = useRouter();
@@ -233,6 +261,17 @@ const showContactPopup = ref(false);
 const selectedProduct = ref(null);
 const isLoading = ref(true);
 const adminPhone = ref("");
+const searchTerm = ref("");
+
+const debounceSearch = debounce(() => {
+  fetchProducts();
+}, 300);
+
+const fetchProducts = async () => {
+  isLoading.value = true;
+  await productStore.getProducts(businessId, searchTerm.value);
+  isLoading.value = false;
+};
 
 const filteredProducts = computed(() => {
   if (selectedFilter.value === "All") {
@@ -343,9 +382,11 @@ function createFlyingElement(productImage, startRect, endRect) {
   };
 }
 
+watch(searchTerm, debounceSearch);
+
 onMounted(async () => {
   isLoading.value = true;
-  await productStore.getProducts(route.params.id);
+  await fetchProducts();
   await fetchFilters();
   isLoading.value = false;
 

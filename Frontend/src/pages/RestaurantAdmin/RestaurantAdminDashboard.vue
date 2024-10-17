@@ -1,5 +1,20 @@
 <template>
   <div class="container mx-auto mobile-spacing">
+    <div class="mb-4">
+      <input
+        v-model="searchQuery"
+        @input="debounceSearch"
+        type="text"
+        placeholder="Search products..."
+        class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+      />
+      <div v-if="isLoading" class="mt-2 mb-2 text-center">
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"
+        ></div>
+      </div>
+    </div>
+
     <div class="flex justify-between items-center">
       <h1 class="text-xl font-semibold mb-4">Select a Product</h1>
       <router-link
@@ -238,10 +253,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useProductStore } from "../../store/productStore";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
+import debounce from "lodash/debounce";
 
 const router = useRouter();
 const productStore = useProductStore();
@@ -258,6 +274,8 @@ const form = ref({
 const discount = ref(0); // New discount field
 const showConfirmModal = ref(false);
 const confirmDeleteId = ref(null);
+const searchQuery = ref("");
+const isLoading = ref(false);
 
 const loadProductDetails = () => {
   if (selectedProduct.value) {
@@ -281,6 +299,28 @@ const handleFileChange = (e) => {
     form.value.image = file;
   }
 };
+
+const searchProducts = async () => {
+  isLoading.value = true;
+  try {
+    await productStore.getRestaurantProducts(searchQuery.value);
+  } catch (error) {
+    console.error("Error searching products:", error);
+    toast.error("Failed to search products.");
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Debounce the search function
+const debounceSearch = debounce(() => {
+  searchProducts();
+}, 300);
+
+// Watch for changes in the search query
+watch(searchQuery, () => {
+  debounceSearch();
+});
 
 const closeForm = () => {
   selectedProduct.value = null;

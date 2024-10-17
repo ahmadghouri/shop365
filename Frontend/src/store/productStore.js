@@ -10,10 +10,13 @@ export const useProductStore = defineStore("products", {
     number: "",
   }),
   actions: {
-    async getProducts(id) {
+    async getProducts(id, search = "") {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/api/all-products/${id}`
+          `${API_BASE_URL}/api/all-products/${id}`,
+          {
+            params: { search },
+          }
         );
         this.products = response.data.data;
       } catch (error) {

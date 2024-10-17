@@ -76,6 +76,22 @@
         </div>
 
         <div>
+          <label for="image" class="block text-sm font-medium text-gray-700">
+            Image (Max 15KB)
+          </label>
+          <input
+            @change="handleFileChange"
+            type="file"
+            id="image"
+            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <p v-if="imageError" class="text-red-500 text-xs mt-1">
+            {{ imageError }}
+          </p>
+        </div>
+
+        <div>
           <label
             for="description"
             class="block text-sm font-medium text-gray-700"
@@ -231,11 +247,13 @@ const router = useRouter();
 const productStore = useProductStore();
 
 const selectedProduct = ref(null);
+const imageError = ref("");
 const form = ref({
   title: "",
   price: "",
   description: "",
   type: "",
+  image: null,
 });
 const discount = ref(0); // New discount field
 const showConfirmModal = ref(false);
@@ -250,6 +268,17 @@ const loadProductDetails = () => {
       type: selectedProduct.value.type,
     };
     discount.value = selectedProduct.value.discount || 0; // Load existing discount if available
+  }
+};
+
+const handleFileChange = (e) => {
+  const file = e.target.files[0];
+  if (file && file.size > 15 * 1024) {
+    imageError.value = "Image Size must be less than 15KB";
+    form.value.image = "";
+  } else {
+    imageError.value = "";
+    form.value.image = file;
   }
 };
 
@@ -271,6 +300,17 @@ const openFormForUpdate = (product) => {
 };
 
 const submitForm = async () => {
+  if (imageError.value) {
+    toast.error("Please fix the errors before submitting.");
+    return;
+  }
+
+  if (form.value.image && form.value.image.size > 15 * 1024) {
+    imageError.value = "Image size must be less than 15KB.";
+    toast.error("Image size exceeds the limit.");
+    return; // Prevent submission if the image is too large
+  }
+
   const formData = new FormData();
   formData.append("title", form.value.title);
   formData.append("description", form.value.description);

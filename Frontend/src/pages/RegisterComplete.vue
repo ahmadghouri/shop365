@@ -56,7 +56,6 @@
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
             required
           >
-            <option value="" disabled selected>Select your city</option>
             <option
               v-for="townOption in towns"
               :key="townOption.id"
@@ -100,7 +99,6 @@ import { API_BASE_URL } from "../config/api";
 import { useRouter } from "vue-router";
 
 const towns = ref([]);
-
 const name = ref("");
 const address = ref("");
 const town = ref("");
@@ -145,6 +143,11 @@ const options = async () => {
     });
 
     towns.value = response.data.data;
+
+    // Automatically select the first town as the default, if available
+    if (towns.value.length > 0) {
+      town.value = towns.value[0].town_name;
+    }
   } catch (error) {
     if (error.response) {
       alert(`Error: ${error.response.data.message}`);

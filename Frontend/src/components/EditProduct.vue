@@ -22,6 +22,7 @@
           required
         />
       </div>
+
       <div class="mb-4">
         <label for="price" class="block text-gray-700">Price</label>
         <input

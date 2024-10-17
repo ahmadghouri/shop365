@@ -52,6 +52,10 @@
 
           <div class="text-gray-600 text-sm">
             <p class="mb-1">
+              <span class="font-medium">Created At:</span>
+              {{ new Date(user.created_at).toLocaleDateString() }}
+            </p>
+            <p class="mb-1">
               <span class="font-medium">Address:</span>
               {{ user.household?.address || "No Address" }}
             </p>

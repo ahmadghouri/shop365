@@ -29,12 +29,22 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function businessProducts($businessId)
+    public function businessProducts(Request $request, $businessId)
     {
-        $products = Product::where('business_id', $businessId)->get();
+        
+        $searchTerm = $request->input('search');
+    
+        $query = Product::where('business_id', $businessId);
+    
+        if ($searchTerm) {
+            $query->where('title', 'like', '%' . $searchTerm . '%');
+        }
 
+        $products = $query->get();
+    
         return $this->successResponse($products, 'All the products');
     }
+    
 
     public function businessProductsTypes($businessId)
     {
@@ -53,6 +63,8 @@ class ProductController extends Controller
         {
             $query->where('type', $type);
         }
+
+        if($request)
 
         $products = $query->get();
 
@@ -138,14 +150,22 @@ class ProductController extends Controller
 
     // for finding products related to the restaurant admin
 
-    public function getProducts()
+    public function getProducts(Request $request)
     {
         $user = auth()->user();
         $businessId = $user->business_id;
-
-        $products = Product::where('business_id', $businessId)->get();
+    
+        $search = $request->input('search');
+    
+        $products = Product::where('business_id', $businessId)
+            ->when($search, function ($query, $search) {
+                return $query->where('title', 'like', '%' . $search . '%');
+            })
+            ->get();
+    
         return $this->successResponse($products, 'Products found');
     }
+    
 
     public function randomProductsByBusiness()
     {

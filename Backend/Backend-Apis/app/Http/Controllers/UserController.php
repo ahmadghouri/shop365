@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Household;
 use App\Models\Order;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -12,7 +13,9 @@ class UserController extends Controller
     
     public function index()
     {
-        $order_count = 0;
+        $totalUsers = User::where('role', 'end_user')->count();
+
+        $todaysUser = User::where('role', 'end_user')->whereDate('created_at', Carbon::today())->count();
         $users = User::where('role', 'end_user')
         ->with(['household.town']) 
         ->withCount(['orders']) 
@@ -20,7 +23,11 @@ class UserController extends Controller
 
         
 
-        return response()->json($users);
+        return response()->json([
+            'total_users_count' => $totalUsers,
+            'today_users_count' => $todaysUser,
+            'users' => $users
+        ]);
     }
 
     // Get a specific user

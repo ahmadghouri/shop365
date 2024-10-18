@@ -50,7 +50,7 @@
             </div>
             <div class="flex-grow">
               <h3 class="text-lg font-medium text-gray-900">Phone</h3>
-              <p class="mt-1 text-gray-500">+1 (123) 456-7890</p>
+              <p class="mt-1 text-gray-500">0327-8784988</p>
             </div>
           </div>
           <div class="flex items-center space-x-4">
@@ -77,9 +77,7 @@
             </div>
             <div class="flex-grow">
               <h3 class="text-lg font-medium text-gray-900">Address</h3>
-              <p class="mt-1 text-gray-500">
-                123 Tech Street, Innovation City, 12345
-              </p>
+              <p class="mt-1 text-gray-500">SHOP365, Pakki Mandi Haroonabad</p>
             </div>
           </div>
         </div>

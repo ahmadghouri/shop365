@@ -1,20 +1,22 @@
 <template>
   <div class="relative">
-    <!-- Animated Banner -->
     <div class="bg-yellow-500 overflow-hidden">
       <div class="animate-marquee whitespace-nowrap py-2">
-        <span class="text-white font-semibold mx-4"
+        <span class="text-white font-semibold mx-8"
           >🚀 Welcome to Shop365! Our app is in testing phase. You'll be able to
           use our services very soon. Stay tuned!</span
         >
-        <span class="text-white font-semibold mx-4"
+        <span class="text-white font-semibold mx-8"
+          >🚀 Welcome to Shop365! Our app is in testing phase. You'll be able to
+          use our services very soon. Stay tuned!</span
+        >
+        <span class="text-white font-semibold mx-8"
           >🚀 Welcome to Shop365! Our app is in testing phase. You'll be able to
           use our services very soon. Stay tuned!</span
         >
       </div>
     </div>
 
-    <!-- Navbar -->
     <nav
       class="mobile-spacing sticky top-0 flex justify-between bg-white items-center lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200"
     >
@@ -207,7 +209,7 @@ onMounted(() => {
 .animate-marquee {
   display: inline-block;
   white-space: nowrap;
-  animation: marquee 20s linear infinite;
+  animation: marquee 30s linear infinite;
 }
 
 .animate-marquee:hover {

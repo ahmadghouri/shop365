@@ -1,7 +1,24 @@
 <template>
   <div class="bg-gray-50 min-h-screen p-6">
+    <div class="mb-6 bg-white shadow-sm rounded-lg p-4">
+      <h2 class="text-xl font-semibold text-gray-800 mb-3">User Statistics</h2>
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-sm text-gray-600">Total Users</p>
+          <p class="text-2xl font-bold text-gray-900">
+            {{ userStore.totalUsersCount }}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600">New Users Today</p>
+          <p class="text-2xl font-bold text-green-600">
+            {{ userStore.todayUsersCount }}
+          </p>
+        </div>
+      </div>
+    </div>
     <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-3xl font-semibold text-gray-900">User Management</h1>
+      <h1 class="text-3xl font-semibold text-gray-900">Users</h1>
       <select
         v-model="sortOrder"
         class="bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-200"

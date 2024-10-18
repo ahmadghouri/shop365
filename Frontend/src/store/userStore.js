@@ -6,6 +6,8 @@ export const useUserStore = defineStore("user", {
   state: () => ({
     users: [],
     user: [],
+    totalUsersCount: 0,
+    todayUsersCount: 0,
   }),
 
   actions: {
@@ -16,8 +18,9 @@ export const useUserStore = defineStore("user", {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        this.users = response.data;
-        console.log(this.users);
+        this.users = response.data.users;
+        this.totalUsersCount = response.data.total_users_count;
+        this.todayUsersCount = response.data.today_users_count;
       } catch (error) {
         console.error(error);
       }

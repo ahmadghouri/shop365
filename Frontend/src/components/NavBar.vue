@@ -209,7 +209,7 @@ onMounted(() => {
 .animate-marquee {
   display: inline-block;
   white-space: nowrap;
-  animation: marquee 30s linear infinite;
+  animation: marquee 20s linear infinite;
 }
 
 .animate-marquee:hover {

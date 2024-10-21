@@ -27,7 +27,7 @@
       No orders available.
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       <div
         v-for="order in filteredOrders"
         :key="order.id"
@@ -86,9 +86,16 @@
           </div>
         </div>
 
-        <button
+        <!-- <button
           @click="openModal(order)"
           class="button absolute outline-none top-[199px] md:left-[185px] text-white py-2 px-4 rounded-lg max-w-[154px] min-h-[42px]"
+        >
+          Proceed Order
+        </button> -->
+
+        <button
+          @click="openModal(order)"
+          class="button outline-none text-white py-2 px-4 rounded-lg max-w-[154px] min-h-[42px]"
         >
           Proceed Order
         </button>
@@ -401,20 +408,22 @@ const handleNewOrder = (event) => {
           phone_no: order.user.phone_no,
           name: order.user.name,
           role: order.user.role,
-          household: {
-            address: order.user.household.address,
-            town: {
-              town_name: order.user.household.town.town_name,
-            },
-          },
+          household: order.user.household
+            ? {
+                address: order.user.household.address,
+                town: order.user.household.town
+                  ? {
+                      town_name: order.user.household.town.town_name,
+                    }
+                  : {},
+              }
+            : {},
           created_at: order.user.created_at,
           updated_at: order.user.updated_at,
         }
       : {},
     newOrder: true,
   };
-
-  console.log(transformedOrder);
 
   orders.value = [transformedOrder, ...orders.value];
 };
@@ -488,7 +497,6 @@ const playNotificationSound = () => {
 // Set up WebSocket connection on mounted
 onMounted(async () => {
   await fetchRestaurantOrders();
-  console.log(window.Echo);
 
   if (window.Echo) {
     window.Echo.channel("order-channel." + orderStore.businessId)

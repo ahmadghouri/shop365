@@ -1,3 +1,4 @@
+<!-- Product Management Template with Discount Feature -->
 <template>
   <div class="container mx-auto mobile-spacing">
     <div class="mb-4">
@@ -20,8 +21,9 @@
       <router-link
         class="bg-blue-500 px-5 py-1 mb-4 text-white rounded-md"
         to="/admin/store-product"
-        >ADD</router-link
       >
+        ADD
+      </router-link>
     </div>
 
     <!-- Product Selection -->
@@ -63,7 +65,7 @@
     <!-- Product Form -->
     <div v-if="selectedProduct" class="mt-4">
       <form @submit.prevent="submitForm" class="space-y-4">
-        <!-- Existing form fields for title, price, description, and type -->
+        <!-- Form Fields for Title, Price, Description, Image -->
         <div>
           <label for="title" class="block text-sm font-medium text-gray-700">
             Title
@@ -174,7 +176,7 @@
     <!-- Product List -->
     <div v-else>
       <h1 class="text-2xl font-semibold mb-4">Product List</h1>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         <div
           v-for="product in productStore.products"
           :key="product.id"

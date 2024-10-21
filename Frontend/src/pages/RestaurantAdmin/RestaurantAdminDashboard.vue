@@ -73,7 +73,6 @@
             id="title"
             v-model="form.title"
             class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
           />
         </div>
 
@@ -86,7 +85,6 @@
             id="price"
             v-model="form.price"
             class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
           />
         </div>
 
@@ -99,7 +97,6 @@
             type="file"
             id="image"
             class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
           />
           <p v-if="imageError" class="text-red-500 text-xs mt-1">
             {{ imageError }}
@@ -117,7 +114,6 @@
             id="description"
             v-model="form.description"
             class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
           ></textarea>
         </div>
 
@@ -130,7 +126,6 @@
             id="type"
             v-model="form.type"
             class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
           />
         </div>
 

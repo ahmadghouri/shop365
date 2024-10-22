@@ -490,7 +490,6 @@ notificationAudio.volume = 1;
 const playNotificationSound = () => {
   notificationAudio.play().catch((error) => {
     console.warn("Audio playback failed:", error);
-    // Fallback: You could show a visual notification here if audio fails
   });
 };
 
@@ -498,12 +497,29 @@ const playNotificationSound = () => {
 onMounted(async () => {
   await fetchRestaurantOrders();
 
+  if (Notification.permission === "default") {
+    const permission = await Notification.requestPermission();
+  }
+
   if (window.Echo) {
     window.Echo.channel("order-channel." + orderStore.businessId)
       .listen("OrderPlaced", (event) => {
         handleNewOrder(event);
         playNotificationSound();
         toast.success("New Order Received");
+
+        if (Notification.permission === "granted") {
+          new Notification("New Order Received", {
+            body: `You have received a new order from ${
+              event.user?.name || "Shop365"
+            }`, // Use a fallback if name is missing
+            icon: "/Appicon.png", // Check this path for accuracy
+          });
+        } else {
+          console.warn(
+            "Push notifications are not enabled or permission denied"
+          );
+        }
       })
       .error((error) => {
         console.error("Echo error:", error);
@@ -512,11 +528,10 @@ onMounted(async () => {
     console.error("Echo instance is not defined");
   }
 
-  // Add a one-time click event listener to the document
+  // Allow audio playback
   document.addEventListener(
     "click",
     () => {
-      // This empty playback attempt allows future automatic playback
       notificationAudio.play().catch(() => {});
     },
     { once: true }

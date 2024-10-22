@@ -9,14 +9,42 @@
       </div>
     </div>
 
-    <div class="mb-6">
-      <label class="mr-4">Filter by status:</label>
-      <select v-model="selectedStatus" class="p-2 border rounded">
-        <option value="">All</option>
-        <option value="pending">Pending</option>
-        <option value="preparing">Preparing</option>
-        <option value="delivered">Delivered</option>
-      </select>
+    <div class="mb-6 flex items-center gap-4">
+      <div class="flex gap-3">
+        <button
+          @click="selectedStatus = 'pending'"
+          :class="[
+            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300',
+            selectedStatus === 'pending'
+              ? 'bg-red-500 text-white'
+              : 'border-2 border-red-500 text-red-500 hover:bg-red-50',
+          ]"
+        >
+          New Orders
+        </button>
+        <button
+          @click="selectedStatus = 'preparing'"
+          :class="[
+            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300',
+            selectedStatus === 'preparing'
+              ? 'bg-yellow-500 text-white'
+              : 'border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-50',
+          ]"
+        >
+          Preparing
+        </button>
+        <button
+          @click="selectedStatus = 'delivered'"
+          :class="[
+            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300',
+            selectedStatus === 'delivered'
+              ? 'bg-green-500 text-white'
+              : 'border-2 border-green-500 text-green-500 hover:bg-green-50',
+          ]"
+        >
+          Delivered
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="text-lg">Loading orders...</div>
@@ -104,17 +132,26 @@
 
     <div
       v-if="isModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md mobile-spacing"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md p-4 md:p-0"
     >
-      <div class="w-[800px] relative bg-[#FFFFFF] rounded-lg">
+      <div
+        class="w-full md:w-[800px] relative bg-[#FFFFFF] rounded-lg max-h-[90vh] overflow-hidden"
+      >
+        <!-- Modal Header -->
         <div
-          class="bg-[#F3F4F6] w-full h-[56px] px-6 py-4 flex items-center justify-between"
+          class="bg-[#F3F4F6] w-full h-auto min-h-[56px] px-4 md:px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         >
-          <div class="font-semibold text-xl">
+          <div
+            class="font-semibold text-lg md:text-xl flex items-center justify-between w-full md:w-auto"
+          >
             <p>Order ID: {{ selectedOrder.id }}</p>
+            <button @click="closeModal" class="md:hidden">
+              <img src="/public/close-icon.svg" alt="close" />
+            </button>
           </div>
 
-          <div class="inline-flex gap-4 items-center">
+          <!-- Status Buttons - Hidden on Mobile -->
+          <div class="hidden md:inline-flex gap-4 items-center">
             <button
               @click="updateOrderStatus('pending')"
               :class="{
@@ -122,11 +159,10 @@
                 'border-red-500 text-red-500':
                   selectedOrder.status !== 'pending',
               }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium hidden md:block"
+              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
             >
               Pending
             </button>
-
             <button
               @click="updateOrderStatus('preparing')"
               :class="{
@@ -135,11 +171,10 @@
                 'border-yellow-500 text-yellow-500':
                   selectedOrder.status !== 'preparing',
               }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium hidden md:block lg:block"
+              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
             >
               Preparing
             </button>
-
             <button
               @click="updateOrderStatus('delivered')"
               :class="{
@@ -147,21 +182,22 @@
                 'border-green-500 text-green-500':
                   selectedOrder.status !== 'delivered',
               }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium hidden md:block"
+              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
             >
               Delivered
             </button>
           </div>
 
-          <div>
-            <button @click="closeModal">
-              <img src="/public/close-icon.svg" alt="" />
-            </button>
-          </div>
+          <button @click="closeModal" class="hidden md:block">
+            <img src="/public/close-icon.svg" alt="close" />
+          </button>
         </div>
 
-        <div class="px-6 py-4">
-          <div class="flex justify-between items-center">
+        <!-- Customer Info Section -->
+        <div class="px-4 md:px-6 py-4">
+          <div
+            class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-0"
+          >
             <div class="flex gap-3 items-center">
               <p class="text-[#747474] text-sm">Name:</p>
               <p class="ml-3">{{ selectedOrder.user.name || "No Name" }}</p>
@@ -173,9 +209,9 @@
             </div>
           </div>
 
-          <div class="flex items-center">
+          <div class="flex items-center mt-2">
             <p class="text-[#747474] text-sm">Address:</p>
-            <p class="ml-3">
+            <p class="ml-3 text-sm">
               {{ selectedOrder.user.household?.address || "No Address" }},
               {{
                 selectedOrder.user.household?.town?.town_name ||
@@ -185,88 +221,48 @@
           </div>
         </div>
 
-        <!-- for mobile only -->
-        <!-- <div class="px-7 md:hidden lg:hidden">
+        <!-- Mobile Status Selector -->
+        <div class="px-4 md:hidden mb-4">
           <select
-            :class="`p-2 border-2 rounded focus:outline-none transition-colors duration-300 ${borderColor}`"
-            class="bg-white text-gray-700"
-          >
-            <option value="" disabled selected>Select</option>
-            <option
-              value=""
-              @click="updateOrderStatus('pending')"
-              class="hover:bg-red-500 focus:bg-red-500 focus:text-white"
-            >
-              Pending
-            </option>
-            <option
-              value=""
-              @click="updateOrderStatus('preparing')"
-              class="hover:bg-yellow-500 focus:bg-yellow-500 focus:text-white"
-            >
-              Preparing
-            </option>
-            <option
-              value=""
-              @click="updateOrderStatus('delivered')"
-              class="hover:bg-green-500 focus:bg-green-500 focus:text-white"
-            >
-              Delivered
-            </option>
-          </select>
-        </div> -->
-
-        <div class="px-7 md:hidden lg:hidden">
-          <select
-            :class="`p-2 border-2 rounded focus:outline-none transition-colors duration-300 ${borderColor}`"
-            class="bg-white text-gray-700"
+            v-model="selectedOrder.status"
             @change="updateOrderStatus($event.target.value)"
+            class="w-full p-3 border-2 rounded-lg focus:outline-none transition-colors duration-300"
+            :class="{
+              'border-red-500': selectedOrder.status === 'pending',
+              'border-yellow-500': selectedOrder.status === 'preparing',
+              'border-green-500': selectedOrder.status === 'delivered',
+            }"
           >
-            <option value="" disabled selected>Select</option>
-            <option
-              value="pending"
-              class="hover:bg-red-500 focus:bg-red-500 focus:text-white"
-            >
-              Pending
-            </option>
-            <option
-              value="preparing"
-              class="hover:bg-yellow-500 focus:bg-yellow-500 focus:text-white"
-            >
-              Preparing
-            </option>
-            <option
-              value="delivered"
-              class="hover:bg-green-500 focus:bg-green-500 focus:text-white"
-            >
-              Delivered
-            </option>
+            <option value="pending">Pending</option>
+            <option value="preparing">Preparing</option>
+            <option value="delivered">Delivered</option>
           </select>
         </div>
 
-        <div class="mt-8 px-6 py-4 overflow-y-auto h-[400px]">
+        <!-- Order Items Section -->
+        <div
+          class="mt-4 px-4 md:px-6 overflow-y-auto"
+          style="max-height: calc(90vh - 300px)"
+        >
           <div v-if="selectedOrder.items.length > 0">
             <div
               v-for="item in selectedOrder.items"
               :key="item.id"
-              class="relative mb-4 p-4 bg-[#E5E7EB] rounded-lg flex justify-between items-center"
+              class="relative mb-4 p-4 bg-[#E5E7EB] rounded-lg"
             >
-              <!-- Product Image and Details Row -->
-              <div class="flex items-center gap-4">
+              <div class="flex flex-col md:flex-row gap-4">
                 <!-- Product Image -->
                 <div class="flex-shrink-0">
                   <img
                     :src="item.product.image_url"
                     alt="No image"
-                    class="w-[100px] h-[100px] object-contain rounded-lg"
+                    class="w-full md:w-[100px] h-[100px] object-contain rounded-lg"
                   />
                 </div>
 
                 <!-- Product Details -->
-                <div class="space-y-2">
-                  <p class="text-lg md:text-xl font-semibold">
-                    {{ item.product.title }}
-                  </p>
+                <div class="space-y-2 flex-grow">
+                  <p class="text-lg font-semibold">{{ item.product.title }}</p>
                   <p class="text-sm">
                     Description:
                     <span class="ml-2 text-[#6d6d6d]">{{
@@ -284,13 +280,13 @@
                     <span class="ml-2 text-[#6d6d6d]">{{ item.quantity }}</span>
                   </p>
                 </div>
-              </div>
 
-              <!-- Price in Lower Right Corner -->
-              <div class="absolute bottom-4 right-4 text-right">
-                <p class="text-lg md:text-2xl font-semibold">
-                  Price: {{ item.price }}
-                </p>
+                <!-- Price -->
+                <div class="mt-2 md:mt-0 text-right">
+                  <p class="text-lg md:text-xl font-semibold">
+                    Price: {{ item.price }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -299,13 +295,18 @@
           </div>
         </div>
 
-        <div class="flex justify-between px-6 py-4">
-          <div></div>
-          <div
-            class="py-4 px-4 flex gap-10 bg-[#272727] text-white rounded-lg min-h-[56px] shrink-0 items-start justify-center max-w-[200px]"
-          >
-            <h1>Total Price:</h1>
-            <h1>{{ selectedOrder.total_price }}</h1>
+        <!-- Total Price Section -->
+        <div class="px-4 md:px-6 py-4 bg-white sticky bottom-0 shadow-top">
+          <div class="flex justify-between items-center">
+            <div></div>
+            <div
+              class="py-3 px-4 bg-[#272727] text-white rounded-lg flex gap-4 md:gap-10 items-center justify-center w-full md:w-auto"
+            >
+              <h1 class="text-sm md:text-base">Total Price:</h1>
+              <h1 class="text-sm md:text-base">
+                {{ selectedOrder.total_price }}
+              </h1>
+            </div>
           </div>
         </div>
       </div>
@@ -497,8 +498,10 @@ const playNotificationSound = () => {
 onMounted(async () => {
   await fetchRestaurantOrders();
 
+  // Request notification permission if not yet granted
   if (Notification.permission === "default") {
     const permission = await Notification.requestPermission();
+    console.log("Notification permission:", permission);
   }
 
   if (window.Echo) {

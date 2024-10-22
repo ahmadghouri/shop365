@@ -43,6 +43,37 @@
         >
           Edit
         </button>
+
+        <button
+          @click="showDeleteConfirmation(vendor.id)"
+          class="mt-4 ml-2 bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+
+    <div
+      v-if="showDeleteConfirm"
+      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-xl">
+        <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
+        <p class="mb-4">Are you sure you want to delete this Admin?</p>
+        <div class="flex justify-end space-x-2">
+          <button
+            @click="confirmDelete"
+            class="bg-red-500 px-4 py-2 text-white rounded-md"
+          >
+            Delete
+          </button>
+          <button
+            @click="cancelDelete"
+            class="bg-gray-300 px-4 py-2 text-gray-800 rounded-md"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
 
@@ -101,19 +132,40 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
+import { useUserStore } from "../store/userStore";
+import { toast } from "vue3-toastify";
 
-// Define reactive states
 const vendors = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const showEditModal = ref(false);
 const editVendor = ref({ name: "", phone_no: "", id: null });
-const phoneError = ref(""); // Reactive variable for phone error
+const phoneError = ref("");
+const userStore = useUserStore();
+const showDeleteConfirm = ref(false);
+const userId = ref("");
 
-// Token (replace with your actual token handling logic)
 const token = localStorage.getItem("token");
 
-// Fetch vendors
+const showDeleteConfirmation = (id) => {
+  userId.value = id;
+  showDeleteConfirm.value = true;
+};
+
+const cancelDelete = () => {
+  showDeleteConfirm.value = false;
+  restaurantToDeleteId.value = null;
+};
+
+const confirmDelete = async () => {
+  if (userId.value) {
+    await userStore.deleteUser(userId.value);
+    showDeleteConfirm.value = false;
+    userId.value = null;
+    toast.success("Admin Deleted Successfully");
+  }
+};
+
 const fetchVendors = async () => {
   loading.value = true;
   try {
@@ -130,11 +182,21 @@ const fetchVendors = async () => {
   }
 };
 
-// Open the edit modal and populate the form with vendor data
+const deleteAdmin = async (id) => {
+  try {
+    await userStore.deleteUser(id);
+    toast.success(
+      "Admin deleted successfully. Please refresh to see the results"
+    );
+  } catch (error) {
+    toast.error("Something went wrong");
+  }
+};
+
 const openEditModal = (vendor) => {
-  editVendor.value = { ...vendor }; // clone the vendor to editVendor
+  editVendor.value = { ...vendor };
   showEditModal.value = true;
-  phoneError.value = ""; // Reset phone error when opening the modal
+  phoneError.value = "";
 };
 
 // Close the edit modal

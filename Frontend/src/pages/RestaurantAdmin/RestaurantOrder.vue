@@ -487,7 +487,6 @@ watch(selectedStatus, async () => {
 const notificationAudio = new Audio("/notification.mp3");
 notificationAudio.volume = 1;
 
-// Function to play audio
 const playNotificationSound = () => {
   notificationAudio.play().catch((error) => {
     console.warn("Audio playback failed:", error);
@@ -507,8 +506,8 @@ onMounted(async () => {
   if (window.Echo) {
     window.Echo.channel("order-channel." + orderStore.businessId)
       .listen("OrderPlaced", (event) => {
-        handleNewOrder(event);
-        playNotificationSound();
+        handleNewOrder(event); // Handle order logic
+        playNotificationSound(); // Play sound only when event is received
         toast.success("New Order Received");
 
         if (Notification.permission === "granted") {
@@ -531,14 +530,8 @@ onMounted(async () => {
     console.error("Echo instance is not defined");
   }
 
-  // Allow audio playback
-  document.addEventListener(
-    "click",
-    () => {
-      notificationAudio.play().catch(() => {});
-    },
-    { once: true }
-  );
+  // Remove the click listener for auto-playing audio on page load.
+  // This ensures the sound plays ONLY on the event.
 });
 </script>
 

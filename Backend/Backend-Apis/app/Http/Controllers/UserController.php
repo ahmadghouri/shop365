@@ -29,6 +29,31 @@ class UserController extends Controller
             'users' => $users
         ]);
     }
+    
+    public function usersRegisteredToday()
+    {
+        // Get today's date
+        $today = Carbon::today();
+    
+        // Count users registered today
+        $todaysUserCount = User::where('role', 'end_user')
+            ->whereDate('created_at', $today)
+            ->count();
+    
+        // Retrieve the users who registered today
+        $usersRegisteredToday = User::where('role', 'end_user')
+            ->whereDate('created_at', $today)
+            ->with(['household.town'])
+            ->withCount(['orders'])
+            ->get();
+    
+        return response()->json([
+            'today_users_count' => $todaysUserCount,
+            'users' => $usersRegisteredToday
+        ]);
+    }
+    
+    
 
     // Get a specific user
     public function show($id)

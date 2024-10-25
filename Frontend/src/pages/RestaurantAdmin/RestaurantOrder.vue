@@ -506,16 +506,16 @@ onMounted(async () => {
   if (window.Echo) {
     window.Echo.channel("order-channel." + orderStore.businessId)
       .listen("OrderPlaced", (event) => {
-        handleNewOrder(event); // Handle order logic
-        playNotificationSound(); // Play sound only when event is received
+        handleNewOrder(event);
+        playNotificationSound();
         toast.success("New Order Received");
 
         if (Notification.permission === "granted") {
           new Notification("New Order Received", {
             body: `You have received a new order from ${
               event.user?.name || "Shop365"
-            }`, // Use a fallback if name is missing
-            icon: "/Appicon.png", // Check this path for accuracy
+            }`,
+            icon: "/Appicon.png",
           });
         } else {
           console.warn(

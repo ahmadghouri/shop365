@@ -31,6 +31,7 @@ import Discount from "../pages/RestaurantAdmin/Discount.vue";
 import StoreProduct from "../components/Vendor/StoreProduct.vue";
 import ViewAdmins from "../components/ViewAdmins.vue";
 import ShopStats from "../pages/Admin/ShopStats.vue";
+import TotalUsers from "../pages/Admin/TotalUsers.vue";
 
 const routes = [
   {
@@ -215,6 +216,14 @@ const routes = [
         path: "users",
         name: "Users",
         component: UserAdmin,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "total-users",
+        name: "TotalUsers",
+        component: TotalUsers,
         meta: {
           requiresAdminAuth: true,
         },

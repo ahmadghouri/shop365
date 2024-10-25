@@ -93,6 +93,9 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
 
         // Users management
 
+        // for prev two days user
+        Route::get('/users/previous-two-days', [UserController::class, 'usersRegisteredToday']);
+        // all users
         Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
         Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');

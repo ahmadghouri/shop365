@@ -8,6 +8,7 @@ export const useUserStore = defineStore("user", {
     user: [],
     totalUsersCount: 0,
     todayUsersCount: 0,
+    totalUsersPrevCount: 0,
   }),
 
   actions: {
@@ -20,6 +21,25 @@ export const useUserStore = defineStore("user", {
         });
         this.users = response.data.users;
         this.totalUsersCount = response.data.total_users_count;
+        this.todayUsersCount = response.data.today_users_count;
+      } catch (error) {
+        console.error(error);
+      }
+    },
+
+    async getUsersPreviousTwoDays() {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/admin/users/previous-two-days`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        this.users = response.data.users;
+        this.totalUsersPrevCount = response.data.total_count;
         this.todayUsersCount = response.data.today_users_count;
       } catch (error) {
         console.error(error);

@@ -69,6 +69,7 @@ export const useUserStore = defineStore("user", {
         const response = await axios.put(`${API_BASE_URL}/api/update/${id}`, {
           updatedData,
         });
+        this.user = { ...this.user, ...updatedData };
       } catch (error) {
         console.error("Error adding business:", error);
       }
@@ -81,6 +82,10 @@ export const useUserStore = defineStore("user", {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
+
+        this.user = response.data.data.user;
+        this.user.household = response.data.data.household;
+        this.user.town = response.data.data.town;
       } catch (error) {}
     },
   },

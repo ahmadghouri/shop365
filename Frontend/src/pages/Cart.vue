@@ -28,6 +28,65 @@
       </div>
     </div>
 
+    <div class="bg-white p-4 rounded-lg shadow-md mt-6">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex space-x-3 items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-yellow-500 mt-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-800">Delivery Address</h2>
+        </div>
+        <button
+          @click="toggleEditAddress"
+          class="text-yellow-600 hover:text-yellow-700 font-medium"
+        >
+          {{ isEditingAddress ? "Cancel" : "Edit" }}
+        </button>
+      </div>
+
+      <div v-if="!isEditingAddress" class="text-gray-700">
+        <p class="mb-2">
+          <span class="font-medium">Address:</span> {{ address }}
+        </p>
+      </div>
+
+      <div v-else class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Address</label
+          >
+          <textarea
+            v-model="editAddress"
+            rows="3"
+            class="w-full p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+          ></textarea>
+        </div>
+        <button
+          @click="saveAddress"
+          class="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-600 transition duration-300"
+        >
+          Save Address
+        </button>
+      </div>
+    </div>
+
     <div
       v-if="showErrorPopup"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
@@ -260,6 +319,9 @@ import { computed, onMounted, ref } from "vue";
 import { useCartStore } from "../store/cartStore";
 import { useOrderStore } from "../store/orderStore";
 import { useRouter } from "vue-router";
+import { API_BASE_URL } from "../config/api";
+import { toast } from "vue3-toastify";
+import axios from "axios";
 
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
@@ -272,9 +334,83 @@ const showOrderConfirmation = ref(false);
 const confirmationTimer = ref(5000); // 30 seconds
 const confirmationProgress = ref(0);
 
+// New refs for address section
+const name = ref("");
+const phone = ref("");
+const address = ref("");
+const editName = ref("");
+const editPhone = ref("");
+const editAddress = ref("");
+const isEditingAddress = ref(false);
+const profile_id = ref();
+
+async function getProfileData() {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/profile`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    const profile = response.data.data;
+    profile_id.value = profile.user.id;
+    phone.value = profile.user?.phone_no || "";
+    name.value = profile.user?.name || "No Name";
+    address.value = profile.household?.address || "No Address";
+
+    // Initialize edit values
+    editPhone.value = phone.value;
+    editName.value = name.value;
+    editAddress.value = address.value;
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    showError("Failed to load profile data");
+  }
+}
+
+// Toggle edit address mode
+const toggleEditAddress = () => {
+  if (isEditingAddress.value) {
+    // Reset edit values when canceling
+    editPhone.value = phone.value;
+    editName.value = name.value;
+    editAddress.value = address.value;
+  }
+  isEditingAddress.value = !isEditingAddress.value;
+};
+
+const saveAddress = async () => {
+  try {
+    await axios.put(
+      `${API_BASE_URL}/api/update/${profile_id.value}`,
+      {
+        phone_no: editPhone.value,
+        name: editName.value,
+        address: editAddress.value,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    // Update local values
+    phone.value = editPhone.value;
+    name.value = editName.value;
+    address.value = editAddress.value;
+
+    isEditingAddress.value = false;
+    toast.success("Address updated");
+  } catch (error) {
+    console.error("Error updating address:", error);
+    toast.error("Failed to update address. Please try again.");
+  }
+};
+
 onMounted(async () => {
   try {
     await cartStore.getCartItems();
+    await getProfileData();
   } catch (error) {
     showError("Failed to load cart items. Please try again.");
   }

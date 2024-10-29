@@ -21,7 +21,7 @@ window.Pusher = Pusher;
 
 window.Echo = new Echo({
   broadcaster: "pusher",
-  key: "4d3df2ee9ea43924df8b", // Replace with your Pusher key
-  cluster: "ap2", // Replace with your Pusher cluster
+  key: "4d3df2ee9ea43924df8b",
+  cluster: "ap2",
   forceTLS: true,
 });

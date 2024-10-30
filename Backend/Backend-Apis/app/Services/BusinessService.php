@@ -74,18 +74,18 @@ class BusinessService
     public function stats($filter)
     {
         $startDate = null;
-        $endDate = Carbon::now();
+        $endDate = Carbon::now('Asia/Karachi');
     
     
         switch ($filter) {
             case 'today':
-                $startDate = Carbon::now()->subDay();
+                $startDate = Carbon::now('Asia/Karachi')->subDay();
                 break;
             case 'week':
-                $startDate = Carbon::now()->subWeek();
+                $startDate = Carbon::now('Asia/Karachi')->subWeek();
                 break;
             case 'month':
-                $startDate = Carbon::now()->subMonth();
+                $startDate = Carbon::now('Asia/Karachi')->subMonth();
                 break;
             case 'all':
                 break;

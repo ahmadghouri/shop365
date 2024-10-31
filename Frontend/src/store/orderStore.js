@@ -8,6 +8,7 @@ export const useOrderStore = defineStore("order", {
     orderDetails: [],
     userOrderDetails: [],
     businessId: "",
+    adminOrders: [],
   }),
   actions: {
     async placeOrder() {
@@ -97,6 +98,22 @@ export const useOrderStore = defineStore("order", {
         }
       } catch (error) {
         console.error("Failed to update order status", error);
+        throw error;
+      }
+    },
+
+    async getAdminOrders(businessId) {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/admin/business-orders/${businessId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        this.adminOrders = response.data.data.orders;
+      } catch (error) {
         throw error;
       }
     },

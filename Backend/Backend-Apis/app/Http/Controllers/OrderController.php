@@ -38,7 +38,7 @@ class OrderController extends Controller
     }
 
     public function viewRestaurantOrders()
-{
+    {
     $businessId = Auth::user()->business_id;
     $orders = $this->orderService->viewRestaurantOrders($businessId);
 
@@ -46,7 +46,17 @@ class OrderController extends Controller
     $data = array_merge(['orders' => $orders], ['business_id' => $businessId]);
 
     return $this->successResponse($data, "Restaurant Orders", 200);
-}
+    }
+
+
+
+    public function superAdminOrders($businessId) 
+    {
+        $orders = $this->orderService->viewRestaurantOrdersAdmin($businessId);
+        $data = array_merge(['orders' => $orders], ['business_id' => $businessId]);
+    
+        return $this->successResponse($data, "Restaurant Orders", 200);
+    }
 
 
     public function updateStatus(Request $request, $id)

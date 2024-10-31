@@ -1,9 +1,0 @@
-{
-  "appId": "com.frontend",
-  "appName": "frontend",
-  "webDir": "dist",
-  "bundledWebRuntime": false,
-  "ios": {
-    "minVersion": "13.0"
-  }
-}

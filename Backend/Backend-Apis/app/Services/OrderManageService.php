@@ -8,6 +8,7 @@ use App\Models\Business;
 use App\Models\cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -109,6 +110,17 @@ class OrderManageService
         return Order::whereHas('items.product', function ($query) use ($businessId) {
             $query->where('business_id', $businessId);
         })
+            ->with('items.product', 'user', 'user.household', 'user.household.town')
+            ->get();
+    }
+
+
+    public function viewRestaurantOrdersAdmin($businessId)
+    {
+        return Order::whereHas('items.product', function ($query) use ($businessId) {
+            $query->where('business_id', $businessId);
+        })
+            ->whereDate('created_at', Carbon::today())
             ->with('items.product', 'user', 'user.household', 'user.household.town')
             ->get();
     }

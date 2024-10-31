@@ -86,6 +86,8 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
     ->prefix('/admin')
     ->group(function () {
 
+        Route::get('/business-orders/{id}', [OrderController::class, 'superAdminOrders']);
+
         Route::get('/business-stats', [BusinessController::class, 'getBusinessStats']);
 
         // Admins management

@@ -5,7 +5,11 @@
       "storePassword": "03176113413Ali",
       "alias": "my-key-alias",
       "password": "03176113413Ali",
-      "keystoreType": ""
+      "keystoreType": "",
+      "packageType": "apk"
+    },
+    "debug": {
+      "packageType": "apk"
     }
   }
 }

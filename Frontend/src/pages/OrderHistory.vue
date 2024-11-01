@@ -35,32 +35,16 @@
     <div
       v-for="order in orderDetails"
       :key="order.id"
-      class="max-w-full min-h-[87px] mt-6 bg-gray-200 rounded-lg flex mobile-spacing justify-between items-center"
+      class="max-w-full mt-6 bg-gray-200 rounded-lg p-4"
     >
-      <div>
+      <div class="flex justify-between items-center mb-4">
         <div>
           <h1 class="font-semibold">Order ID: {{ order.id }}</h1>
           <p class="text-[12px] text-[#272727]/60">
             {{ formatDate(order.created_at) }}
           </p>
         </div>
-        <div>
-          <p
-            :class="{
-              'text-[12px] font-semibold text-red-500 italic':
-                order.status === 'pending',
-              'text-[12px] font-semibold text-yellow-500 italic':
-                order.status === 'preparing',
-              'text-[12px] font-semibold text-green-500 italic':
-                order.status === 'delivered',
-            }"
-          >
-            {{ getOrderStatusMessage(order.status) }}
-          </p>
-        </div>
-      </div>
 
-      <div>
         <div
           :class="{
             'bg-red-500 text-white text-sm rounded-full px-4 py-1 text-center':
@@ -73,8 +57,41 @@
         >
           {{ order.status }}
         </div>
-        <h1 class="text-lg font-semibold mt-1">
-          Price: {{ order.total_price }}
+      </div>
+
+      <p
+        :class="{
+          'text-[12px] font-semibold text-red-500 italic':
+            order.status === 'pending',
+          'text-[12px] font-semibold text-yellow-500 italic':
+            order.status === 'preparing',
+          'text-[12px] font-semibold text-green-500 italic':
+            order.status === 'delivered',
+        }"
+      >
+        {{ getOrderStatusMessage(order.status) }}
+      </p>
+
+      <div class="mt-2 border-t border-gray-200">
+        <p class="text-sm font-semibold text-gray-700">Order Items:</p>
+        <div
+          v-for="item in order.items"
+          :key="item.id"
+          class="flex justify-between text-sm py-1"
+        >
+          <span>
+            {{ item.product.title }}
+            <span class="text-gray-500">x {{ item.quantity }}</span>
+          </span>
+          <span class="font-semibold text-gray-800">
+            PKR {{ (item.price * item.quantity).toLocaleString() }}
+          </span>
+        </div>
+      </div>
+
+      <div class="mt-2 text-right">
+        <h1 class="text-lg font-semibold">
+          Total Price: PKR {{ order.total_price.toLocaleString() }}
         </h1>
       </div>
     </div>
@@ -101,6 +118,7 @@ async function getOrderDetails() {
   try {
     await orderStore.getOrderDetails();
     orderDetails.value = orderStore.userOrderDetails;
+
     orderDetails.value.sort(
       (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );

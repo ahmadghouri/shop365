@@ -97,7 +97,12 @@ class OrderManageService
 
     public function viewOrders($userId)
     {
-        return Order::where('user_id', $userId)->with('items.product')->get();
+        $today = Carbon::now()->setTimezone('Asia/Karachi')->toDateString();
+
+        return Order::where('user_id', $userId)
+                    ->whereDate('created_at', $today)
+                    ->with('items.product')
+                    ->get();
     }
 
     public function viewAllOrders()

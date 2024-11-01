@@ -7,82 +7,45 @@
 
       <form @submit.prevent="handleSubmit" class="space-y-3">
         <div>
-          <label for="title" class="block text-sm font-medium text-gray-700"
-            >Title</label
-          >
-          <input
-            type="text"
-            id="title"
-            v-model="title"
-            placeholder="Enter title"
+          <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+          <input type="text" id="title" v-model="title" placeholder="Enter title"
             class="block w-full border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500 text-sm"
-            required
-          />
+            required />
         </div>
 
         <div>
-          <label
-            for="description"
-            class="block text-sm font-medium text-gray-700"
-            >Description</label
-          >
-          <textarea
-            id="description"
-            v-model="description"
-            placeholder="Enter description"
+          <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+          <textarea id="description" v-model="description" placeholder="Enter description"
             class="block w-full border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500 text-sm"
-            required
-          ></textarea>
+            required></textarea>
         </div>
 
         <div>
-          <label for="price" class="block text-sm font-medium text-gray-700"
-            >Price</label
-          >
-          <input
-            type="number"
-            id="price"
-            v-model="price"
-            placeholder="Enter price"
+          <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
+          <input type="number" id="price" v-model="price" placeholder="Enter price"
             class="block w-full border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500 text-sm"
-            required
-          />
+            required />
         </div>
 
         <div>
-          <label for="type" class="block text-sm font-medium text-gray-700"
-            >Type</label
-          >
-          <input
-            type="text"
-            id="type"
-            v-model="type"
-            placeholder="Enter type"
+          <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
+          <input type="text" id="type" v-model="type" placeholder="Enter type"
             class="block w-full border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500 text-sm"
-            required
-          />
+            required />
         </div>
 
         <div>
-          <label for="image" class="block text-sm font-medium text-gray-700"
-            >Image (Max 15KB)</label
-          >
-          <input
-            type="file"
-            id="image"
-            @change="handleFileUpload"
+          <label for="image" class="block text-sm font-medium text-gray-700">Image (Max 15KB)</label>
+          <input type="file" id="image" @change="handleFileUpload"
             class="block w-full text-sm border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500"
-            required
-          />
+            required />
           <p v-if="imageError" class="text-red-500 text-xs mt-1">
             {{ imageError }}
           </p>
         </div>
 
-        <button
-          type="submit"
-          class="w-full bg-blue-500 text-white text-sm font-medium py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 hover:bg-blue-600 transition"
-        >
+        <button type="submit"
+          class="w-full bg-blue-500 text-white text-sm font-medium py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 hover:bg-blue-600 transition">
           Submit
         </button>
       </form>
@@ -123,7 +86,6 @@ const handleSubmit = async () => {
   }
 
   try {
-    const token = localStorage.getItem("token");
 
     const formData = new FormData();
     formData.append("title", title.value);
@@ -137,7 +99,6 @@ const handleSubmit = async () => {
       formData,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       }

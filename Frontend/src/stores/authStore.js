@@ -105,26 +105,33 @@ export const useAuthStore = defineStore('auth', () => {
         const orderStore = useOrderStore()
         const { handleNewOrder } = orderStore;
 
-        const notificationAudio = new Audio("/notification.mp3");
-        notificationAudio.volume = 1;
+        const channelName = "order-channel." + businessId;
 
-        const playNotificationSound = () => {
-            notificationAudio.play().catch((error) => {
-                console.warn("Audio playback failed:", error);
-            });
-        };
+        // Check if Echo exists and the channel is not already subscribed
+        if (window.Echo && !window.Echo.connector.channels[channelName]) {
+            const notificationAudio = new Audio("/notification.mp3");
+            notificationAudio.volume = 1;
 
-        // Request notification permission if not yet granted
-        if (typeof Notification !== "undefined" && Notification?.permission === "default") {
-            const permission = await Notification.requestPermission();
-            console.log("Notification permission:", permission);
-        }
+            const playNotificationSound = () => {
+                notificationAudio.play().catch((error) => {
+                    console.warn("Audio playback failed:", error);
+                });
+            };
 
-        if (window.Echo) {
-            window.Echo.channel("order-channel." + businessId)
+            // Request notification permission if not yet granted
+            if (typeof Notification !== "undefined" && Notification?.permission === "default") {
+                const permission = await Notification.requestPermission();
+                console.log("Notification permission:", permission);
+            }
+
+            window.Echo.channel(channelName)
                 .listen("OrderPlaced", (event) => {
                     handleNewOrder(event)
                     playNotificationSound();
+
+                    if (navigator?.vibrate) {
+                        navigator.vibrate(1000);
+                    }
 
                     const orderTitle = "New Order Received";
                     const orderMessage = `You have received a new order from ${event?.user?.name || "Shop365"}`;
@@ -133,24 +140,21 @@ export const useAuthStore = defineStore('auth', () => {
 
                     if (typeof Notification !== "undefined" && Notification?.permission === "granted") {
                         new Notification(orderTitle, {
-                            body: `You have received a new order from ${event.user?.name || "Shop365"
-                                }`,
+                            body: `You have received a new order from ${event.user?.name || "Shop365"}`,
                             icon: "/Appicon.png",
                         });
                     } else {
-                        console.warn(
-                            "Push notifications are not enabled or permission denied"
-                        );
+                        console.warn("Push notifications are not enabled or permission denied");
                     }
                 })
                 .error((error) => {
                     console.error("Echo error:", error);
                 });
         } else {
-            console.error("Echo instance is not defined");
+            console.log("Echo instance is not defined or channel is already subscribed");
         }
-
     }
+
 
     const removeBusinessEvents = (businessId) => {
         if (window.Echo) {

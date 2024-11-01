@@ -32,6 +32,11 @@
     <preference name="StatusBarBackgroundColor" value="#EAA306" />
 
     <platform name="android">
+        <edit-config file="AndroidManifest.xml" mode="merge"
+            target="/manifest/uses-permission[@android:name='android.permission.WAKE_LOCK']"
+            xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
+        </edit-config>
 
         <preference name="android-minSdkVersion" value="28" />
         <preference name="android-maxSdkVersion" value="34" />

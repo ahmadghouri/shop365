@@ -50,8 +50,16 @@ document.addEventListener("pause", function () {
 
   console.log("application paused", window);
 
-  // useAuthStore().initializeStore()
+  window.cordovaAppkeepAwakeInterval = setInterval(function () {
+    console.log("application initializing store");
+    useAuthStore().initializeStore()
+  }, 1000 * 30);
 
+}, false);
+
+document.addEventListener("resume", function () {
+  console.log("application resumed", window);
+  clearInterval(window.cordovaAppkeepAwakeInterval);
 }, false);
 
 if (typeof window.cordova === "undefined") {

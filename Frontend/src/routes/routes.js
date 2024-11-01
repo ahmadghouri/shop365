@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, createWebHashHistory } from "vue-router";
 
 // User Pages
 import Splash from "../pages/Splash.vue";
@@ -32,6 +32,8 @@ import StoreProduct from "../components/Vendor/StoreProduct.vue";
 import ViewAdmins from "../components/ViewAdmins.vue";
 import ShopStats from "../pages/Admin/ShopStats.vue";
 import TotalUsers from "../pages/Admin/TotalUsers.vue";
+import { useAuthStore } from "../stores/authStore";
+import { storeToRefs } from "pinia";
 
 const routes = [
   {
@@ -39,8 +41,10 @@ const routes = [
     name: "TownService",
     component: Splash,
     beforeEnter: (to, from, next) => {
-      const token = localStorage.getItem("token");
-      if (token) {
+      const authStore = useAuthStore();
+      const { isAuthenticated } = storeToRefs(authStore);
+
+      if (isAuthenticated.value) {
         next({ name: "Categories" });
       } else {
         next();
@@ -52,8 +56,10 @@ const routes = [
     name: "Register",
     component: RegisterPage,
     beforeEnter: (to, from, next) => {
-      const token = localStorage.getItem("token");
-      if (token) {
+      const authStore = useAuthStore();
+      const { isAuthenticated } = storeToRefs(authStore);
+
+      if (isAuthenticated.value) {
         next({ name: "Categories" });
       } else {
         next();
@@ -297,19 +303,19 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: !!import.meta.env.VITE_CORDOVA_ENV ? createWebHashHistory() : createWebHistory(),
   routes,
 });
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const authStore = useAuthStore();
+  const { isAuthenticated, role } = storeToRefs(authStore);
 
   if (to.meta.requiresAuth) {
-    if (token) {
-      if (role === "admin") {
+    if (isAuthenticated.value) {
+      if (role.value === "admin") {
         next();
-      } else if (role === "restaurant_admin") {
+      } else if (role.value === "restaurant_admin") {
         if (to.meta.requiresAdminAuth) {
           next();
         } else {
@@ -329,10 +335,10 @@ router.beforeEach((to, from, next) => {
       next({ name: "UserLogin" });
     }
   } else if (to.meta.requiresAdminAuth) {
-    if (token) {
-      if (role === "admin") {
+    if (isAuthenticated.value) {
+      if (role.value === "admin") {
         next(); // Allow admin access
-      } else if (role === "restaurant_admin") {
+      } else if (role.value === "restaurant_admin") {
         next(); // Allow restaurant_admin to access any route that requires admin auth
       } else {
         next({ name: "AdminLogin" }); // Redirect to AdminLogin if the role doesn't match
@@ -342,8 +348,19 @@ router.beforeEach((to, from, next) => {
     }
   } else {
     // Check if the user is already logged in when accessing login/register pages
-    if (token && (to.name === "UserLogin" || to.name === "Register")) {
+    console.log("loading route:", to.name);
+    if (isAuthenticated.value && (to.name === "UserLogin" || to.name === "Register")) {
       next({ name: "Categories" }); // Redirect to Categories if already logged in
+    } if (isAuthenticated.value && (to.name === "AdminLogin")) {
+      if (role.value === "restaurant_admin") {
+        next('/admin/restaurantOrders'); // Allow restaurant_admin to access any route that requires admin auth
+      }
+      else if (role.value === "admin") {
+        next({ name: "Dashboard" }); // Redirect to Categories if already logged in
+      }
+      else {
+        next({ name: "Categories" }); // Redirect to Categories if already logged in
+      }
     } else {
       next(); // Allow access to public routes
     }

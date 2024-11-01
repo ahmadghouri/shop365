@@ -5,58 +5,36 @@
       <form @submit.prevent="registerAdmin">
         <div class="mb-4">
           <label for="name" class="block text-gray-700">Name</label>
-          <input
-            type="text"
-            id="name"
-            v-model="form.name"
+          <input type="text" id="name" v-model="form.name"
             class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-blue-500 focus:ring-blue-500"
-            required
-          />
+            required />
         </div>
         <div class="mb-4">
           <label for="phone_no" class="block text-gray-700">Phone Number</label>
-          <input
-            type="text"
-            id="phone_no"
-            v-model="form.phone_no"
+          <input type="text" id="phone_no" v-model="form.phone_no"
             class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-blue-500 focus:ring-blue-500"
-            required
-          />
+            required />
         </div>
         <div class="mb-4">
           <label for="password" class="block text-gray-700">Password</label>
-          <input
-            type="password"
-            id="password"
-            v-model="form.password"
+          <input type="password" id="password" v-model="form.password"
             class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-blue-500 focus:ring-blue-500"
-            required
-          />
+            required />
         </div>
 
         <div class="mb-4">
           <label for="restaurant" class="block text-gray-700">Restaurant</label>
-          <select
-            id="restaurant"
-            v-model="form.business"
+          <select id="restaurant" v-model="form.business"
             class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-blue-500 focus:ring-blue-500"
-            required
-          >
+            required>
             <option value="" disabled>Select a restaurant</option>
-            <option
-              v-for="restaurant in businessStore.businesses"
-              :key="restaurant.id"
-              :value="restaurant.name"
-            >
+            <option v-for="restaurant in businessStore.businesses" :key="restaurant.id" :value="restaurant.name">
               {{ restaurant.name }}
             </option>
           </select>
         </div>
         <div class="flex justify-center">
-          <button
-            type="submit"
-            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-          >
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
             Register
           </button>
         </div>
@@ -93,11 +71,6 @@ const registerAdmin = async () => {
     const response = await axios.post(
       `${API_BASE_URL}/api/admin/createAdmins`,
       form.value,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
     );
 
     closeForm();

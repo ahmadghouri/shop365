@@ -7,70 +7,39 @@
 
       <form @submit.prevent="register" class="space-y-6">
         <div>
-          <label
-            for="name"
-            class="block mb-2 text-sm font-medium text-gray-900"
-          >
+          <label for="name" class="block mb-2 text-sm font-medium text-gray-900">
             Your Name
           </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            v-model="name"
+          <input type="text" name="name" id="name" v-model="name"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
-            placeholder="Enter your name"
-            required
-          />
+            placeholder="Enter your name" required />
         </div>
 
         <div>
-          <label
-            for="address"
-            class="block mb-2 text-sm font-medium text-gray-900"
-          >
+          <label for="address" class="block mb-2 text-sm font-medium text-gray-900">
             Address
           </label>
-          <input
-            type="text"
-            name="address"
-            id="address"
-            v-model="address"
+          <input type="text" name="address" id="address" v-model="address"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
-            placeholder="Enter your address"
-            required
-          />
+            placeholder="Enter your address" required />
         </div>
 
         <div>
-          <label
-            for="town"
-            class="block mb-2 text-sm font-medium text-gray-900"
-          >
+          <label for="town" class="block mb-2 text-sm font-medium text-gray-900">
             City
           </label>
-          <select
-            name="town"
-            id="town"
-            v-model="town"
+          <select name="town" id="town" v-model="town"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
-            required
-          >
-            <option
-              v-for="townOption in towns"
-              :key="townOption.id"
-              :value="townOption.town_name"
-            >
+            required>
+            <option v-for="townOption in towns" :key="townOption.id" :value="townOption.town_name">
               {{ townOption.town_name }}
             </option>
           </select>
         </div>
 
         <div class="flex justify-between space-x-4">
-          <button
-            type="submit"
-            class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-          >
+          <button type="submit"
+            class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center">
             Register
           </button>
         </div>
@@ -109,9 +78,6 @@ const register = async () => {
         town: town.value,
       },
       {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
       }
     );
 
@@ -131,7 +97,6 @@ const options = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/api/get-towns`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
 

@@ -70,6 +70,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useAuthStore } from "../stores/authStore";
+import { storeToRefs } from "pinia";
 
 const props = defineProps({
   sidebarOpen: Boolean,
@@ -81,15 +83,12 @@ const emitCloseSidebar = () => {
   emit("closeSidebar");
 };
 
-const role = ref(localStorage.getItem("role"));
+const authStore = useAuthStore();
+const { logout } = authStore
+const { role } = storeToRefs(authStore);
 
-const logout = () => {
-  localStorage.removeItem("token");
-};
 
-onMounted(() => {
-  role.value = localStorage.getItem("role");
-});
+onMounted(() => { });
 </script>
 
 <style scoped>

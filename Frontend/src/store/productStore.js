@@ -93,7 +93,6 @@ export const useProductStore = defineStore("products", {
           `${API_BASE_URL}/api/restaurantAdmin/allproducts`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
             params: { search },
           }
@@ -112,7 +111,6 @@ export const useProductStore = defineStore("products", {
           { discount },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }
         );

@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.theshop365.www" version="1.0.1" xmlns="http://www.w3.org/ns/widgets"
+    xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Shop365</name>
+    <description>The official app for Shop365</description>
+    <author email="support@theshop365.com" href="https://theshop365.com">Shop365 Team</author>
+
+    <content src="index.html" />
+
+    <allow-navigation href="*" />
+    <access origin="*" />
+
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="ws://*/*" />
+    <allow-intent href="wss://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <platform name="android">
+        <allow-intent href="market:*" />
+    </platform>
+    <platform name="ios">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+    </platform>
+
+    <preference name="Fullscreen" value="true" />
+    <preference name="AndroidFullscreen" value="true" />
+    <preference name="StatusBarOverlaysWebView" value="true" />
+    <preference name="StatusBarBackgroundColor" value="#EAA306" />
+
+    <platform name="android">
+
+        <preference name="android-minSdkVersion" value="28" />
+        <preference name="android-maxSdkVersion" value="34" />
+        <preference name="android-targetSdkVersion" value="33" />
+
+        <preference name="AndroidWindowSplashScreenAnimatedIcon"
+            value="res/screens/android/splash1.png" />
+        <preference name="AndroidWindowSplashScreenBackground" value="#EAA306" />
+        <preference name="AndroidWindowSplashScreenDuration" value="10000" />
+        <preference name="AndroidWindowSplashScreenFadeOutDuration" value="500" />
+        <preference name="AutoHideSplashScreen" value="true" />
+
+
+        <icon src="res/icons/android/icon-48.png" density="mdpi" />
+        <icon src="res/icons/android/icon-72.png" density="hdpi" />
+        <icon src="res/icons/android/icon-96.png" density="xhdpi" />
+        <icon src="res/icons/android/icon-144.png" density="xxhdpi" />
+        <icon src="res/icons/android/icon-192.png" density="xxxhdpi" />
+    </platform>
+</widget>

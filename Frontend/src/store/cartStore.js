@@ -11,9 +11,6 @@ export const useCartStore = defineStore("cart", {
     async addToCart(productInfo) {
       try {
         await axios.post(`${API_BASE_URL}/api/cart`, productInfo, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
         });
         await this.fetchCartCount();
       } catch (error) {
@@ -24,9 +21,6 @@ export const useCartStore = defineStore("cart", {
     async getCartItems() {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/cart`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
         });
         this.cartItems = response.data.data;
         console.log(response.data);
@@ -39,9 +33,6 @@ export const useCartStore = defineStore("cart", {
       try {
         // Delete the item from the server
         await axios.delete(`${API_BASE_URL}/api/cart/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
         });
 
         // Refresh cart items to ensure state is in sync with server
@@ -58,9 +49,7 @@ export const useCartStore = defineStore("cart", {
           `${API_BASE_URL}/api/cart/update/${id}`,
           { quantity },
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+
           }
         );
 
@@ -77,9 +66,6 @@ export const useCartStore = defineStore("cart", {
         const response = await axios.get(
           `${API_BASE_URL}/api/cart/item-count`,
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
           }
         );
         this.cartCount = response.data.item_count; // This should trigger reactivity

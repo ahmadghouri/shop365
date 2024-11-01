@@ -1,9 +1,7 @@
 <template>
   <div class="mobile-spacing relative lg:px-16">
-    <button
-      @click="handleSearch"
-      class="fixed bottom-6 left-1/2 lg:left-[95%] transform -translate-x-1/2 z-50 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 py-4 shadow-lg"
-    >
+    <button @click="handleSearch"
+      class="fixed bottom-6 left-1/2 lg:left-[95%] transform -translate-x-1/2 z-50 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 py-4 shadow-lg">
       <img src="/search.png" alt="" />
     </button>
 
@@ -18,9 +16,7 @@
 
     <!-- hero image section for desktop -->
 
-    <section
-      class="hidden lg:flex lg:items-center lg:justify-center lg:py-12 px-20 bg-white rounded-lg mt-8"
-    >
+    <section class="hidden lg:flex lg:items-center lg:justify-center lg:py-12 px-20 bg-white rounded-lg mt-8">
       <div class="flex flex-col lg:flex-row lg:items-center lg:space-x-8">
         <!-- Image Section -->
         <div class="lg:w-1/2 flex flex-col justify-center mt-6 lg:mt-0">
@@ -36,21 +32,15 @@
               fast and reliable service anywhere in the city!
             </p>
             <!-- Call to Action Button -->
-            <button
-              @click="scrollToShops"
-              class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out"
-            >
+            <button @click="scrollToShops"
+              class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out">
               Discover More
             </button>
           </div>
         </div>
 
         <div class="lg:w-1/2">
-          <img
-            src="/hero.svg"
-            alt="Hero Image"
-            class="rounded-lg object-cover w-full h-auto"
-          />
+          <img src="/hero.svg" alt="Hero Image" class="rounded-lg object-cover w-full h-auto" />
         </div>
 
         <!-- Text Section -->
@@ -60,24 +50,14 @@
     <!-- Hero Image Section -->
     <section class="flex justify-center lg:hidden">
       <div
-        class="h-[180px] w-[374px] shadow-md flex justify-center items-center p-5 mt-8 gap-4 bg-yellow-500/15 rounded-lg"
-      >
+        class="h-[180px] w-[374px] shadow-md flex justify-center items-center p-5 mt-8 gap-4 bg-yellow-500/15 rounded-lg">
         <div class="flex-1 h-full flex items-center">
-          <img
-            src="/hero.svg"
-            alt="Hero Image"
-            class="h-full w-full object-contain rounded-lg"
-          />
+          <img src="/hero.svg" alt="Hero Image" class="h-full w-full object-contain rounded-lg" />
         </div>
-        <div
-          class="flex-1 flex flex-col items-center justify-center text-center"
-        >
+        <div class="flex-1 flex flex-col items-center justify-center text-center">
           <span class="text-xl font-semibold">Free Delivery</span>
           <p class="text-sm text-[#888888]">All Over the city.</p>
-          <button
-            class="mt-4 rounded-full bg-yellow-500 px-4 py-1 text-sm text-white"
-            @click="scrollToShops"
-          >
+          <button class="mt-4 rounded-full bg-yellow-500 px-4 py-1 text-sm text-white" @click="scrollToShops">
             Order Now
           </button>
         </div>
@@ -137,71 +117,49 @@
       </div> -->
 
       <!-- Restaurant Categories -->
-      <div
-        v-if="!isLoading && filteredRestaurants.length"
-        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6"
-      >
-        <router-link
-          v-for="category in filteredRestaurants"
-          :key="category.id"
-          :to="{
-            name: 'CategoryPage',
-            params: { id: category.id },
-            query: { title: category.name },
-          }"
-          :class="[
+      <div v-if="!isLoading && filteredRestaurants.length"
+        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+        <router-link v-for="category in filteredRestaurants" :key="category.id" :to="{
+          name: 'CategoryPage',
+          params: { id: category.id },
+          query: { title: category.name },
+        }" :class="[
             'relative bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link',
             !isOpen(category.opening_time, category.closing_time)
               ? 'pointer-events-none opacity-50'
               : '',
-          ]"
-          :style="
-            !isOpen(category.opening_time, category.closing_time)
+          ]" :style="!isOpen(category.opening_time, category.closing_time)
               ? { cursor: 'not-allowed' }
               : {}
-          "
-          @click.native.prevent="
+            " @click.native.prevent="
             !isOpen(category.opening_time, category.closing_time) &&
-              $event.preventDefault()
-          "
-        >
+            $event.preventDefault()
+            ">
           <div class="relative category-image-container">
-            <img
-              class="category-image"
-              :src="category.image_url"
-              alt="Category Image"
-              loading="lazy"
-            />
+            <img class="category-image" :src="category.image_url" alt="Category Image" loading="lazy" />
             <!-- Discount Badge -->
-            <div
-              v-if="category.discount > 0"
-              class="absolute top-5 left-0 -rotate-45 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-1.5 py-0.5 shadow-md transform"
-            >
+            <div v-if="category.discount > 0"
+              class="absolute top-5 left-0 -rotate-45 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-1.5 py-0.5 shadow-md transform">
               {{ category.discount }}% OFF
             </div>
           </div>
           <div class="p-4 flex flex-col justify-between h-[60%]">
             <div>
-              <h1
-                class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 h-14 lg:h-auto"
-              >
+              <h1 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 h-14 lg:h-auto">
                 {{ category.name }}
               </h1>
               <div class="flex items-center mb-2">
                 <!-- Dot Indicator for Open/Closed -->
-                <span
-                  :class="{
-                    'bg-green-500': isOpen(
-                      category.opening_time,
-                      category.closing_time
-                    ),
-                    'bg-red-500': !isOpen(
-                      category.opening_time,
-                      category.closing_time
-                    ),
-                  }"
-                  class="w-3 h-3 rounded-full mr-2"
-                ></span>
+                <span :class="{
+                  'bg-green-500': isOpen(
+                    category.opening_time,
+                    category.closing_time
+                  ),
+                  'bg-red-500': !isOpen(
+                    category.opening_time,
+                    category.closing_time
+                  ),
+                }" class="w-3 h-3 rounded-full mr-2"></span>
                 <span class="text-sm">
                   {{
                     isOpen(category.opening_time, category.closing_time)
@@ -212,14 +170,11 @@
               </div>
             </div>
             <div class="mt-auto text-center">
-              <span
-                :class="[
-                  isOpen(category.opening_time, category.closing_time)
-                    ? 'text-yellow-500 hover:text-yellow-700'
-                    : 'text-gray-400',
-                ]"
-                class="font-semibold"
-              >
+              <span :class="[
+                isOpen(category.opening_time, category.closing_time)
+                  ? 'text-yellow-500 hover:text-yellow-700'
+                  : 'text-gray-400',
+              ]" class="font-semibold">
                 {{
                   isOpen(category.opening_time, category.closing_time)
                     ? "View Details"
@@ -326,9 +281,6 @@ const filterByService = (service) => {
 async function getProfileData() {
   try {
     const response = await axios.get(`${API_BASE_URL}/api/profile`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
     });
     profile.value = response.data.data;
     name.value = response.data.data.user.name;
@@ -357,23 +309,27 @@ onMounted(async () => {
 
 <style scoped>
 .category-link {
-  height: 250px; /* Set fixed height for the link container */
+  height: 250px;
+  /* Set fixed height for the link container */
 }
 
 .category-image-container {
-  height: 40%; /* Adjust as needed */
+  height: 40%;
+  /* Adjust as needed */
 }
 
 .category-image {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Ensure image covers the container */
+  object-fit: cover;
+  /* Ensure image covers the container */
 }
 
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
@@ -395,7 +351,8 @@ onMounted(async () => {
   width: 10px;
   height: 10px;
   margin: 0 5px;
-  background-color: rgb(234 179 8); /* Change color as needed */
+  background-color: rgb(234 179 8);
+  /* Change color as needed */
   border-radius: 50%;
   animation: bounce 0.6s infinite alternate;
 }
@@ -412,6 +369,7 @@ onMounted(async () => {
   0% {
     transform: translateY(0);
   }
+
   100% {
     transform: translateY(-15px);
   }

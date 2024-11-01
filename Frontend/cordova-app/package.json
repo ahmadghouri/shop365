@@ -1,0 +1,37 @@
+{
+  "name": "com.theshop365.www",
+  "displayName": "Shop365",
+  "version": "1.0.0",
+  "description": "A sample Apache Cordova application that responds to the deviceready event.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "Apache Cordova Team",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "cordova-android": "^13.0.0",
+    "cordova-browser": "^7.0.0",
+    "cordova-plugin-badge": "^0.8.9",
+    "cordova-plugin-device": "^3.0.0",
+    "cordova-plugin-local-notification": "^1.0.0",
+    "cordova-plugin-splashscreen": "^6.0.1",
+    "cordova-plugin-statusbar": "^4.0.0"
+  },
+  "cordova": {
+    "platforms": [
+      "browser"
+    ],
+    "plugins": {
+      "cordova-plugin-splashscreen": {},
+      "cordova-plugin-notifications-permission": {},
+      "cordova-plugin-local-notification": {
+        "ANDROID_SUPPORT_V4_VERSION": "26.+"
+      },
+      "cordova-plugin-statusbar": {}
+    }
+  }
+}

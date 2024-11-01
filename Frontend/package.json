@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "cp web.env .env && vite",
+    "build": "cp web.env .env && vite build",
+    "app-build": "cp cordova.env .env && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

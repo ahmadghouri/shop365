@@ -42,12 +42,12 @@
     <div v-else-if="error" class="text-lg text-red-500">
       Error loading orders: {{ error }}
     </div>
-    <div v-else-if="filteredOrders.length === 0" class="text-lg">
+    <div v-else-if="ordersListSortedAndFiltered.length === 0" class="text-lg">
       No orders available.
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      <div v-for="order in filteredOrders" :key="order.id" :class="[
+      <div v-for="order in ordersListSortedAndFiltered" :key="order.id" :class="[
         'p-4 relative bg-white shadow-md flex flex-col lg:max-w-[362px] min-h-[257px] rounded-lg transition-all duration-300',
         order.newOrder
           ? 'ring-2 ring-red-500 ring-offset-4 ring-offset-white scale-105'
@@ -262,11 +262,11 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useOrderStore } from "../../store/orderStore"; // Adjust the path accordingly
-import "../../echo.config";
 import { toast } from "vue3-toastify";
+import { storeToRefs } from "pinia";
 
 const orderStore = useOrderStore();
-const orders = ref([]);
+const { ordersList } = storeToRefs(useOrderStore());
 const loading = ref(true);
 const error = ref(null);
 const isModalOpen = ref(false);
@@ -275,16 +275,25 @@ const selectedStatus = ref("pending");
 
 const I = new Audio("/notification.mp3");
 I.volume = 0.25;
+
+const ordersListSortedAndFiltered = computed(() => {
+  return [...ordersList.value]
+    .map((order) => ({
+      ...order,
+      newOrderStatus: order.status, // Track initial status
+    }))
+    .sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    ).filter((order) => {
+      if (!!!selectedStatus.value) return true;
+
+      return order.status === selectedStatus.value
+    });
+});
+
 const fetchRestaurantOrders = async () => {
   try {
     await orderStore.getRestaurantOrders();
-    orders.value = orderStore.orderDetails.map((order) => ({
-      ...order,
-      newOrderStatus: order.status, // Track initial status
-    }));
-    orders.value.sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-    );
   } catch (err) {
     error.value = "Failed to fetch orders";
     console.error("Error fetching restaurant orders:", err);
@@ -293,94 +302,11 @@ const fetchRestaurantOrders = async () => {
   }
 };
 
-const borderColor = computed(() => {
-  switch (selectedStatus.value) {
-    case "pending":
-      return "border-red-500";
-    case "preparing":
-      return "border-yellow-500";
-    case "delivered":
-      return "border-green-500";
-    default:
-      return "border-gray-300";
-  }
-});
-
-const handleNewOrder = (event) => {
-  if (!event || !event.mergedData) {
-    console.error("Merged data is missing in event:", event);
-    return;
-  }
-
-  const { order, items, audioUrl } = event.mergedData;
-
-  if (!order) {
-    console.error("Order data is missing in mergedData:", event.mergedData);
-    return;
-  }
-
-  const transformedOrder = {
-    id: order.id,
-    user_id: order.user_id,
-    total_price: order.total_price,
-    status: order.status,
-    created_at: order.created_at,
-    updated_at: order.updated_at,
-    items: items
-      ? items.map((item) => ({
-        id: item.id,
-        order_id: item.order_id,
-        product_id: item.product_id,
-        price: item.price,
-        quantity: item.quantity,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        product: {
-          id: item.product.id,
-          title: item.product.title,
-          description: item.product.description,
-          price: item.product.price,
-          image: item.product.image,
-          image_url: item.product.image_url,
-          type: item.product.type,
-          created_at: item.product.created_at,
-          updated_at: item.product.updated_at,
-        },
-      }))
-      : [],
-    user: order.user
-      ? {
-        id: order.user.id,
-        phone_no: order.user.phone_no,
-        name: order.user.name,
-        role: order.user.role,
-        household: order.user.household
-          ? {
-            address: order.user.household.address,
-            town: order.user.household.town
-              ? {
-                town_name: order.user.household.town.town_name,
-              }
-              : {},
-          }
-          : {},
-        created_at: order.user.created_at,
-        updated_at: order.user.updated_at,
-      }
-      : {},
-    newOrder: true,
-  };
-
-  orders.value = [transformedOrder, ...orders.value];
-};
 
 // Function to update order status
 const updateOrderStatus = async (status) => {
   try {
     await orderStore.updateStatus(selectedOrder.value.id, status);
-    orders.value = orders.value.map((order) =>
-      order.id === selectedOrder.value.id ? { ...order, status } : order
-    );
     closeModal();
   } catch (err) {
     console.error("Error updating order status:", err);
@@ -419,67 +345,15 @@ const closeModal = () => {
   selectedOrder.value = null;
 };
 
-const filteredOrders = computed(() => {
-  if (selectedStatus.value === "") return orders.value;
-  return orders.value.filter((order) => order.status === selectedStatus.value);
-});
-
 // Watch for changes in selectedStatus and fetch new orders if needed
 watch(selectedStatus, async () => {
   await fetchRestaurantOrders();
 });
 
-const notificationAudio = new Audio("/notification.mp3");
-notificationAudio.volume = 1;
-
-const playNotificationSound = () => {
-  notificationAudio.play().catch((error) => {
-    console.warn("Audio playback failed:", error);
-  });
-};
 
 // Set up WebSocket connection on mounted
 onMounted(async () => {
   await fetchRestaurantOrders();
-
-  // Request notification permission if not yet granted
-  if (Notification.permission === "default") {
-    const permission = await Notification.requestPermission();
-    console.log("Notification permission:", permission);
-  }
-
-  if (window.Echo) {
-    window.Echo.channel("order-channel." + orderStore.businessId)
-      .listen("OrderPlaced", (event) => {
-        handleNewOrder(event);
-        playNotificationSound();
-        toast.success("New Order Received");
-
-        if (Notification.permission === "granted") {
-          window?.webkit?.messageHandlers?.cordova_iab?.postMessage('NewOrderReceived');
-          window?.parent?.postMessage('NewOrderReceived');
-          window.postMessage('NewOrderReceived');
-
-          new Notification("New Order Received", {
-            body: `You have received a new order from ${event.user?.name || "Shop365"
-              }`,
-            icon: "/Appicon.png",
-          });
-        } else {
-          console.warn(
-            "Push notifications are not enabled or permission denied"
-          );
-        }
-      })
-      .error((error) => {
-        console.error("Echo error:", error);
-      });
-  } else {
-    console.error("Echo instance is not defined");
-  }
-
-  // Remove the click listener for auto-playing audio on page load.
-  // This ensures the sound plays ONLY on the event.
 });
 </script>
 

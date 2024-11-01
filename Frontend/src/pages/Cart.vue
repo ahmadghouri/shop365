@@ -2,27 +2,15 @@
   <section class="min-h-screen flex flex-col mobile-spacing relative lg:px-32">
     <div class="flex justify-between items-center mt-3">
       <button @click="goBack" class="text-gray-500 hover:text-gray-800">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="2"
-          stroke="currentColor"
-          class="w-6 h-6"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M15 19l-7-7 7-7"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
       <h1 class="text-xl font-semibold">Items</h1>
       <div>
-        <button
-          @click="orderNow"
-          class="bg-yellow-500 hidden lg:block hover:bg-yellow-600 text-white rounded-md px-6 py-2 font-medium shadow-lg transition ease-in-out duration-300"
-        >
+        <button @click="orderNow"
+          class="bg-yellow-500 hidden lg:block hover:bg-yellow-600 text-white rounded-md px-6 py-2 font-medium shadow-lg transition ease-in-out duration-300">
           Order Now
         </button>
       </div>
@@ -31,32 +19,16 @@
     <div class="bg-white p-4 rounded-lg shadow-md mt-6">
       <div class="flex justify-between items-center mb-4">
         <div class="flex space-x-3 items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6 text-yellow-500 mt-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500 mt-1" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           <h2 class="text-lg font-semibold text-gray-800">Delivery Address</h2>
         </div>
-        <button
-          @click="toggleEditAddress"
-          class="text-yellow-600 hover:text-yellow-700 font-medium"
-        >
+        <button @click="toggleEditAddress" class="text-yellow-600 hover:text-yellow-700 font-medium">
           {{ isEditingAddress ? "Cancel" : "Edit" }}
         </button>
       </div>
@@ -69,81 +41,40 @@
 
       <div v-else class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Address</label
-          >
-          <textarea
-            v-model="editAddress"
-            rows="3"
-            class="w-full p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
-          ></textarea>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+          <textarea v-model="editAddress" rows="3"
+            class="w-full p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"></textarea>
         </div>
-        <button
-          @click="saveAddress"
-          class="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-600 transition duration-300"
-        >
+        <button @click="saveAddress"
+          class="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-600 transition duration-300">
           Save Address
         </button>
       </div>
     </div>
 
-    <div
-      v-if="showErrorPopup"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-    >
-      <div
-        class="bg-white mobile-spacing lg:p-6 rounded-lg shadow-xl max-w-md w-full mx-4"
-      >
+    <div v-if="showErrorPopup" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white mobile-spacing lg:p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
         <h2 class="text-xl font-bold mb-4 text-red-600">Error</h2>
         <p class="text-gray-700 mb-4">{{ errorMessage }}</p>
-        <button
-          @click="closeErrorPopup"
-          class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
-        >
+        <button @click="closeErrorPopup"
+          class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300">
           Close
         </button>
       </div>
     </div>
 
     <div class="flex-1 overflow-y-auto mt-6 mb-20">
-      <div
-        v-if="isProcessing"
-        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
-      >
+      <div v-if="isProcessing" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
         <div class="text-center">
           <svg class="mx-auto w-24 h-24 lg:w-32 lg:h-32" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              stroke="#FDE68A"
-              stroke-width="8"
-              fill="none"
-            />
-            <path
-              class="order-progress"
-              d="M50 10 A40 40 0 0 1 90 50"
-              stroke="#FBBF24"
-              stroke-width="8"
-              fill="none"
-              stroke-linecap="round"
-            >
-              <animateTransform
-                attributeName="transform"
-                type="rotate"
-                from="0 50 50"
-                to="360 50 50"
-                dur="1.5s"
-                repeatCount="indefinite"
-              />
+            <circle cx="50" cy="50" r="40" stroke="#FDE68A" stroke-width="8" fill="none" />
+            <path class="order-progress" d="M50 10 A40 40 0 0 1 90 50" stroke="#FBBF24" stroke-width="8" fill="none"
+              stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="1.5s"
+                repeatCount="indefinite" />
             </path>
             <circle cx="50" cy="50" r="20" fill="#FBBF24">
-              <animate
-                attributeName="r"
-                values="20;22;20"
-                dur="1.5s"
-                repeatCount="indefinite"
-              />
+              <animate attributeName="r" values="20;22;20" dur="1.5s" repeatCount="indefinite" />
             </circle>
           </svg>
           <p class="mt-4 text-white text-xl font-semibold animate-pulse">
@@ -153,24 +84,13 @@
       </div>
 
       <div v-if="cartStore.cartItems.length > 0">
-        <div
-          v-for="item in cartStore.cartItems"
-          :key="item.id"
-          class="bg-white p-4 rounded-lg shadow mb-4 flex items-center space-x-4"
-        >
+        <div v-for="item in cartStore.cartItems" :key="item.id"
+          class="bg-white p-4 rounded-lg shadow mb-4 flex items-center space-x-4">
           <div class="w-20 h-20 rounded-lg overflow-hidden">
-            <img
-              v-if="item.product"
-              class="w-full h-full object-contain"
-              :src="item.product.image_url"
-              alt="Product Image"
-            />
-            <img
-              v-else
-              class="w-full h-full object-cover"
-              src="https://via.placeholder.com/100x100.png?text=Unavailable"
-              alt="Product Unavailable"
-            />
+            <img v-if="item.product" class="w-full h-full object-contain" :src="item.product.image_url"
+              alt="Product Image" />
+            <img v-else class="w-full h-full object-cover"
+              src="https://via.placeholder.com/100x100.png?text=Unavailable" alt="Product Unavailable" />
           </div>
 
           <div class="flex-1">
@@ -188,47 +108,22 @@
               }}
             </p>
             <div class="flex items-center space-x-2 mt-2">
-              <button
-                @click="decreaseQuantity(item)"
+              <button @click="decreaseQuantity(item)"
                 class="bg-gray-100 p-2 rounded-full text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="!item.product"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  class="w-5 h-5"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M18 12H6"
-                  />
+                :disabled="!item.product">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                  stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" />
                 </svg>
               </button>
 
               <span class="text-lg font-medium">{{ item.quantity }}</span>
 
-              <button
-                @click="increaseQuantity(item)"
-                class="bg-gray-100 p-2 rounded-full text-gray-600 hover:bg-gray-200"
-                :disabled="!item.product"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                  class="w-5 h-5"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M12 6v12m6-6H6"
-                  />
+              <button @click="increaseQuantity(item)"
+                class="bg-gray-100 p-2 rounded-full text-gray-600 hover:bg-gray-200" :disabled="!item.product">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                  stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
                 </svg>
               </button>
             </div>
@@ -240,10 +135,7 @@
         No items in your cart
       </div>
 
-      <div
-        v-if="cartStore.cartItems.length > 0"
-        class="bg-white p-4 rounded-md shadow-md max-w-48 hidden lg:block"
-      >
+      <div v-if="cartStore.cartItems.length > 0" class="bg-white p-4 rounded-md shadow-md max-w-48 hidden lg:block">
         <div class="flex justify-center gap-4 items-center">
           <h2 class="text-lg font-medium">Total:</h2>
           <p class="text-yellow-600 font-bold">{{ total }}</p>
@@ -251,59 +143,36 @@
       </div>
     </div>
 
-    <div
-      v-if="cartStore.cartItems.length > 0"
-      class="bg-gradient-to-r from-yellow-400 to-yellow-500 mobile-spacing rounded-2xl shadow-lg fixed bottom-0 left-0 right-0 mx-4 mb-6 lg:hidden overflow-hidden"
-    >
+    <div v-if="cartStore.cartItems.length > 0"
+      class="bg-gradient-to-r from-yellow-400 to-yellow-500 mobile-spacing rounded-2xl shadow-lg fixed bottom-0 left-0 right-0 mx-4 mb-6 lg:hidden overflow-hidden">
       <div class="flex items-center justify-between space-x-4">
         <div class="flex flex-col">
           <h2 class="text-lg font-semibold text-white">Total:</h2>
           <p class="text-2xl font-bold text-white">{{ total }}</p>
         </div>
 
-        <button
-          @click="orderNow"
-          class="bg-white text-yellow-600 hover:bg-yellow-100 rounded-full px-8 py-3 font-bold shadow-md transition ease-in-out duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:ring-opacity-50"
-        >
+        <button @click="orderNow"
+          class="bg-white text-yellow-600 hover:bg-yellow-100 rounded-full px-8 py-3 font-bold shadow-md transition ease-in-out duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:ring-opacity-50">
           Order Now
         </button>
       </div>
-      <div
-        class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-300 to-yellow-500"
-      ></div>
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-300 to-yellow-500"></div>
     </div>
 
     <!-- New Order Confirmation Popup -->
-    <div
-      v-if="showOrderConfirmation"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-    >
-      <div
-        class="bg-white mobile-spacing lg:p-6 rounded-lg shadow-xl max-w-md w-full mx-4 text-center"
-      >
-        <svg
-          class="mx-auto w-16 h-16 text-green-500 mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M5 13l4 4L19 7"
-          ></path>
+    <div v-if="showOrderConfirmation"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white mobile-spacing lg:p-6 rounded-lg shadow-xl max-w-md w-full mx-4 text-center">
+        <svg class="mx-auto w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
         <h2 class="text-2xl font-bold mb-4 text-gray-800">Order Confirmed!</h2>
         <p class="text-gray-600 mb-4">
           Your order has been successfully placed.
         </p>
         <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-          <div
-            class="bg-green-500 h-2.5 rounded-full"
-            :style="{ width: `${confirmationProgress}%` }"
-          ></div>
+          <div class="bg-green-500 h-2.5 rounded-full" :style="{ width: `${confirmationProgress}%` }"></div>
         </div>
         <p class="text-sm text-gray-500">
           Redirecting to home page in
@@ -347,9 +216,6 @@ const profile_id = ref();
 async function getProfileData() {
   try {
     const response = await axios.get(`${API_BASE_URL}/api/profile`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
     });
     const profile = response.data.data;
     profile_id.value = profile.user.id;
@@ -388,9 +254,6 @@ const saveAddress = async () => {
         address: editAddress.value,
       },
       {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
       }
     );
 
@@ -527,6 +390,7 @@ const goBack = () => {
   0% {
     stroke-dashoffset: 126;
   }
+
   100% {
     stroke-dashoffset: 0;
   }

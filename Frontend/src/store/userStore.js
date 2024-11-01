@@ -15,9 +15,6 @@ export const useUserStore = defineStore("user", {
     async getUsers() {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
         });
         this.users = response.data.users;
         this.totalUsersCount = response.data.total_users_count;
@@ -32,9 +29,6 @@ export const useUserStore = defineStore("user", {
         const response = await axios.get(
           `${API_BASE_URL}/api/admin/users/previous-two-days`,
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
           }
         );
 
@@ -51,9 +45,6 @@ export const useUserStore = defineStore("user", {
         const response = await axios.delete(
           `${API_BASE_URL}/api/admin/users/${id}`,
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
           }
         );
 
@@ -78,15 +69,12 @@ export const useUserStore = defineStore("user", {
     async getSingleProfile() {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/profile`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
         });
 
         this.user = response.data.data.user;
         this.user.household = response.data.data.household;
         this.user.town = response.data.data.town;
-      } catch (error) {}
+      } catch (error) { }
     },
   },
 });

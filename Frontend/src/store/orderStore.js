@@ -5,7 +5,7 @@ import { useCartStore } from "./cartStore";
 
 export const useOrderStore = defineStore("order", {
   state: () => ({
-    orderDetails: [],
+    ordersList: [],
     userOrderDetails: [],
     businessId: "",
     adminOrders: [],
@@ -17,9 +17,6 @@ export const useOrderStore = defineStore("order", {
           `${API_BASE_URL}/api/order`,
           {},
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
           }
         );
         const cartStore = useCartStore();
@@ -34,9 +31,7 @@ export const useOrderStore = defineStore("order", {
     async getOrderDetails() {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/order`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+
         });
 
         this.userOrderDetails = response.data.data;
@@ -46,7 +41,7 @@ export const useOrderStore = defineStore("order", {
     },
 
     addOrder(order) {
-      this.orderDetails.push(order);
+      this.ordersList.push(order);
     },
 
     async getRestaurantOrders() {
@@ -54,13 +49,11 @@ export const useOrderStore = defineStore("order", {
         const response = await axios.get(
           `${API_BASE_URL}/api/restaurantAdmin/orders`,
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+
           }
         );
 
-        this.orderDetails = response.data.data.orders;
+        this.ordersList = response.data.data.orders;
         this.businessId = response.data.data.business_id;
       } catch (error) {
         console.error("Something went wrong", error);
@@ -73,20 +66,18 @@ export const useOrderStore = defineStore("order", {
           `${API_BASE_URL}/api/orders/${id}/status`,
           { status },
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+
           }
         );
 
         const updatedOrder = response.data.data;
 
-        // Update in orderDetails
-        const orderIndex = this.orderDetails.findIndex(
+        // Update in ordersList
+        const orderIndex = this.ordersList.findIndex(
           (order) => order.id === updatedOrder.id
         );
         if (orderIndex !== -1) {
-          this.orderDetails[orderIndex] = updatedOrder;
+          this.ordersList[orderIndex] = updatedOrder;
         }
 
         // Update in userOrderDetails
@@ -107,9 +98,6 @@ export const useOrderStore = defineStore("order", {
         const response = await axios.get(
           `${API_BASE_URL}/api/admin/business-orders/${businessId}`,
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
           }
         );
         this.adminOrders = response.data.data.orders;
@@ -117,5 +105,74 @@ export const useOrderStore = defineStore("order", {
         throw error;
       }
     },
+
+
+    handleNewOrder(event) {
+      if (!event || !event.mergedData) {
+        console.error("Merged data is missing in event:", event);
+        return;
+      }
+
+      const { order, items, audioUrl } = event.mergedData;
+
+      if (!order) {
+        console.error("Order data is missing in mergedData:", event.mergedData);
+        return;
+      }
+
+      const newOrder = {
+        id: order.id,
+        user_id: order.user_id,
+        total_price: order.total_price,
+        status: order.status,
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+        items: items
+          ? items.map((item) => ({
+            id: item.id,
+            order_id: item.order_id,
+            product_id: item.product_id,
+            price: item.price,
+            quantity: item.quantity,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            product: {
+              id: item.product.id,
+              title: item.product.title,
+              description: item.product.description,
+              price: item.product.price,
+              image: item.product.image,
+              image_url: item.product.image_url,
+              type: item.product.type,
+              created_at: item.product.created_at,
+              updated_at: item.product.updated_at,
+            },
+          }))
+          : [],
+        user: order.user
+          ? {
+            id: order.user.id,
+            phone_no: order.user.phone_no,
+            name: order.user.name,
+            role: order.user.role,
+            household: order.user.household
+              ? {
+                address: order.user.household.address,
+                town: order.user.household.town
+                  ? {
+                    town_name: order.user.household.town.town_name,
+                  }
+                  : {},
+              }
+              : {},
+            created_at: order.user.created_at,
+            updated_at: order.user.updated_at,
+          }
+          : {},
+        newOrder: true,
+      };
+
+      this.ordersList = [newOrder, ...this.ordersList];
+    }
   },
 });

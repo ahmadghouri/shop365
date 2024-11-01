@@ -7,24 +7,14 @@
         <label for="discount" class="block text-gray-700 font-semibold mb-1">
           Discount Percentage
         </label>
-        <input
-          id="discount"
-          v-model.number="discount"
-          type="number"
-          min="0"
-          max="100"
-          :placeholder="discountPlaceholder"
-          class="w-full p-2 border border-gray-300 rounded-md"
-          required
-        />
+        <input id="discount" v-model.number="discount" type="number" min="0" max="100"
+          :placeholder="discountPlaceholder" class="w-full p-2 border border-gray-300 rounded-md" required />
       </div>
 
       <p>{{ discountPlaceholder }}</p>
 
-      <button
-        type="submit"
-        class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-150"
-      >
+      <button type="submit"
+        class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-150">
         Apply Discount
       </button>
     </form>
@@ -34,10 +24,7 @@
     </p>
 
     <!-- Display Discount Details -->
-    <div
-      v-if="discountDetails"
-      class="mt-8 p-4 border rounded-lg bg-white shadow-lg"
-    >
+    <div v-if="discountDetails" class="mt-8 p-4 border rounded-lg bg-white shadow-lg">
       <h2 class="text-xl font-semibold text-gray-900 mb-2">Current Discount</h2>
       <p class="text-gray-700">
         <span class="font-semibold">Discount:</span>
@@ -47,10 +34,8 @@
         <span class="font-semibold">Created At:</span>
         {{ formatDate(discountDetails.created_at) }}
       </p>
-      <button
-        @click="removeDiscount"
-        class="mt-4 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-150"
-      >
+      <button @click="removeDiscount"
+        class="mt-4 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-150">
         Remove Discount
       </button>
     </div>
@@ -82,18 +67,11 @@ onMounted(() => {
 });
 
 const applyDiscount = async () => {
-  const token = localStorage.getItem("token"); // Retrieve the token from local storage
-
   try {
     const response = await axios.post(
       `${API_BASE_URL}/api/restaurantAdmin/products/discount`,
       {
         discount: discount.value,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include the token in the headers
-        },
       }
     );
 
@@ -115,16 +93,10 @@ const applyDiscount = async () => {
 };
 
 const removeDiscount = async () => {
-  const token = localStorage.getItem("token"); // Retrieve the token from local storage
-
   try {
     await axios.get(
       `${API_BASE_URL}/api/restaurantAdmin/products/removeDiscount`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include the token in the headers
-        },
-      }
+      {}
     );
     responseMessage.value = "Discount removed successfully!";
     discountDetails.value = null; // Clear discount details

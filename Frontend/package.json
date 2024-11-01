@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cp local.env .env && vite",
     "build": "cp web.env .env && vite build",
-    "app-build": "cp cordova.env .env && vite build",
+    "app-build": "cp cordova.env .env && vite build && cd cordova-app && cordova build android --release --buildConfig && cd ..",
     "preview": "vite preview"
   },
   "dependencies": {

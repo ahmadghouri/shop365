@@ -1,3 +1,7 @@
+const generateRandInt = (min, max) => {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
 export default class cordovaApp {
     constructor() {
         this.init();
@@ -10,7 +14,7 @@ export default class cordovaApp {
         this.registerEvents();
 
         this.askForNotificationPermission();
-        // this.keepAwake();
+        this.keepAwake();
     }
     showPushNotification(title, message) {
         // cordova.plugins.notification.local.schedule({
@@ -22,17 +26,14 @@ export default class cordovaApp {
         //     sound: true, // Play sound when the notification appears
         //     foreground: true, // Show notification even if app is in foreground
         // });
-        const getRndInteger = (min, max) => {
-            return Math.floor(Math.random() * (max - min)) + min;
-        }
 
         console.log("notification fired");
 
         cordova.plugins.notification.local.schedule({
-            id: getRndInteger(10000000, 999999999), // Unique ID for the notification
+            id: generateRandInt(10000000, 999999999), // Unique ID for the notification
             title: title,
             text: message,
-            trigger: { in: 1, unit: "second" },
+            // trigger: { in: 1, unit: "second" },
             icon: "file://Appicon.png", // Customize with an icon (optional)
             priority: 2,
             sound: true, // Play sound when the notification appears
@@ -46,29 +47,31 @@ export default class cordovaApp {
 
     }
     keepAwake() {
-        // 1) set background defaults
-        cordova.plugins.backgroundMode.setDefaults({
-            title: 'App Running in Background',
-            text: 'Your app is still active and monitoring notifications',
-            color: 'FF0000'
-        });
+        cordova.plugins.foregroundService.start('Shop365', 'Running!', null, 3, generateRandInt());
 
-        // 1) Request background execution
-        cordova.plugins.backgroundMode.enable();
+        // // 1) set background defaults
+        // cordova.plugins.backgroundMode.setDefaults({
+        //     title: 'App Running in Background',
+        //     text: 'Your app is still active and monitoring notifications',
+        //     color: 'FF0000'
+        // });
 
-        // 2) Now the app runs ins background but stays awake
-        cordova.plugins.backgroundMode.on('activate', function () {
-            setInterval(function () {
-                console.log("Running in background");
-                // cordova.plugins.notification.badge.increase();
-            }, 1000);
-        });
+        // // 1) Request background execution
+        // cordova.plugins.backgroundMode.enable();
 
-        // 3) App is back to foreground
-        cordova.plugins.backgroundMode.on('deactivate', function () {
-            console.log("Stopped running in background");
-            // cordova.plugins.notification.badge.clear();
-        });
+        // // 2) Now the app runs ins background but stays awake
+        // cordova.plugins.backgroundMode.on('activate', function () {
+        //     setInterval(function () {
+        //         console.log("Running in background");
+        //         // cordova.plugins.notification.badge.increase();
+        //     }, 1000);
+        // });
+
+        // // 3) App is back to foreground
+        // cordova.plugins.backgroundMode.on('deactivate', function () {
+        //     console.log("Stopped running in background");
+        //     // cordova.plugins.notification.badge.clear();
+        // });
     }
     registerEvents() {
         // document.addEventListener(

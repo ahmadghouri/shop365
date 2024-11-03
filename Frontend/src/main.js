@@ -32,8 +32,14 @@ const initVueApp = () => {
 };
 
 function onDeviceReady() {
+  console.log("application ready", window);
+
   if (typeof window.cordova !== "undefined") {
     window.cordovaApp = new cordovaApp()
+
+    // if (window.document.hidden) {
+    //   console.log("application hidden", window);
+    // }
   }
 
   try {
@@ -47,14 +53,11 @@ function onDeviceReady() {
 document.addEventListener("deviceready", onDeviceReady);
 
 document.addEventListener("pause", function () {
-
   console.log("application paused", window);
-
   window.cordovaAppkeepAwakeInterval = setInterval(function () {
-    console.log("application initializing store");
+    console.log("application initializing store", { window });
     useAuthStore().initializeStore()
-  }, 1000 * 30);
-
+  }, 1000 * 60)
 }, false);
 
 document.addEventListener("resume", function () {

@@ -7,6 +7,8 @@
     "dev": "cp local.env .env && vite",
     "build": "cp web.env .env && vite build",
     "app-build": "cp cordova.env .env && vite build && cd cordova-app && cordova build android --release --buildConfig && cd ..",
+    "app-serve-device": "cp cordova.env .env && vite build && cd cordova-app && cordova run android --device && cd ..",
+    "app-serve-emulate": "cp cordova.env .env && vite build && cd cordova-app && cordova run android --emulator && cd ..",
     "preview": "vite preview"
   },
   "dependencies": {

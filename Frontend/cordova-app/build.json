@@ -1,0 +1,15 @@
+{
+  "android": {
+    "release": {
+      "keystore": "my-release-key.keystore",
+      "storePassword": "03176113413Ali",
+      "alias": "my-key-alias",
+      "password": "03176113413Ali",
+      "keystoreType": "",
+      "packageType": "apk"
+    },
+    "debug": {
+      "packageType": "apk"
+    }
+  }
+}

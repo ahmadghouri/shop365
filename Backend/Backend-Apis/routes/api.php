@@ -102,7 +102,6 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
         Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 
-        // This line was missing a semicolon
         Route::get('/vendors', [AdminController::class, 'getAdmins']);
 
         Route::put('/admins/{id}', [AdminController::class, 'updateAdmin']);

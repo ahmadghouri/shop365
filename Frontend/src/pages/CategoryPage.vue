@@ -384,6 +384,24 @@ function createFlyingElement(productImage, startRect, endRect) {
 
 watch(searchTerm, debounceSearch);
 
+const searchParams = ref({
+  mode: "0", // Search mode (0=name, 1=barcode)
+  locno: "1",
+  deptId: "0",
+  groupId: "0",
+  subgroupId: "0",
+  brandId: "0",
+  catId: "0",
+  designId: "0",
+  colorId: "0",
+  sizeId: "0",
+  makeId: "0",
+  suppId: "",
+  query: "",
+  offset: "0",
+  pagesize: "50",
+});
+
 onMounted(async () => {
   isLoading.value = true;
   await fetchProducts();
@@ -398,6 +416,8 @@ onMounted(async () => {
       adminPhone.value = productStore.number;
     }
   }
+
+  await productStore.getProductPOS(searchParams.value);
 });
 </script>
 

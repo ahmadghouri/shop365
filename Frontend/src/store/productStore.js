@@ -24,6 +24,23 @@ export const useProductStore = defineStore("products", {
       }
     },
 
+    async getProductPOS(bodyInfo) {
+      try {
+        const response = await axios.post(
+          "https://webapi.cyberneticonline.com/api/product/getProductList",
+          bodyInfo,
+          {
+            headers: {
+              ConStr: "ConStr4",
+            },
+          }
+        );
+        console.log("Products from POS:", response.data);
+      } catch (error) {
+        console.error("Failed to fetch products from POS API", error);
+      }
+    },
+
     // get single product
 
     async getProduct(id) {
@@ -92,8 +109,7 @@ export const useProductStore = defineStore("products", {
         const response = await axios.get(
           `${API_BASE_URL}/api/restaurantAdmin/allproducts`,
           {
-            headers: {
-            },
+            headers: {},
             params: { search },
           }
         );
@@ -110,8 +126,7 @@ export const useProductStore = defineStore("products", {
           `${API_BASE_URL}/api/restaurantAdmin/products/${productId}/apply-discount`,
           { discount },
           {
-            headers: {
-            },
+            headers: {},
           }
         );
         const updatedProduct = response.data.data;
@@ -147,30 +162,3 @@ export const useProductStore = defineStore("products", {
     },
   },
 });
-
-{
-  /* <div class="mb-4 relative">
-      <input
-        v-model="searchQuery"
-        @input="handleSearch"
-        type="text"
-        placeholder="Search products..."
-        class="w-full p-2 pr-10 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-        <svg
-          class="w-5 h-5 text-gray-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          ></path>
-        </svg>
-      </div>
-    </div> */
-}

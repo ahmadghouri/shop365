@@ -13,12 +13,7 @@ export const useOrderStore = defineStore("order", {
   actions: {
     async placeOrder() {
       try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/order`,
-          {},
-          {
-          }
-        );
+        const response = await axios.post(`${API_BASE_URL}/api/order`, {}, {});
         const cartStore = useCartStore();
         cartStore.cartCount = 0;
         return response;
@@ -30,11 +25,10 @@ export const useOrderStore = defineStore("order", {
 
     async getOrderDetails() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/order`, {
-
-        });
+        const response = await axios.get(`${API_BASE_URL}/api/order`, {});
 
         this.userOrderDetails = response.data.data;
+        console.log("User", this.userOrderDetails);
       } catch (error) {
         console.error("Something went wrong", error);
       }
@@ -48,9 +42,7 @@ export const useOrderStore = defineStore("order", {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/restaurantAdmin/orders`,
-          {
-
-          }
+          {}
         );
 
         this.ordersList = response.data.data.orders;
@@ -65,9 +57,7 @@ export const useOrderStore = defineStore("order", {
         const response = await axios.put(
           `${API_BASE_URL}/api/orders/${id}/status`,
           { status },
-          {
-
-          }
+          {}
         );
 
         const updatedOrder = response.data.data;
@@ -97,15 +87,13 @@ export const useOrderStore = defineStore("order", {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/admin/business-orders/${businessId}`,
-          {
-          }
+          {}
         );
         this.adminOrders = response.data.data.orders;
       } catch (error) {
         throw error;
       }
     },
-
 
     handleNewOrder(event) {
       if (!event || !event.mergedData) {
@@ -129,50 +117,50 @@ export const useOrderStore = defineStore("order", {
         updated_at: order.updated_at,
         items: items
           ? items.map((item) => ({
-            id: item.id,
-            order_id: item.order_id,
-            product_id: item.product_id,
-            price: item.price,
-            quantity: item.quantity,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-            product: {
-              id: item.product.id,
-              title: item.product.title,
-              description: item.product.description,
-              price: item.product.price,
-              image: item.product.image,
-              image_url: item.product.image_url,
-              type: item.product.type,
-              created_at: item.product.created_at,
-              updated_at: item.product.updated_at,
-            },
-          }))
+              id: item.id,
+              order_id: item.order_id,
+              product_id: item.product_id,
+              price: item.price,
+              quantity: item.quantity,
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+              product: {
+                id: item.product.id,
+                title: item.product.title,
+                description: item.product.description,
+                price: item.product.price,
+                image: item.product.image,
+                image_url: item.product.image_url,
+                type: item.product.type,
+                created_at: item.product.created_at,
+                updated_at: item.product.updated_at,
+              },
+            }))
           : [],
         user: order.user
           ? {
-            id: order.user.id,
-            phone_no: order.user.phone_no,
-            name: order.user.name,
-            role: order.user.role,
-            household: order.user.household
-              ? {
-                address: order.user.household.address,
-                town: order.user.household.town
-                  ? {
-                    town_name: order.user.household.town.town_name,
+              id: order.user.id,
+              phone_no: order.user.phone_no,
+              name: order.user.name,
+              role: order.user.role,
+              household: order.user.household
+                ? {
+                    address: order.user.household.address,
+                    town: order.user.household.town
+                      ? {
+                          town_name: order.user.household.town.town_name,
+                        }
+                      : {},
                   }
-                  : {},
-              }
-              : {},
-            created_at: order.user.created_at,
-            updated_at: order.user.updated_at,
-          }
+                : {},
+              created_at: order.user.created_at,
+              updated_at: order.user.updated_at,
+            }
           : {},
         newOrder: true,
       };
 
       this.ordersList = [newOrder, ...this.ordersList];
-    }
+    },
   },
 });

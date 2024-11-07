@@ -97,7 +97,7 @@ class OrderManageService
 
     public function viewOrders($userId)
     {
-        $today = Carbon::now()->setTimezone('Asia/Karachi')->toDateString();
+        $today = Carbon::now()->toDateString();
 
         return Order::where('user_id', $userId)
                     ->whereDate('created_at', $today)

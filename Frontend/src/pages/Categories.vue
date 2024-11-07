@@ -12,7 +12,7 @@
         <span class="text-[#888888] text-xl mb-2">
           Hi {{ name || "Loading..." }}
         </span>
-        <h1 class="text-yellow-500 text-3xl font-bold">Find What You Want.</h1>
+        <h1 class="text-yellow-500 text-3xl font-bold">Launch Day: Nov 15!</h1>
       </div>
     </section>
 
@@ -27,7 +27,7 @@
               Hi {{ name || "Loading..." }}
             </span>
             <h1 class="text-yellow-500 text-3xl lg:text-4xl font-bold mb-4">
-              Find What You Want.
+              Launch Day: Nov 15!
             </h1>
             <p class="text-gray-600 text-base lg:text-lg">
               Explore a variety of services that cater to all your needs. Enjoy

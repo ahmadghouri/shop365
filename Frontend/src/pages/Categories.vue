@@ -1,7 +1,5 @@
 <template>
   <div class="mobile-spacing relative lg:px-16">
-    <Launchment />
-
     <button
       @click="handleSearch"
       class="fixed bottom-6 left-1/2 lg:left-[95%] transform -translate-x-1/2 z-50 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 py-4 shadow-lg"
@@ -17,8 +15,6 @@
         <h1 class="text-yellow-500 text-3xl font-bold">Find What You Want.</h1>
       </div>
     </section>
-
-    <!-- hero image section for desktop -->
 
     <section
       class="hidden lg:flex lg:items-center lg:justify-center lg:py-12 px-20 bg-white rounded-lg mt-8"

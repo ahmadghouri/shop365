@@ -28,7 +28,6 @@ export const useOrderStore = defineStore("order", {
         const response = await axios.get(`${API_BASE_URL}/api/order`, {});
 
         this.userOrderDetails = response.data.data;
-        console.log("User", this.userOrderDetails);
       } catch (error) {
         console.error("Something went wrong", error);
       }

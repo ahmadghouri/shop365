@@ -150,7 +150,6 @@ async function getOrderDetails() {
     orderDetails.value.sort(
       (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
-    console.log("Orders", orderDetails.value);
   } catch (error) {
     console.error(error);
   } finally {

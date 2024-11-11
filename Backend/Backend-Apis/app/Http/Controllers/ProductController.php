@@ -31,10 +31,7 @@ class ProductController extends Controller
 
     public function destroyByBusinessId($businessId): JsonResponse
     {
-        try {
-            // Begin a database transaction to ensure atomicity
-            DB::beginTransaction();
-    
+        return DB::transaction(function () use ($businessId) {
             // Find all products associated with the business
             $products = Product::where('business_id', $businessId)->get();
     
@@ -45,21 +42,14 @@ class ProductController extends Controller
             // Collect all product IDs
             $productIds = $products->pluck('id');
     
-            // Delete associated OrderItems first to avoid foreign key constraint issues
+            // Delete associated OrderItems to avoid foreign key constraint issues
             OrderItem::whereIn('product_id', $productIds)->delete();
     
             // Permanently delete the products
             Product::where('business_id', $businessId)->forceDelete();
     
-            // Commit the transaction
-            DB::commit();
-    
             return $this->successResponse(null, 'All products for business permanently deleted successfully, along with associated order items.');
-        } catch (Exception $e) {
-            DB::rollBack();
-            
-            return $this->errorResponse('Failed to delete products: ' . $e->getMessage(), 500);
-        }
+        }, 5);  // The second parameter here sets the number of retries in case of a deadlock.
     }
     /**
      * Display a listing of the resource.

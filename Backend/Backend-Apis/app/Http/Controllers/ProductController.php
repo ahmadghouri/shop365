@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -34,33 +35,78 @@ class ProductController extends Controller
     public function deleteAllProductsByBusinessId($businessId)
     {
         try {
-            // Enable foreign key checks for SQLite
-            DB::statement('PRAGMA foreign_keys = ON');
+            // Enable query logging
+            DB::enableQueryLog();
             
-            // Begin a transaction
+            // Start a database transaction
             DB::beginTransaction();
     
-            // Delete related order items
-            OrderItem::whereIn('product_id', Product::where('business_id', $businessId)->pluck('id'))->delete();
-    
-            // Delete related cart items
-            cart::whereIn('product_id', Product::where('business_id', $businessId)->pluck('id'))->delete();
-    
-            // Delete all products for the business
-            Product::where('business_id', $businessId)->forceDelete();
-    
+            // Disable foreign key checks temporarily
+            DB::statement('PRAGMA foreign_keys = OFF');
+            
+            // Log foreign key status
+            $foreignKeyStatus = DB::select('PRAGMA foreign_keys');
+            Log::info('Foreign Key Status:', $foreignKeyStatus);
+            
+            // Find all products associated with the business
+            $products = Product::where('business_id', $businessId)->get();
+            
+            if ($products->isEmpty()) {
+                return response()->json(['message' => 'No products found for the specified business ID'], 404);
+            }
+            
+            // Collect all product IDs
+            $productIds = $products->pluck('id');
+            
+            // Log products to be deleted
+            Log::info('Deleting products for business ID ' . $businessId, [
+                'product_ids' => $productIds,
+                'product_count' => $products->count(),
+            ]);
+            
+            // Delete associated OrderItems
+            OrderItem::whereIn('product_id', $productIds)->delete();
+            
+            // Delete associated Cart items
+            Cart::whereIn('product_id', $productIds)->delete();
+            
+            // Permanently delete the products
+            Product::where('business_id', $businessId)->delete();
+            
             // Commit the transaction
             DB::commit();
-    
-            return response()->json(['message' => 'All products and their related data deleted successfully.'], 200);
+            
+            // Log successful deletion
+            Log::info('Products deleted successfully for business ID ' . $businessId);
+            
+            // Re-enable foreign key checks
+            DB::statement('PRAGMA foreign_keys = ON');
+            
+            // Log the executed SQL queries
+            Log::info('Executed SQL Queries:', DB::getQueryLog());
+            
+            return response()->json(['message' => 'All products for business deleted successfully, along with associated order items and cart items.'], 200);
             
         } catch (Exception $e) {
-            // Rollback if something goes wrong
+            // Log the exception
+            Log::error('Failed to delete products', [
+                'error' => $e->getMessage(),
+                'stack_trace' => $e->getTraceAsString(),
+            ]);
+            
+            // Rollback the transaction
             DB::rollBack();
-    
+            
+            // Re-enable foreign key checks in case of an error
+            DB::statement('PRAGMA foreign_keys = ON');
+            
+            // Log the executed SQL queries in case of failure
+            Log::info('Executed SQL Queries:', DB::getQueryLog());
+            
             return response()->json(['message' => 'Failed to delete products: ' . $e->getMessage()], 500);
         }
     }
+    
     
     
     

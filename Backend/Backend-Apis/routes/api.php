@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\ForgotPassword;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ComplainController;
+use App\Http\Controllers\GroceryProductController;
 use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -18,6 +19,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 
+Route::post('import-grocery-products', [GroceryProductController::class, 'storeGroceryProducts']);
+
+Route::delete('delete-products/{businessId}', [ProductController::class , 'destroyByBusinessId']);
 Route::delete('/orders/delete-all', [OrderController::class, 'deleteAllOrders']);
 Route::delete('/users/cleanup', [UserController::class, 'deleteUsers']);
 

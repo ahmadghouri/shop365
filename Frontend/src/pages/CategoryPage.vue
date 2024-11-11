@@ -114,6 +114,7 @@
         :to="{
           name: 'ProductDetailsPage',
           params: { id: product.id },
+          query: { business_id: product.business_id },
         }"
         class="bg-white py-6 px-4 rounded-md flex flex-col items-center shadow-lg hover:shadow-2xl transition-shadow duration-300 ease-in-out relative"
       >
@@ -255,6 +256,9 @@ const cartStore = useCartStore();
 const businessId = route.params.id;
 
 const categoryTitle = ref(route.query.title);
+console.log("Cat", categoryTitle.value);
+console.log(route.query.title);
+
 const filters = ref([]);
 const selectedFilter = ref("All");
 const showContactPopup = ref(false);
@@ -416,8 +420,6 @@ onMounted(async () => {
       adminPhone.value = productStore.number;
     }
   }
-
-  await productStore.getProductPOS(searchParams.value);
 });
 </script>
 

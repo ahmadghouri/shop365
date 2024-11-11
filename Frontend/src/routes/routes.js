@@ -1,4 +1,8 @@
-import { createRouter, createWebHistory, createWebHashHistory } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  createWebHashHistory,
+} from "vue-router";
 
 // User Pages
 import Splash from "../pages/Splash.vue";
@@ -125,6 +129,7 @@ const routes = [
         component: ProductDetailsPage,
         props: (route) => ({
           id: route.params.id,
+          businessId: route.query.business_id,
         }),
         meta: {
           requiresAuth: true,
@@ -303,7 +308,9 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: !!import.meta.env.VITE_CORDOVA_ENV ? createWebHashHistory() : createWebHistory(),
+  history: !!import.meta.env.VITE_CORDOVA_ENV
+    ? createWebHashHistory()
+    : createWebHistory(),
   routes,
 });
 
@@ -349,16 +356,18 @@ router.beforeEach((to, from, next) => {
   } else {
     // Check if the user is already logged in when accessing login/register pages
     console.log("loading route:", to.name);
-    if (isAuthenticated.value && (to.name === "UserLogin" || to.name === "Register")) {
+    if (
+      isAuthenticated.value &&
+      (to.name === "UserLogin" || to.name === "Register")
+    ) {
       next({ name: "Categories" }); // Redirect to Categories if already logged in
-    } if (isAuthenticated.value && (to.name === "AdminLogin")) {
+    }
+    if (isAuthenticated.value && to.name === "AdminLogin") {
       if (role.value === "restaurant_admin") {
-        next('/admin/restaurantOrders'); // Allow restaurant_admin to access any route that requires admin auth
-      }
-      else if (role.value === "admin") {
+        next("/admin/restaurantOrders"); // Allow restaurant_admin to access any route that requires admin auth
+      } else if (role.value === "admin") {
         next({ name: "Dashboard" }); // Redirect to Categories if already logged in
-      }
-      else {
+      } else {
         next({ name: "Categories" }); // Redirect to Categories if already logged in
       }
     } else {

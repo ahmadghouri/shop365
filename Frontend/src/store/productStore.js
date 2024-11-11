@@ -43,9 +43,11 @@ export const useProductStore = defineStore("products", {
 
     // get single product
 
-    async getProduct(id) {
+    async getProduct(id, business_id) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/products/${id}`);
+        const response = await axios.get(`${API_BASE_URL}/api/products/${id}`, {
+          params: { business_id },
+        });
         this.product = response.data.data;
       } catch (error) {
         console.error("Failed to fetch products", error);

@@ -166,7 +166,10 @@ const closeContactPopup = () => {
 };
 
 onMounted(async () => {
-  await productStore.getProduct(route.params.id);
+  const productId = route.params.id;
+  const businessId = route.query.business_id;
+
+  await productStore.getProduct(productId, businessId);
 });
 
 const product = computed(() => productStore.product);

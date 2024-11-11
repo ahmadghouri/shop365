@@ -26,6 +26,22 @@ class ProductController extends Controller
         $this->productService = $productService;
         $this->imageService = $imageService;
     }
+
+    public function destroyByBusinessId($businessId): JsonResponse
+{
+    try {
+        // Attempt to permanently delete all products with the given business_id
+        $deletedCount = Product::where('business_id', $businessId)->forceDelete();
+        
+        if ($deletedCount > 0) {
+            return $this->successResponse(null, 'All products for business permanently deleted successfully');
+        } else {
+            return $this->errorResponse('No products found for the specified business ID', 404);
+        }
+    } catch (Exception $e) {
+        return $this->errorResponse('Failed to delete products: ' . $e->getMessage(), 500);
+    }
+}
     /**
      * Display a listing of the resource.
      */

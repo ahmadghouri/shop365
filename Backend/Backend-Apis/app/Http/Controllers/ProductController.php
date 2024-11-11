@@ -12,6 +12,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Services\ImageService;
 use App\Services\ProductService;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -32,7 +33,7 @@ class ProductController extends Controller
         $this->imageService = $imageService;
     }
 
-    public function deleteAllProductsByBusinessId($businessId)
+    public function deleteTodayProductsByBusinessId($businessId)
     {
         try {
             // Enable query logging
@@ -47,66 +48,72 @@ class ProductController extends Controller
             // Log foreign key status
             $foreignKeyStatus = DB::select('PRAGMA foreign_keys');
             Log::info('Foreign Key Status:', $foreignKeyStatus);
-            
-            // Find all products associated with the business
-            $products = Product::where('business_id', $businessId)->get();
-            
+    
+            // Get today's date
+            $today = Carbon::today(); // This will give you the current date without time
+    
+            // Find all products associated with the business created today
+            $products = Product::where('business_id', $businessId)
+                               ->whereDate('created_at', $today)
+                               ->get();
+    
             if ($products->isEmpty()) {
-                return response()->json(['message' => 'No products found for the specified business ID'], 404);
+                return response()->json(['message' => 'No products found for the specified business ID created today'], 404);
             }
-            
+    
             // Collect all product IDs
             $productIds = $products->pluck('id');
             
             // Log products to be deleted
-            Log::info('Deleting products for business ID ' . $businessId, [
+            Log::info('Deleting products for business ID ' . $businessId . ' created today', [
                 'product_ids' => $productIds,
                 'product_count' => $products->count(),
             ]);
-            
+    
             // Delete associated OrderItems
             OrderItem::whereIn('product_id', $productIds)->delete();
-            
+    
             // Delete associated Cart items
             cart::whereIn('product_id', $productIds)->delete();
-            
-            // Permanently delete the products
-            Product::where('business_id', $businessId)->delete();
-            
+    
+            // Permanently delete the products created today
+            Product::where('business_id', $businessId)
+                   ->whereDate('created_at', $today)
+                   ->delete();
+    
             // Commit the transaction
             DB::commit();
-            
+    
             // Log successful deletion
-            Log::info('Products deleted successfully for business ID ' . $businessId);
-            
+            Log::info('Products created today deleted successfully for business ID ' . $businessId);
+    
             // Re-enable foreign key checks
             DB::statement('PRAGMA foreign_keys = ON');
-            
+    
             // Log the executed SQL queries
             Log::info('Executed SQL Queries:', DB::getQueryLog());
-            
-            return response()->json(['message' => 'All products for business deleted successfully, along with associated order items and cart items.'], 200);
-            
+    
+            return response()->json(['message' => 'All products created today for business deleted successfully, along with associated order items and cart items.'], 200);
+    
         } catch (Exception $e) {
             // Log the exception
             Log::error('Failed to delete products', [
                 'error' => $e->getMessage(),
                 'stack_trace' => $e->getTraceAsString(),
             ]);
-            
+    
             // Rollback the transaction
             DB::rollBack();
-            
+    
             // Re-enable foreign key checks in case of an error
             DB::statement('PRAGMA foreign_keys = ON');
-            
+    
             // Log the executed SQL queries in case of failure
             Log::info('Executed SQL Queries:', DB::getQueryLog());
-            
+    
             return response()->json(['message' => 'Failed to delete products: ' . $e->getMessage()], 500);
         }
     }
-    
     
     
     

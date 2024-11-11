@@ -6,6 +6,7 @@ use App\Http\Requests\Products\StoreRequest;
 use App\Http\Requests\Products\UpdateRequest;
 use App\Http\Requests\Shop\StoreRequest as ShopStoreRequest;
 use App\Models\Business;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Services\ImageService;
 use App\Services\ProductService;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class ProductController extends Controller
@@ -28,20 +30,37 @@ class ProductController extends Controller
     }
 
     public function destroyByBusinessId($businessId): JsonResponse
-{
-    try {
-        // Attempt to permanently delete all products with the given business_id
-        $deletedCount = Product::where('business_id', $businessId)->forceDelete();
-        
-        if ($deletedCount > 0) {
-            return $this->successResponse(null, 'All products for business permanently deleted successfully');
-        } else {
-            return $this->errorResponse('No products found for the specified business ID', 404);
+    {
+        try {
+            // Begin a database transaction to ensure atomicity
+            DB::beginTransaction();
+    
+            // Find all products associated with the business
+            $products = Product::where('business_id', $businessId)->get();
+    
+            if ($products->isEmpty()) {
+                return $this->errorResponse('No products found for the specified business ID', 404);
+            }
+    
+            // Collect all product IDs
+            $productIds = $products->pluck('id');
+    
+            // Delete associated OrderItems first to avoid foreign key constraint issues
+            OrderItem::whereIn('product_id', $productIds)->delete();
+    
+            // Permanently delete the products
+            Product::where('business_id', $businessId)->forceDelete();
+    
+            // Commit the transaction
+            DB::commit();
+    
+            return $this->successResponse(null, 'All products for business permanently deleted successfully, along with associated order items.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            
+            return $this->errorResponse('Failed to delete products: ' . $e->getMessage(), 500);
         }
-    } catch (Exception $e) {
-        return $this->errorResponse('Failed to delete products: ' . $e->getMessage(), 500);
     }
-}
     /**
      * Display a listing of the resource.
      */

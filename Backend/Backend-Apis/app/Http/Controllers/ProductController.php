@@ -46,17 +46,17 @@ class ProductController extends Controller
             if ($products->isEmpty()) {
                 return response()->json(['message' => 'No products found for the specified business ID'], 404);
             }
-            
+    
             // Collect all product IDs
             $productIds = $products->pluck('id');
     
-            // Delete associated OrderItems first to avoid foreign key constraint issues
-            OrderItem::whereIn('product_id', $productIds)->forceDelete();
+            // Delete related order items first
+            OrderItem::whereIn('product_id', $productIds)->delete();
     
-            // Delete associated Cart items
-            Cart::whereIn('product_id', $productIds)->forceDelete();
+            // Delete related cart items
+            Cart::whereIn('product_id', $productIds)->delete();
     
-            // Now we can delete the products themselves
+            // Finally, delete the products themselves
             Product::where('business_id', $businessId)->forceDelete();
     
             // Commit the transaction
@@ -65,12 +65,13 @@ class ProductController extends Controller
             return response()->json(['message' => 'All products for business deleted successfully, along with associated order items and cart items.'], 200);
             
         } catch (Exception $e) {
-            // Rollback the transaction if something goes wrong
+            // Rollback if something goes wrong
             DB::rollBack();
     
             return response()->json(['message' => 'Failed to delete products: ' . $e->getMessage()], 500);
         }
     }
+    
     
     
     

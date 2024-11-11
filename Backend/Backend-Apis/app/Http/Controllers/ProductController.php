@@ -68,7 +68,7 @@ class ProductController extends Controller
             OrderItem::whereIn('product_id', $productIds)->delete();
             
             // Delete associated Cart items
-            Cart::whereIn('product_id', $productIds)->delete();
+            cart::whereIn('product_id', $productIds)->delete();
             
             // Permanently delete the products
             Product::where('business_id', $businessId)->delete();

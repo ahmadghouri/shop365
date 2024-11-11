@@ -34,35 +34,25 @@ class ProductController extends Controller
     public function deleteAllProductsByBusinessId($businessId)
     {
         try {
-            // Enable foreign key checks for SQLite (to ensure foreign key constraints are respected)
+            // Enable foreign key checks for SQLite
             DB::statement('PRAGMA foreign_keys = ON');
             
-            // Begin a database transaction
+            // Begin a transaction
             DB::beginTransaction();
     
-            // Find all products associated with the business
-            $products = Product::where('business_id', $businessId)->get();
-            
-            if ($products->isEmpty()) {
-                return response()->json(['message' => 'No products found for the specified business ID'], 404);
-            }
-    
-            // Collect all product IDs
-            $productIds = $products->pluck('id');
-    
-            // Delete related order items first
-            OrderItem::whereIn('product_id', $productIds)->delete();
+            // Delete related order items
+            OrderItem::whereIn('product_id', Product::where('business_id', $businessId)->pluck('id'))->delete();
     
             // Delete related cart items
-            Cart::whereIn('product_id', $productIds)->delete();
+            Cart::whereIn('product_id', Product::where('business_id', $businessId)->pluck('id'))->delete();
     
-            // Finally, delete the products themselves
+            // Delete all products for the business
             Product::where('business_id', $businessId)->forceDelete();
     
             // Commit the transaction
             DB::commit();
     
-            return response()->json(['message' => 'All products for business deleted successfully, along with associated order items and cart items.'], 200);
+            return response()->json(['message' => 'All products and their related data deleted successfully.'], 200);
             
         } catch (Exception $e) {
             // Rollback if something goes wrong
@@ -71,8 +61,6 @@ class ProductController extends Controller
             return response()->json(['message' => 'Failed to delete products: ' . $e->getMessage()], 500);
         }
     }
-    
-    
     
     
     

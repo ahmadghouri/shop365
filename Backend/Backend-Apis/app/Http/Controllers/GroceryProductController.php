@@ -45,7 +45,7 @@ class GroceryProductController extends Controller
                         'type' => 'grocery',
                         'price' => $product['UNIT_PRICE'],
                         'image' => $product['IMAGE_PATH'] ?? null,
-                        'business_id' => 4, // Adjust business_id if needed
+                        'business_id' => 6, // Adjust business_id if needed
                     ]);
                 }
             }

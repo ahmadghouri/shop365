@@ -44,7 +44,7 @@ class ProductController extends Controller
             OrderItem::whereIn('product_id', Product::where('business_id', $businessId)->pluck('id'))->delete();
     
             // Delete related cart items
-            Cart::whereIn('product_id', Product::where('business_id', $businessId)->pluck('id'))->delete();
+            cart::whereIn('product_id', Product::where('business_id', $businessId)->pluck('id'))->delete();
     
             // Delete all products for the business
             Product::where('business_id', $businessId)->forceDelete();

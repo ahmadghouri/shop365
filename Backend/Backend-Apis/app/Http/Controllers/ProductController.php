@@ -51,32 +51,18 @@ class ProductController extends Controller
             $productIds = $products->pluck('id');
     
             // Delete associated OrderItems first to avoid foreign key constraint issues
-            $orderItems = OrderItem::whereIn('product_id', $productIds)->get();
-    
-            // Collect the order IDs from the deleted order items
-            $orderIds = $orderItems->pluck('order_id');
-    
-            // Delete associated OrderItems
-            OrderItem::whereIn('product_id', $productIds)->delete();
+            OrderItem::whereIn('product_id', $productIds)->forceDelete();
     
             // Delete associated Cart items
-            Cart::whereIn('product_id', $productIds)->delete();
+            Cart::whereIn('product_id', $productIds)->forceDelete();
     
-            // Delete the Orders if they have no remaining items
-            foreach ($orderIds as $orderId) {
-                $order = Order::find($orderId);
-                if ($order && $order->items()->count() == 0) { 
-                    $order->delete(); 
-                }
-            }
-    
-            // Permanently delete the products
+            // Now we can delete the products themselves
             Product::where('business_id', $businessId)->forceDelete();
     
             // Commit the transaction
             DB::commit();
     
-            return response()->json(['message' => 'All products for business deleted successfully, along with associated order items, cart items, and orders.'], 200);
+            return response()->json(['message' => 'All products for business deleted successfully, along with associated order items and cart items.'], 200);
             
         } catch (Exception $e) {
             // Rollback the transaction if something goes wrong
@@ -85,6 +71,7 @@ class ProductController extends Controller
             return response()->json(['message' => 'Failed to delete products: ' . $e->getMessage()], 500);
         }
     }
+    
     
     
     

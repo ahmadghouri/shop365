@@ -36,18 +36,16 @@ class GroceryProductController extends Controller
             $products = $response->json(); // Assuming the data is in JSON format
 
             foreach ($products as $product) {
-                // Use a unique identifier to check if the product exists
                 $existingProduct = Product::where('title', $product['ITEM_DESC'])->first();
 
                 if (!$existingProduct) {
-                    // Create the product if it doesn't already exist
                     Product::create([
                         'title' => $product['ITEM_DESC'],
                         'description' => $product['ITEM_DESC_LONG'],
                         'type' => 'grocery',
                         'price' => $product['UNIT_PRICE'],
                         'image' => $product['IMAGE_PATH'] ?? null,
-                        'business_id' => 4, // Adjust business_id if needed
+                        'business_id' => 6, // Adjust business_id if needed
                     ]);
                 }
             }

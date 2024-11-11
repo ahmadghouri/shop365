@@ -65,8 +65,8 @@ class ProductController extends Controller
             // Delete the Orders if they have no remaining items
             foreach ($orderIds as $orderId) {
                 $order = Order::find($orderId);
-                if ($order && $order->items()->count() == 0) { // Use `items()` here
-                    $order->delete(); // Delete the order if it has no items left
+                if ($order && $order->items()->count() == 0) { 
+                    $order->delete(); 
                 }
             }
     

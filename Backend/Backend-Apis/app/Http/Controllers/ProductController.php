@@ -6,6 +6,7 @@ use App\Http\Requests\Products\StoreRequest;
 use App\Http\Requests\Products\UpdateRequest;
 use App\Http\Requests\Shop\StoreRequest as ShopStoreRequest;
 use App\Models\Business;
+use App\Models\cart;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Services\ImageService;
@@ -44,6 +45,7 @@ class ProductController extends Controller
     
             // Delete associated OrderItems to avoid foreign key constraint issues
             OrderItem::whereIn('product_id', $productIds)->delete();
+            cart::whereIn('product_id', $productIds)->delete();
     
             // Permanently delete the products
             Product::where('business_id', $businessId)->forceDelete();

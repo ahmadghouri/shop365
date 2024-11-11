@@ -7,6 +7,7 @@ use App\Http\Requests\Products\UpdateRequest;
 use App\Http\Requests\Shop\StoreRequest as ShopStoreRequest;
 use App\Models\Business;
 use App\Models\cart;
+use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Services\ImageService;
@@ -30,10 +31,10 @@ class ProductController extends Controller
         $this->imageService = $imageService;
     }
 
-    public function destroyByBusinessId($businessId): JsonResponse
+    public function deleteAllProductsByBusinessId($businessId)
     {
         try {
-            // Enable foreign key checks for SQLite
+            // Enable foreign key checks for SQLite (to ensure foreign key constraints are respected)
             DB::statement('PRAGMA foreign_keys = ON');
             
             // Begin a database transaction
@@ -41,17 +42,33 @@ class ProductController extends Controller
     
             // Find all products associated with the business
             $products = Product::where('business_id', $businessId)->get();
-    
+            
             if ($products->isEmpty()) {
-                return $this->errorResponse('No products found for the specified business ID', 404);
+                return response()->json(['message' => 'No products found for the specified business ID'], 404);
             }
-    
+            
             // Collect all product IDs
             $productIds = $products->pluck('id');
     
             // Delete associated OrderItems first to avoid foreign key constraint issues
+            $orderItems = OrderItem::whereIn('product_id', $productIds)->get();
+    
+            // Collect the order IDs from the deleted order items
+            $orderIds = $orderItems->pluck('order_id');
+    
+            // Delete associated OrderItems
             OrderItem::whereIn('product_id', $productIds)->delete();
-            cart::whereIn('product_id', $productIds)->delete();
+    
+            // Delete associated Cart items
+            Cart::whereIn('product_id', $productIds)->delete();
+    
+            // Delete the Orders if they have no remaining items
+            foreach ($orderIds as $orderId) {
+                $order = Order::find($orderId);
+                if ($order && $order->orderItems()->count() == 0) {
+                    $order->delete(); // Delete the order if it has no items left
+                }
+            }
     
             // Permanently delete the products
             Product::where('business_id', $businessId)->forceDelete();
@@ -59,13 +76,16 @@ class ProductController extends Controller
             // Commit the transaction
             DB::commit();
     
-            return $this->successResponse(null, 'All products for business permanently deleted successfully, along with associated order items.');
+            return response()->json(['message' => 'All products for business deleted successfully, along with associated order items, cart items, and orders.'], 200);
+            
         } catch (Exception $e) {
+            // Rollback the transaction if something goes wrong
             DB::rollBack();
     
-            return $this->errorResponse('Failed to delete products: ' . $e->getMessage(), 500);
+            return response()->json(['message' => 'Failed to delete products: ' . $e->getMessage()], 500);
         }
     }
+    
     
     /**
      * Display a listing of the resource.

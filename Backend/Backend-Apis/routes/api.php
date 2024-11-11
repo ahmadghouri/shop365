@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('import-grocery-products', [GroceryProductController::class, 'storeGroceryProducts']);
 
-Route::delete('delete-products/{businessId}', [ProductController::class , 'destroyByBusinessId']);
+Route::delete('delete-products/{businessId}', [ProductController::class , 'deleteAllProductsByBusinessId']);
 Route::delete('/orders/delete-all', [OrderController::class, 'deleteAllOrders']);
 Route::delete('/users/cleanup', [UserController::class, 'deleteUsers']);
 

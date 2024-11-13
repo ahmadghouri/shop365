@@ -213,8 +213,22 @@
       </router-link>
     </div>
 
+    <div
+      ref="loadMoreTrigger"
+      class="h-10 w-full flex justify-center items-center mt-6"
+    >
+      <div v-if="isLoading" class="loader">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+
     <!-- No Products Found Message -->
-    <div v-else class="text-center py-10">
+    <div
+      v-if="filteredProducts.length === 0 && !isLoading"
+      class="text-center py-10"
+    >
       <p class="text-xl text-gray-600">No products found.</p>
     </div>
 
@@ -240,7 +254,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useProductStore } from "../store/productStore";
 import { useCartStore } from "../store/cartStore";
 import { toast } from "vue3-toastify";
@@ -256,16 +270,83 @@ const cartStore = useCartStore();
 const businessId = route.params.id;
 
 const categoryTitle = ref(route.query.title);
-console.log("Cat", categoryTitle.value);
-console.log(route.query.title);
+
+const isLoading = ref(false);
+const loadMoreTrigger = ref(null);
+const allProducts = ref([]);
 
 const filters = ref([]);
 const selectedFilter = ref("All");
 const showContactPopup = ref(false);
 const selectedProduct = ref(null);
-const isLoading = ref(true);
 const adminPhone = ref("");
 const searchTerm = ref("");
+
+// for infinite scroll
+
+const fetchProducts = async (reset = false) => {
+  if (
+    isLoading.value ||
+    (!reset && productStore.currentPage > productStore.totalPages)
+  )
+    return;
+
+  try {
+    isLoading.value = true;
+
+    if (reset) {
+      allProducts.value = [];
+    }
+
+    const products = await productStore.getProducts(
+      businessId,
+      searchTerm.value,
+      reset ? 1 : productStore.currentPage
+    );
+
+    if (reset) {
+      allProducts.value = products;
+    } else {
+      allProducts.value = [...allProducts.value, ...products];
+    }
+  } catch (error) {
+    toast.error("Failed to fetch products");
+    console.error("Error fetching products:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const setupIntersectionObserver = () => {
+  if (!loadMoreTrigger.value) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const trigger = entries[0];
+      if (
+        trigger.isIntersecting &&
+        !isLoading.value &&
+        productStore.currentPage <= productStore.totalPages
+      ) {
+        fetchProducts();
+      }
+    },
+    {
+      root: null,
+      rootMargin: "100px",
+      threshold: 0.1,
+    }
+  );
+
+  observer.observe(loadMoreTrigger.value);
+
+  // Cleanup function
+  return () => {
+    if (loadMoreTrigger.value) {
+      observer.unobserve(loadMoreTrigger.value);
+    }
+  };
+};
 
 const debounceSearch = debounce(() => {
   fetchProducts();
@@ -388,29 +469,10 @@ function createFlyingElement(productImage, startRect, endRect) {
 
 watch(searchTerm, debounceSearch);
 
-const searchParams = ref({
-  mode: "0", // Search mode (0=name, 1=barcode)
-  locno: "1",
-  deptId: "0",
-  groupId: "0",
-  subgroupId: "0",
-  brandId: "0",
-  catId: "0",
-  designId: "0",
-  colorId: "0",
-  sizeId: "0",
-  makeId: "0",
-  suppId: "",
-  query: "",
-  offset: "0",
-  pagesize: "50",
-});
-
 onMounted(async () => {
-  isLoading.value = true;
-  await fetchProducts();
+  await fetchProducts(true);
   await fetchFilters();
-  isLoading.value = false;
+  const cleanup = setupIntersectionObserver();
 
   let firstProductBusinessId = null;
   if (productStore.products.length > 0) {
@@ -420,6 +482,10 @@ onMounted(async () => {
       adminPhone.value = productStore.number;
     }
   }
+
+  onUnmounted(() => {
+    cleanup?.();
+  });
 });
 </script>
 

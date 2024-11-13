@@ -38,85 +38,85 @@ class ProductController extends Controller
         try {
             // Enable query logging
             DB::enableQueryLog();
-            
+
             // Start a database transaction
             DB::beginTransaction();
-    
+
             // Disable foreign key checks temporarily
             DB::statement('PRAGMA foreign_keys = OFF');
-            
+
             // Log foreign key status
             $foreignKeyStatus = DB::select('PRAGMA foreign_keys');
             Log::info('Foreign Key Status:', $foreignKeyStatus);
-    
+
             // Get today's date
             $today = Carbon::today(); // This will give you the current date without time
-    
+
             // Find all products associated with the business created today
             $products = Product::where('business_id', $businessId)
-                               ->whereDate('created_at', $today)
-                               ->get();
-    
+                ->whereDate('created_at', $today)
+                ->get();
+
             if ($products->isEmpty()) {
                 return response()->json(['message' => 'No products found for the specified business ID created today'], 404);
             }
-    
+
             // Collect all product IDs
             $productIds = $products->pluck('id');
-            
+
             // Log products to be deleted
             Log::info('Deleting products for business ID ' . $businessId . ' created today', [
                 'product_ids' => $productIds,
                 'product_count' => $products->count(),
             ]);
-    
+
             // Delete associated OrderItems
             OrderItem::whereIn('product_id', $productIds)->delete();
-    
+
             // Delete associated Cart items
             cart::whereIn('product_id', $productIds)->delete();
-    
+
             // Permanently delete the products created today
             Product::where('business_id', $businessId)
-                   ->whereDate('created_at', $today)
-                   ->delete();
-    
+                ->whereDate('created_at', $today)
+                ->delete();
+
             // Commit the transaction
             DB::commit();
-    
+
             // Log successful deletion
             Log::info('Products created today deleted successfully for business ID ' . $businessId);
-    
+
             // Re-enable foreign key checks
             DB::statement('PRAGMA foreign_keys = ON');
-    
+
             // Log the executed SQL queries
             Log::info('Executed SQL Queries:', DB::getQueryLog());
-    
+
             return response()->json(['message' => 'All products created today for business deleted successfully, along with associated order items and cart items.'], 200);
-    
+
         } catch (Exception $e) {
             // Log the exception
             Log::error('Failed to delete products', [
                 'error' => $e->getMessage(),
                 'stack_trace' => $e->getTraceAsString(),
             ]);
-    
+
             // Rollback the transaction
             DB::rollBack();
-    
+
             // Re-enable foreign key checks in case of an error
             DB::statement('PRAGMA foreign_keys = ON');
-    
+
             // Log the executed SQL queries in case of failure
             Log::info('Executed SQL Queries:', DB::getQueryLog());
-    
+
             return response()->json(['message' => 'Failed to delete products: ' . $e->getMessage()], 500);
         }
     }
-    
-    
-    
+
+
+
     /**
      * Display a listing of the resource.
      */
@@ -124,19 +124,19 @@ class ProductController extends Controller
     {
         $searchTerm = $request->input('search');
         $page = $request->input('page', 1); // Default to page 1 if not provided
-    
+
         $query = Product::where('business_id', $businessId);
-    
+
         if ($searchTerm) {
             $query->where('title', 'like', '%' . $searchTerm . '%');
         }
-    
+
         $products = $query->paginate(20); // Limit to 10 products per page (adjust as needed)
-    
+
         return $this->successResponse($products, 'All the products');
     }
-    
-    
+
+
 
     public function businessProductsTypes($businessId)
     {
@@ -151,14 +151,13 @@ class ProductController extends Controller
 
         $query = Product::where('business_id', $businessId);
 
-        if(!empty($type))
-        {
+        if (!empty($type)) {
             $query->where('type', $type);
         }
 
-        if($request)
+        if ($request)
 
-        $products = $query->get();
+            $products = $query->get();
 
         return $this->successResponse($products);
     }
@@ -246,18 +245,18 @@ class ProductController extends Controller
     {
         $user = auth()->user();
         $businessId = $user->business_id;
-    
+
         $search = $request->input('search');
-    
+
         $products = Product::where('business_id', $businessId)
             ->when($search, function ($query, $search) {
                 return $query->where('title', 'like', '%' . $search . '%');
             })
             ->get();
-    
+
         return $this->successResponse($products, 'Products found');
     }
-    
+
 
     public function randomProductsByBusiness()
     {
@@ -277,17 +276,17 @@ class ProductController extends Controller
     public function businessProductsDiscount(Request $request, $businessId)
     {
         $discount = $request->get('discount', 0); // Get discount from request, default to 0
-    
+
         $products = Product::where('business_id', $businessId)->get();
-    
+
         // Apply discount dynamically to each product
         $products->each(function ($product) use ($discount) {
             $product->final_price = $product->price - $product->price * ($discount / 100);
         });
-    
+
         return $this->successResponse($products, 'All the products with discounts applied');
     }
-    
+
     public function updateDiscount(Request $request)
     {
         if (!Auth::check()) {
@@ -358,38 +357,38 @@ class ProductController extends Controller
 
 
     public function applyDiscountToProduct(Request $request, $productId)
-{
-    // Ensure the user is authenticated
-    if (!Auth::check()) {
-        return response()->json(['message' => 'Unauthorized'], 401);
+    {
+        // Ensure the user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Validate the discount input
+        $request->validate([
+            'discount' => 'required|numeric|min:0|max:100', // Ensure discount is between 0 and 100
+        ]);
+
+        $user = auth()->user();
+        $businessId = $user->business_id;
+
+        // Find the product
+        $product = Product::where('id', $productId)
+            ->where('business_id', $businessId)
+            ->first();
+
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        // Apply the discount and calculate the final price
+        $discount = $request->input('discount');
+        $product->discount = $discount;
+        $product->price = $product->price - ($product->price * ($discount / 100)); // Calculate final price
+
+        // Save the updated product
+        $product->save();
+
+        return $this->successResponse($product, 'Discount applied to the product');
     }
-
-    // Validate the discount input
-    $request->validate([
-        'discount' => 'required|numeric|min:0|max:100', // Ensure discount is between 0 and 100
-    ]);
-
-    $user = auth()->user();
-    $businessId = $user->business_id;
-
-    // Find the product
-    $product = Product::where('id', $productId)
-                      ->where('business_id', $businessId)
-                      ->first();
-
-    if (!$product) {
-        return response()->json(['message' => 'Product not found'], 404);
-    }
-
-    // Apply the discount and calculate the final price
-    $discount = $request->input('discount');
-    $product->discount = $discount;
-    $product->price = $product->price - ($product->price * ($discount / 100)); // Calculate final price
-
-    // Save the updated product
-    $product->save();
-
-    return $this->successResponse($product, 'Discount applied to the product');
-}
 
 }

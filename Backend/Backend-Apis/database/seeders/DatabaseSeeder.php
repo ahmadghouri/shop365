@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder
         $businesses = [
             [
                 'name' => 'Desire',
-                'type' => 'restaurant',
+                'type' => 'fast_food',
                 'opening_time' => '10:00:00',
                 'closing_time' => '23:00:00',
                 'image' => 'https://placehold.co/100x100?text=Desire'
@@ -76,12 +76,89 @@ class DatabaseSeeder extends Seeder
                     'image' => 'https://placehold.co/100x100?text=Classic Italian pizza'
                 ],
                 [
-                    'title' => 'Pepperoni Pizza',
+                    'title' => 'Pepperoni Pizza small',
                     'description' => 'Spicy pepperoni pizza',
                     'type' => 'pizza',
                     'price' => '1400',
                     'image' => 'https://placehold.co/100x100?text=Spicy pepperoni pizza'
-                ]
+                ],
+                [
+                    'title' => 'Pepperoni Pizza medium',
+                    'description' => 'Spicy pepperoni pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy pepperoni pizza'
+                ],
+                [
+                    'title' => 'Pepperoni Pizza large',
+                    'description' => 'Spicy pepperoni pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy pepperoni pizza'
+                ],
+                [
+                    'title' => 'Pepperoni Pizza extra large',
+                    'description' => 'Spicy pepperoni pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy pepperoni pizza'
+                ],
+                [
+                    'title' => 'Lazania Pizza small',
+                    'description' => 'Spicy Lazania Pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy Lazania Pizza'
+                ],
+                [
+                    'title' => 'Lazania Pizza medium',
+                    'description' => 'Spicy Lazania Pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy Lazania Pizza'
+                ],
+                [
+                    'title' => 'Lazania Pizza large',
+                    'description' => 'Spicy Lazania Pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy Lazania Pizza'
+                ],
+                [
+                    'title' => 'Lazania Pizza extra large',
+                    'description' => 'Spicy Lazania Pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy Lazania Pizza'
+                ],
+                [
+                    'title' => 'New York Style Crust Filled Pizza small',
+                    'description' => 'Spicy New York Style Crust Filled Pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy New York Style Crust Filled Pizza'
+                ],
+                [
+                    'title' => 'New York Style Crust Filled Pizza medium',
+                    'description' => 'Spicy New York Style Crust Filled Pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy New York Style Crust Filled Pizza'
+                ],
+                [
+                    'title' => 'New York Style Crust Filled Pizza large',
+                    'description' => 'Spicy New York Style Crust Filled Pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy New York Style Crust Filled Pizza'
+                ],
+                [
+                    'title' => 'New York Style Crust Filled Pizza extra large',
+                    'description' => 'Spicy New York Style Crust Filled Pizza',
+                    'type' => 'pizza',
+                    'price' => '1400',
+                    'image' => 'https://placehold.co/100x100?text=Spicy New York Style Crust Filled Pizza'
+                ],
             ],
             2 => [
                 [

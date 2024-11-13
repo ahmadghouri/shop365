@@ -4,6 +4,7 @@ import axios from "axios";
 
 export const useProductStore = defineStore("products", {
   state: () => ({
+    productsListBusinessId: null,
     products: [],
     product: null,
     restaurantProducts: [],
@@ -12,6 +13,14 @@ export const useProductStore = defineStore("products", {
     totalPages: 1,
   }),
   actions: {
+    clearData() {
+      this.products = [];
+      this.product = null;
+      this.restaurantProducts = [];
+      this.number = "";
+      this.currentPage = 1;
+      this.totalPages = 1;
+    },
     async getProducts(id, search = "", page = 1) {
       try {
         const response = await axios.get(
@@ -23,7 +32,11 @@ export const useProductStore = defineStore("products", {
             },
           }
         );
-        this.products = response.data.data.data;
+
+        for (const product of response.data.data.data) {
+          if (this.products.some((p) => p.id === product.id)) { continue; }
+          this.products.push(product);
+        }
 
         this.currentPage = response.data.data.current_page;
         this.totalPages = response.data.data.last_page;

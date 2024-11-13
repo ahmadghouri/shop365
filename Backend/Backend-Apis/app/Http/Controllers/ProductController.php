@@ -136,6 +136,21 @@ class ProductController extends Controller
         return $this->successResponse($products, 'All the products');
     }
 
+    public function businessAdminsProducts(Request $request, $businessId)
+    {
+        $searchTerm = $request->input('search');
+
+        $query = Product::where('business_id', $businessId);
+
+        if ($searchTerm) {
+            $query->where('title', 'like', '%' . $searchTerm . '%');
+        }
+
+        $products = $query->get(); // Limit to 10 products per page (adjust as needed)
+
+        return $this->successResponse($products, 'All the products');
+    }
+
 
 
     public function businessProductsTypes($businessId)

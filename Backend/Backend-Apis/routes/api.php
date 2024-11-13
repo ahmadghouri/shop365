@@ -37,6 +37,8 @@ Route::apiResource('/products', ProductController::class);
 
 
 Route::get('/all-products/{businessId}', [ProductController::class, 'businessProducts']);
+Route::get('/all-products/{businessId}/admin', [ProductController::class, 'businessAdminsProducts']);
+
 Route::get('/random-products', [ProductController::class, 'randomProductsByBusiness']);
 Route::get('/business/{businessId}/products', [ProductController::class, 'businessProductsDiscount']);
 

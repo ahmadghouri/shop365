@@ -8,19 +8,33 @@ export const useProductStore = defineStore("products", {
     product: null,
     restaurantProducts: [],
     number: "",
+    currentPage: 1,
+    totalPages: 1,
   }),
   actions: {
-    async getProducts(id, search = "") {
+    async getProducts(id, search = "", page = 1) {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/all-products/${id}`,
           {
-            params: { search },
+            params: {
+              search: search,
+              page: page,
+            },
           }
         );
-        this.products = response.data.data;
+        this.products = response.data.data.data;
+
+        this.currentPage = response.data.data.current_page;
+        this.totalPages = response.data.data.last_page;
+        return this.products;
       } catch (error) {
         console.error("Failed to fetch products", error);
+      }
+    },
+    async getNextPage(id, search = "") {
+      if (this.currentPage < this.totalPages) {
+        await this.getProducts(id, search, this.currentPage + 1);
       }
     },
 

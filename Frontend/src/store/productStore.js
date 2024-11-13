@@ -11,6 +11,7 @@ export const useProductStore = defineStore("products", {
     number: "",
     currentPage: 1,
     totalPages: 1,
+    adminProducts: [],
   }),
   actions: {
     clearData() {
@@ -34,7 +35,9 @@ export const useProductStore = defineStore("products", {
         );
 
         for (const product of response.data.data.data) {
-          if (this.products.some((p) => p.id === product.id)) { continue; }
+          if (this.products.some((p) => p.id === product.id)) {
+            continue;
+          }
           this.products.push(product);
         }
 
@@ -51,6 +54,21 @@ export const useProductStore = defineStore("products", {
       }
     },
 
+    async getProductsAdmin(id, search = "") {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/all-products/${id}/admin`,
+          {
+            params: { search },
+          }
+        );
+
+        this.adminProducts = response.data.data;
+      } catch (error) {
+        console.error(error);
+      }
+    },
+
     async getProductPOS(bodyInfo) {
       try {
         const response = await axios.post(
@@ -62,7 +80,6 @@ export const useProductStore = defineStore("products", {
             },
           }
         );
-        console.log("Products from POS:", response.data);
       } catch (error) {
         console.error("Failed to fetch products from POS API", error);
       }
@@ -87,6 +104,9 @@ export const useProductStore = defineStore("products", {
           `${API_BASE_URL}/api/products/${id}`
         );
         this.products = this.products.filter((product) => product.id !== id);
+        this.adminProducts = this.products.filter(
+          (product) => product.id !== id
+        );
       } catch (error) {
         console.error("Failed to delete product", error);
       }
@@ -117,6 +137,18 @@ export const useProductStore = defineStore("products", {
         );
 
         const index = this.products.findIndex((product) => product.id === id);
+        const index2 = this.adminProducts.findIndex(
+          (product) => product.id === id
+        );
+
+        if (index2 !== -1) {
+          this.adminProducts[index] = {
+            ...this.adminProducts[index],
+            ...productInfo,
+          };
+        } else {
+          console.warn("Product not found in the list for update.");
+        }
 
         if (index !== -1) {
           this.products[index] = {

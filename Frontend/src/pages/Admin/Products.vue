@@ -57,7 +57,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <div
-        v-for="product in productStore.products"
+        v-for="product in productStore.adminProducts"
         :key="product.id"
         class="bg-white shadow-md rounded-lg overflow-hidden"
       >
@@ -105,7 +105,7 @@ const productToDeleteId = ref(null);
 const title = ref(route.query.title);
 
 onMounted(async () => {
-  await productStore.getProducts(route.params.id);
+  await productStore.getProductsAdmin(route.params.id);
 });
 
 const addProduct = () => {

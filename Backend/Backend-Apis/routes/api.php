@@ -18,7 +18,7 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
-
+Route::post('/update-grocery-business-id', [ProductController::class, 'updateGroceryBusinessId']);
 Route::post('import-grocery-products', [GroceryProductController::class, 'storeGroceryProducts']);
 
 Route::delete('delete-products/{businessId}', [ProductController::class , 'deleteTodayProductsByBusinessId']);

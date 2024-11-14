@@ -29,7 +29,7 @@ class GroceryProductController extends Controller
             'bDefault' => '0',
             'query' => '',
             'offset' => '0',
-            'pagesize' => '1000', // Or use a larger number as needed
+            'pagesize' => '5000', // Or use a larger number as needed
         ]);
 
         if ($response->successful()) {
@@ -46,7 +46,7 @@ class GroceryProductController extends Controller
                         'type' => 'grocery',
                         'price' => $product['UNIT_PRICE'],
                         'image' => $product['IMAGE_PATH'] ?? null,
-                        'business_id' => 4, // Adjust business_id if needed
+                        'business_id' => 6, // Adjust business_id if needed
                     ]);
                 }
             }

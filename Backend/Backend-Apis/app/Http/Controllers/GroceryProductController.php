@@ -13,7 +13,7 @@ class GroceryProductController extends Controller
         // Make the API request
         $response = Http::withHeaders([
             'ConStr' => 'ConStr4', // Your custom header
-        ])->post('https://webapi.cyberneticonline.com/api/product/getProductList', [
+        ])->timeout(60)->post('https://webapi.cyberneticonline.com/api/product/getProductList', [
             'mode' => '0',
             'locno' => '1',
             'deptId' => '0',

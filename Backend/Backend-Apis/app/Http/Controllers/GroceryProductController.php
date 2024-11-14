@@ -39,15 +39,10 @@ class GroceryProductController extends Controller
             foreach ($products as $product) {
                 $existingProduct = Product::where('title', $product['ITEM_DESC'])->where('price', $product['UNIT_PRICE'])->first();
 
-                if (!$existingProduct) {
-                    Product::create([
-                        'title' => $product['ITEM_DESC'],
-                        'description' => $product['ITEM_DESC_LONG'],
-                        'type' => 'grocery',
-                        'price' => $product['UNIT_PRICE'],
-                        'image' => $product['IMAGE_PATH'] ?? null,
-                        'business_id' => 6, // Adjust business_id if needed
-                    ]);
+                if ($existingProduct) {
+                        $existingProduct->title = $product['ITEM_DESC'] .' - ' . $product['PACK_DESC'];
+                        $existingProduct->description = $product['ITEM_DESC_LONG'] .' - ' . $product['PACK_DESC'];
+                        $existingProduct->save();
                 }
             }
 

@@ -147,7 +147,7 @@ class ProductController extends Controller
             });
         }
 
-        $products = $query->paginate(20); // Limit to 10 products per page (adjust as needed)
+        $products = $query->orderBy('discount', 'desc')->paginate(20); // Limit to 10 products per page (adjust as needed)
 
         return $this->successResponse($products, 'All the products');
     }

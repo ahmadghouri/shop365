@@ -1,6 +1,6 @@
 <template>
   <div class="relative">
-    <div class="bg-yellow-500 overflow-hidden">
+    <!-- <div class="bg-yellow-500 overflow-hidden">
       <div class="animate-marquee whitespace-nowrap py-2">
         <span class="text-white font-semibold mx-8"
           >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
@@ -23,7 +23,7 @@
           and your favorite foods delivered straight to you with a single tap!
         </span>
       </div>
-    </div>
+    </div> -->
 
     <nav
       class="mobile-spacing sticky top-0 flex justify-between bg-white items-center lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200"

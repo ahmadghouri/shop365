@@ -116,6 +116,20 @@ class ProductController extends Controller
     }
 
 
+    public function updateGroceryBusinessId()
+    {
+        // Update the business_id for all products with type 'grocery'
+        $updated = Product::where('type', 'grocery')->update(['business_id' => 6]);
+
+        // Check if any rows were updated
+        if ($updated) {
+            return response()->json(['message' => 'Business ID updated successfully for grocery products.'], 200);
+        } else {
+            return response()->json(['message' => 'No grocery products found or no updates made.'], 404);
+        }
+    }
+
+
 
     /**
      * Display a listing of the resource.
@@ -146,7 +160,7 @@ class ProductController extends Controller
             $query->where('title', 'like', '%' . $searchTerm . '%');
         }
 
-        $products = $query->get(); // Limit to 10 products per page (adjust as needed)
+        $products = $query->get(); 
 
         return $this->successResponse($products, 'All the products');
     }

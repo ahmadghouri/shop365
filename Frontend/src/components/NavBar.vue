@@ -3,30 +3,25 @@
     <div class="bg-yellow-500 overflow-hidden">
       <div class="animate-marquee whitespace-nowrap py-2">
         <span class="text-white font-semibold mx-8"
-          >🚀 Welcome to Shop365! Our app is currently in testing. Starting
-          November 15, you'll be able to place orders and enjoy exclusive
-          discounts. Stay tuned!</span
-        >
+          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
+          and your favorite foods delivered straight to you with a single tap!
+        </span>
         <span class="text-white font-semibold mx-8"
-          >🚀 Welcome to Shop365! Our app is currently in testing. Starting
-          November 15, you'll be able to place orders and enjoy exclusive
-          discounts. Stay tuned!</span
-        >
+          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
+          and your favorite foods delivered straight to you with a single tap!
+        </span>
         <span class="text-white font-semibold mx-8"
-          >🚀 Welcome to Shop365! Our app is currently in testing. Starting
-          November 15, you'll be able to place orders and enjoy exclusive
-          discounts. Stay tuned!</span
-        >
+          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
+          and your favorite foods delivered straight to you with a single tap!
+        </span>
         <span class="text-white font-semibold mx-8"
-          >🚀 Welcome to Shop365! Our app is currently in testing. Starting
-          November 15, you'll be able to place orders and enjoy exclusive
-          discounts. Stay tuned!</span
-        >
+          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
+          and your favorite foods delivered straight to you with a single tap!
+        </span>
         <span class="text-white font-semibold mx-8"
-          >🚀 Welcome to Shop365! Our app is currently in testing. Starting
-          November 15, you'll be able to place orders and enjoy exclusive
-          discounts. Stay tuned!</span
-        >
+          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
+          and your favorite foods delivered straight to you with a single tap!
+        </span>
       </div>
     </div>
 

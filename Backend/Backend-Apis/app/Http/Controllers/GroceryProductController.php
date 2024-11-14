@@ -37,7 +37,7 @@ class GroceryProductController extends Controller
             $products = $response->json(); // Assuming the data is in JSON format
 
             foreach ($products as $product) {
-                $existingProduct = Product::where('title', $product['ITEM_DESC'])->first();
+                $existingProduct = Product::where('title', trim($product['ITEM_DESC']))->first();
 
                 if ($existingProduct) {
                         $existingProduct->title = $product['ITEM_DESC'] .' - ' . $product['PACK_DESC'];

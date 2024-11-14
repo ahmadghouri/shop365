@@ -137,12 +137,14 @@ class ProductController extends Controller
     public function businessProducts(Request $request, $businessId)
     {
         $searchTerm = $request->input('search');
-        $page = $request->input('page', 1); // Default to page 1 if not provided
 
         $query = Product::where('business_id', $businessId);
 
-        if ($searchTerm) {
-            $query->where('title', 'like', '%' . $searchTerm . '%');
+        if (!empty($searchTerm)) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('type', 'like', '%' . $searchTerm . '%');
+            });
         }
 
         $products = $query->paginate(20); // Limit to 10 products per page (adjust as needed)
@@ -160,7 +162,7 @@ class ProductController extends Controller
             $query->where('title', 'like', '%' . $searchTerm . '%');
         }
 
-        $products = $query->get(); 
+        $products = $query->get();
 
         return $this->successResponse($products, 'All the products');
     }

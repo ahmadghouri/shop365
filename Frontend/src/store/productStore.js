@@ -9,7 +9,7 @@ export const useProductStore = defineStore("products", {
     product: null,
     restaurantProducts: [],
     number: "",
-    currentPage: 1,
+    currentPage: 0,
     totalPages: 1,
     adminProducts: [],
   }),
@@ -19,7 +19,7 @@ export const useProductStore = defineStore("products", {
       this.product = null;
       this.restaurantProducts = [];
       this.number = "";
-      this.currentPage = 1;
+      this.currentPage = 0;
       this.totalPages = 1;
     },
     async getProducts(id, search = "", page = 1) {
@@ -46,11 +46,6 @@ export const useProductStore = defineStore("products", {
         return this.products;
       } catch (error) {
         console.error("Failed to fetch products", error);
-      }
-    },
-    async getNextPage(id, search = "") {
-      if (this.currentPage < this.totalPages) {
-        await this.getProducts(id, search, this.currentPage + 1);
       }
     },
 

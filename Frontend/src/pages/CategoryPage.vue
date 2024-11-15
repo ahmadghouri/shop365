@@ -199,7 +199,7 @@ const fetchProducts = async () => {
     await productStore.getProducts(
       businessId,
       searchTerm.value,
-      currentPage.value
+      currentPage.value == 0 ? 1 : currentPage.value
     );
   } catch (error) {
     toast.error("Failed to fetch products");
@@ -351,7 +351,7 @@ function createFlyingElement(productImage, startRect, endRect) {
 
 watch(searchTerm, () => {
   products.value = [];
-  currentPage.value = 1;
+  currentPage.value = 0;
   debounceSearch();
 });
 watch(currentPage, debounceSearch);

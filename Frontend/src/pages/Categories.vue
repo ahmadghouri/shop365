@@ -173,7 +173,7 @@
             <!-- Discount Badge -->
             <div
               v-if="category.type == 'Grocery'"
-              class="absolute top-8 left-0 -rotate-45 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-1.5 py-0.5 shadow-md transform"
+              class="absolute top-5 left-0 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-1.5 py-0.5 shadow-md transform"
             >
               Upto 15% OFF
             </div>

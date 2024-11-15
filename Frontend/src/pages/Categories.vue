@@ -179,7 +179,7 @@
             </div>
             <div
               v-if="category.discount > 0"
-              class="absolute top-5 left-0 -rotate-45 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-1.5 py-0.5 shadow-md transform"
+              class="absolute top-2 left-0 -rotate-45 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-1.5 py-0.5 shadow-md transform"
             >
               {{ category.discount }}% OFF
             </div>

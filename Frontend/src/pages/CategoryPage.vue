@@ -162,7 +162,7 @@ import { storeToRefs } from "pinia";
 const route = useRoute();
 const router = useRouter();
 const productStore = useProductStore();
-const { products, currentPage, totalPages, productsListBusinessId, number } =
+const { filters, searchTerm, selectedFilter, products, currentPage, totalPages, productsListBusinessId, number } =
   storeToRefs(productStore);
 const cartStore = useCartStore();
 const businessId = route.params.id;
@@ -172,11 +172,8 @@ const categoryTitle = ref(route.query.title);
 const isLoading = ref(false);
 const loadMoreTrigger = ref(null);
 
-const filters = ref([]);
-const selectedFilter = ref("All");
 const showContactPopup = ref(false);
 const selectedProduct = ref(null);
-const searchTerm = ref("");
 
 const adminPhone = computed(() => {
   return number.value;
@@ -263,19 +260,6 @@ const closeContactPopup = () => {
   selectedProduct.value = null;
 };
 
-const fetchFilters = async () => {
-  try {
-    const response = await axios.get(
-      `${API_BASE_URL}/api/businessTypes/${businessId}`
-    );
-    const uniqueFilters = [
-      ...new Set(response.data.data.map((product) => product.type)),
-    ];
-    filters.value = ["All", ...uniqueFilters];
-  } catch (error) {
-    toast.error("Failed to fetch filters from the backend.");
-  }
-};
 
 const goBack = () => {
   router.back();
@@ -364,6 +348,7 @@ onMounted(async () => {
 
     debounceSearch();
 
+    productStore.fetchFilters(businessId);
     productStore.getNumber(businessId);
   }
 
@@ -372,7 +357,6 @@ onMounted(async () => {
   productsListBusinessId.value = businessId;
 });
 
-fetchFilters();
 
 onUnmounted(() => {
   if (observerCleaner) {

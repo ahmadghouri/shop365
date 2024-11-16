@@ -5,6 +5,9 @@ import axios from "axios";
 export const useProductStore = defineStore("products", {
   state: () => ({
     productsListBusinessId: null,
+    selectedFilter: "All",
+    searchTerm: "",
+    filters: [],
     products: [],
     product: null,
     restaurantProducts: [],
@@ -15,6 +18,9 @@ export const useProductStore = defineStore("products", {
   }),
   actions: {
     clearData() {
+      this.selectedFilter = "All";
+      this.searchTerm = "";
+      this.filters = [];
       this.products = [];
       this.product = null;
       this.restaurantProducts = [];
@@ -46,6 +52,20 @@ export const useProductStore = defineStore("products", {
         return this.products;
       } catch (error) {
         console.error("Failed to fetch products", error);
+      }
+    },
+
+    async fetchFilters (businessId){
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/businessTypes/${businessId}`
+        );
+        const uniqueFilters = [
+          ...new Set(response.data.data.map((product) => product.type)),
+        ];
+        this.filters = ["All", ...uniqueFilters];
+      } catch (error) {
+        console.error("Failed to fetch filters from the backend.");
       }
     },
 

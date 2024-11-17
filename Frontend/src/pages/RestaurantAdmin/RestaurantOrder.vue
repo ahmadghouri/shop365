@@ -9,53 +9,55 @@
       </div>
     </div>
 
-    <div class="mb-6 flex items-center gap-4">
-      <div class="flex gap-3">
-        <button
-          @click="selectedStatus = 'pending'"
-          :class="[
-            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300',
-            selectedStatus === 'pending'
-              ? 'bg-red-500 text-white'
-              : 'border-2 border-red-500 text-red-500 hover:bg-red-50',
-          ]"
-        >
-          New Orders
-        </button>
-        <button
-          @click="selectedStatus = 'preparing'"
-          :class="[
-            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300',
-            selectedStatus === 'preparing'
-              ? 'bg-yellow-500 text-white'
-              : 'border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-50',
-          ]"
-        >
-          Preparing
-        </button>
-        <button
-          @click="selectedStatus = 'delivered'"
-          :class="[
-            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300',
-            selectedStatus === 'delivered'
-              ? 'bg-green-500 text-white'
-              : 'border-2 border-green-500 text-green-500 hover:bg-green-50',
-          ]"
-        >
-          Delivered
-        </button>
-
-        <button
-          @click="selectedStatus = 'cancelled'"
-          :class="[
-            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300',
-            selectedStatus === 'cancelled'
-              ? 'bg-blue-500 text-white'
-              : 'border-2 border-blue-500 text-blue-500 hover:bg-blue-50',
-          ]"
-        >
-          Cancelled
-        </button>
+    <div class="mb-6 relative">
+      <div class="overflow-x-auto">
+        <div class="flex gap-3 whitespace-nowrap min-w-min pb-2">
+          <!-- Added whitespace-nowrap and min-w-min -->
+          <button
+            @click="selectedStatus = 'pending'"
+            :class="[
+              'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[120px]', // Added min-width
+              selectedStatus === 'pending'
+                ? 'bg-red-500 text-white'
+                : 'border-2 border-red-500 text-red-500 hover:bg-red-50',
+            ]"
+          >
+            New Orders
+          </button>
+          <button
+            @click="selectedStatus = 'preparing'"
+            :class="[
+              'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[120px]', // Added min-width
+              selectedStatus === 'preparing'
+                ? 'bg-yellow-500 text-white'
+                : 'border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-50',
+            ]"
+          >
+            Preparing
+          </button>
+          <button
+            @click="selectedStatus = 'delivered'"
+            :class="[
+              'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[120px]', // Added min-width
+              selectedStatus === 'delivered'
+                ? 'bg-green-500 text-white'
+                : 'border-2 border-green-500 text-green-500 hover:bg-green-50',
+            ]"
+          >
+            Delivered
+          </button>
+          <button
+            @click="selectedStatus = 'cancelled'"
+            :class="[
+              'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[120px]', // Added min-width
+              selectedStatus === 'cancelled'
+                ? 'bg-blue-500 text-white'
+                : 'border-2 border-blue-500 text-blue-500 hover:bg-blue-50',
+            ]"
+          >
+            Cancelled
+          </button>
+        </div>
       </div>
     </div>
 

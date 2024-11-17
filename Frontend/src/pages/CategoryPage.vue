@@ -51,7 +51,7 @@
       </a>
     </div>
 
-    <div class="mb-6">
+    <div class="mb-6" ref="searchContainer">
       <div class="relative max-w-md mx-auto">
         <input
           v-model="searchTerm"
@@ -73,6 +73,58 @@
               clip-rule="evenodd"
             />
           </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fixed search button -->
+    <button
+      v-show="showFixedSearch"
+      @click="handleSearchClick"
+      class="fixed bottom-6 right-6 p-4 bg-yellow-500 text-white rounded-full shadow-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition-all duration-300 z-50"
+    >
+      <svg class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+        <path
+          fill-rule="evenodd"
+          d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </button>
+
+    <!-- Search Modal -->
+    <div
+      v-if="showSearchModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 px-4 z-50"
+      @click="closeSearchModal"
+    >
+      <div class="w-full max-w-md bg-white rounded-lg shadow-xl" @click.stop>
+        <div class="p-4">
+          <div class="relative">
+            <input
+              v-model="searchTerm"
+              type="text"
+              placeholder="Search products..."
+              class="w-full px-4 py-2 pl-10 pr-4 text-gray-700 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+              @keyup.enter="closeSearchModal"
+              ref="modalSearchInput"
+            />
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <svg
+                class="h-5 w-5 text-gray-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -257,8 +309,16 @@ import { storeToRefs } from "pinia";
 const route = useRoute();
 const router = useRouter();
 const productStore = useProductStore();
-const { filters, searchTerm, selectedFilter, products, currentPage, totalPages, productsListBusinessId, number } =
-  storeToRefs(productStore);
+const {
+  filters,
+  searchTerm,
+  selectedFilter,
+  products,
+  currentPage,
+  totalPages,
+  productsListBusinessId,
+  number,
+} = storeToRefs(productStore);
 const cartStore = useCartStore();
 const businessId = route.params.id;
 
@@ -269,6 +329,42 @@ const loadMoreTrigger = ref(null);
 
 const showContactPopup = ref(false);
 const selectedProduct = ref(null);
+const showFixedSearch = ref(false);
+const showSearchModal = ref(false);
+const searchContainer = ref(null);
+const modalSearchInput = ref(null);
+
+const handleScroll = () => {
+  const scrollPosition = window.scrollY;
+  const searchContainerPosition =
+    searchContainer.value?.getBoundingClientRect().top || 0;
+  showFixedSearch.value = searchContainerPosition < -100;
+};
+
+const handleSearchClick = () => {
+  if (window.innerWidth < 768) {
+    // On mobile, show modal
+    showSearchModal.value = true;
+    // Focus the input after modal animation
+    setTimeout(() => {
+      modalSearchInput.value?.focus();
+    }, 100);
+  } else {
+    // Smooth scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+    // Focus the search input after scrolling
+    setTimeout(() => {
+      searchContainer.value?.querySelector("input")?.focus();
+    }, 800); // Adjust timing based on scroll duration
+  }
+};
+
+const closeSearchModal = () => {
+  showSearchModal.value = false;
+};
 
 const adminPhone = computed(() => {
   return number.value;
@@ -355,7 +451,6 @@ const closeContactPopup = () => {
   selectedProduct.value = null;
 };
 
-
 const goBack = () => {
   router.back();
 };
@@ -438,6 +533,7 @@ watch(currentPage, debounceSearch);
 let observerCleaner = undefined;
 
 onMounted(async () => {
+  window.addEventListener("scroll", handleScroll);
   if (businessId != productsListBusinessId.value) {
     productStore.clearData();
 
@@ -452,8 +548,8 @@ onMounted(async () => {
   productsListBusinessId.value = businessId;
 });
 
-
 onUnmounted(() => {
+  window.removeEventListener("scroll", handleScroll);
   if (observerCleaner) {
     observerCleaner();
   }
@@ -461,6 +557,16 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
 .product-card {
   height: 300px;
 }

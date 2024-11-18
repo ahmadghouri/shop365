@@ -254,7 +254,7 @@ import Launchment from "./Launchment.vue";
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);
 const selectedFilter = ref("All");
-const selectedService = ref("Food");
+const selectedService = ref("Grocery");
 const profile = ref(null);
 const name = ref("");
 const router = useRouter();

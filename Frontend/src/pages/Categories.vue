@@ -142,26 +142,9 @@
         <router-link
           v-for="category in filteredRestaurants"
           :key="category.id"
-          :to="{
-            name: 'CategoryPage',
-            params: { id: category.id },
-            query: { title: category.name },
-          }"
-          :class="[
-            'relative bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link',
-            !isOpen(category.opening_time, category.closing_time)
-              ? 'pointer-events-none opacity-50'
-              : '',
-          ]"
-          :style="
-            !isOpen(category.opening_time, category.closing_time)
-              ? { cursor: 'not-allowed' }
-              : {}
-          "
-          @click.native.prevent="
-            !isOpen(category.opening_time, category.closing_time) &&
-              $event.preventDefault()
-          "
+          :to="'#'"
+          @click.prevent="handleBusinessClick(category)"
+          class="relative bg-white shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-xl category-link"
         >
           <div class="relative category-image-container">
             <img
@@ -238,6 +221,12 @@
         Coming Soon
       </div>
     </section>
+
+    <StoreClosedPopUp
+      :show="showStoreClosedPopup"
+      @confirm="handleStoreClosedConfirm"
+      @cancel="handleStoreClosedCancel"
+    />
   </div>
 </template>
 
@@ -250,6 +239,7 @@ import { API_BASE_URL } from "../config/api";
 import Services from "../components/Services.vue";
 import { useRouter } from "vue-router";
 import Launchment from "./Launchment.vue";
+import StoreClosedPopUp from "../components/StoreClosedPopUp.vue";
 
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);
@@ -260,6 +250,41 @@ const name = ref("");
 const router = useRouter();
 const shopsSection = ref(null);
 const isLoading = ref(true);
+
+const showStoreClosedPopup = ref(false);
+const pendingBusinessId = ref(null);
+const pendingBusinessName = ref(null);
+
+const handleBusinessClick = (category) => {
+  if (!isOpen(category.opening_time, category.closing_time)) {
+    showStoreClosedPopup.value = true;
+    pendingBusinessId.value = category.id;
+    pendingBusinessName.value = category.name;
+    return;
+  }
+
+  // If store is open, navigate directly
+  router.push({
+    name: "CategoryPage",
+    params: { id: category.id },
+    query: { title: category.name },
+  });
+};
+
+const handleStoreClosedConfirm = () => {
+  showStoreClosedPopup.value = false;
+  router.push({
+    name: "CategoryPage",
+    params: { id: pendingBusinessId.value },
+    query: { title: pendingBusinessName.value },
+  });
+};
+
+const handleStoreClosedCancel = () => {
+  showStoreClosedPopup.value = false;
+  pendingBusinessId.value = null;
+  pendingBusinessName.value = null;
+};
 
 const scrollToShops = () => {
   if (shopsSection.value) {
@@ -315,7 +340,6 @@ const filteredRestaurants = computed(() => {
     );
   }
 
-  // If there are no businesses after filtering, return an empty array to trigger "Coming Soon"
   return filtered.length ? filtered : [];
 });
 

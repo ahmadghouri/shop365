@@ -30,12 +30,12 @@
 
       <!-- Profile Content Here -->
       <div class="flex flex-col space-y-6 lg:space-y-8 mt-6 lg:mt-8">
-        <label for="phone" class="mt-1">Phone Number</label>
+        <!-- <label for="phone" class="mt-1">Phone Number</label>
         <input
           v-model="phone"
           class="max-w-full min-h-12 rounded-lg border-[#ECECEB] border-2 mt-2 p-4"
           type="text"
-        />
+        /> -->
 
         <label for="name" class="mt-1">Name</label>
         <input
@@ -60,8 +60,10 @@
       </div>
 
       <!-- Save Button to Update Profile -->
-      <button class="button mt-6" @click="updateProfile">Save</button>
-      <button class="button mt-6" @click="logoutButton">Logout</button>
+      <div class="flex justify-center items-center gap-4">
+        <button class="button mt-6" @click="updateProfile">Save</button>
+        <button class="button-border mt-6" @click="logoutButton">Logout</button>
+      </div>
     </div>
   </div>
 
@@ -110,6 +112,10 @@ async function getProfileData() {
     console.error(error);
   }
 }
+
+const sanitizePhoneInput = () => {
+  phone.value = phone.value.replace(/[^0-9]/g, "");
+};
 
 // Use the store to update user
 const userStore = useUserStore();

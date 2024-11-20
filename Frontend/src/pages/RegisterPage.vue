@@ -8,12 +8,22 @@
       <form @submit.prevent="register" class="space-y-6">
         <!-- Phone Number Input -->
         <div>
-          <label for="phone" class="block mb-2 text-sm font-medium text-gray-900">
+          <label
+            for="phone"
+            class="block mb-2 text-sm font-medium text-gray-900"
+          >
             Your Phone
           </label>
-          <input v-model="phone" type="text" name="phone" id="phone"
+          <input
+            v-model="phone"
+            type="text"
+            name="phone"
+            id="phone"
+            @input="sanitizePhoneInput"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
-            placeholder="Enter your phone number" required />
+            placeholder="Enter your phone number"
+            required
+          />
           <!-- Error Message for Phone -->
           <p v-if="errors.phone_no" class="text-sm text-red-600">
             {{ errors.phone_no[0] }}
@@ -22,12 +32,21 @@
 
         <!-- Password Input -->
         <div>
-          <label for="password" class="block mb-2 text-sm font-medium text-gray-900">
+          <label
+            for="password"
+            class="block mb-2 text-sm font-medium text-gray-900"
+          >
             Password
           </label>
-          <input v-model="password" type="password" name="password" id="password" placeholder="Enter your password"
+          <input
+            v-model="password"
+            type="password"
+            name="password"
+            id="password"
+            placeholder="Enter your password"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
-            required />
+            required
+          />
           <!-- Error Message for Password -->
           <p v-if="errors.password" class="text-sm text-red-600">
             {{ errors.password[0] }}
@@ -36,13 +55,21 @@
 
         <!-- Confirm Password Input -->
         <div>
-          <label for="confirmPassword" class="block mb-2 text-sm font-medium text-gray-900">
+          <label
+            for="confirmPassword"
+            class="block mb-2 text-sm font-medium text-gray-900"
+          >
             Confirm Password
           </label>
-          <input v-model="confirmPassword" type="password" name="confirmPassword" id="confirmPassword"
+          <input
+            v-model="confirmPassword"
+            type="password"
+            name="confirmPassword"
+            id="confirmPassword"
             placeholder="Confirm your password"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5"
-            required />
+            required
+          />
           <!-- Error Message for Confirm Password -->
           <p v-if="confirmPasswordError" class="text-sm text-red-600">
             {{ confirmPasswordError }}
@@ -52,8 +79,14 @@
         <!-- Terms and Conditions -->
         <div class="flex items-start">
           <div class="flex items-center h-5">
-            <input id="terms" aria-describedby="terms" type="checkbox" v-model="termsAccepted"
-              class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-yellow-400" required />
+            <input
+              id="terms"
+              aria-describedby="terms"
+              type="checkbox"
+              v-model="termsAccepted"
+              class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-yellow-400"
+              required
+            />
           </div>
           <div class="ml-3 text-sm">
             <label for="terms" class="font-light text-gray-500">
@@ -66,7 +99,10 @@
         </div>
 
         <!-- General Error Message -->
-        <p v-if="generalError" class="text-sm font-medium text-red-600 text-center">
+        <p
+          v-if="generalError"
+          class="text-sm font-medium text-red-600 text-center"
+        >
           {{ generalError }}
         </p>
 
@@ -77,12 +113,17 @@
         <div class="mt-6">
           <p class="text-sm font-light text-gray-500 text-center">
             Already have an account?
-            <router-link to="/userlogin" class="font-medium text-yellow-600 hover:underline">
+            <router-link
+              to="/userlogin"
+              class="font-medium text-yellow-600 hover:underline"
+            >
               Log In
             </router-link>
           </p>
           <div class="flex justify-center mt-2">
-            <span class="inline-flex items-center px-3 italic py-1.5 text-sm font-medium text-yellow-600">
+            <span
+              class="inline-flex items-center px-3 italic py-1.5 text-sm font-medium text-yellow-600"
+            >
               Powered by
               <a href="#" class="ml-1 underline">NBT-HUB</a>
             </span>
@@ -156,6 +197,10 @@ const register = async () => {
       generalError.value = "An unexpected error occurred.";
     }
   }
+};
+
+const sanitizePhoneInput = () => {
+  phone.value = phone.value.replace(/[^0-9]/g, "");
 };
 </script>
 

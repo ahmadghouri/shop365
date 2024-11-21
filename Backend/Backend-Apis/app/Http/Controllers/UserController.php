@@ -116,10 +116,15 @@ class UserController extends Controller
     // Delete a specific user
     public function destroy($id)
     {
-        $user = User::find($id);
-        $user->orders()->delete();
-        $user->delete();
-        return response()->json(['message' => 'User deleted successfully']);
+    $user = User::find($id);
+
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+    $user->cart()->delete(); 
+    $user->orders()->delete();
+    $user->delete();
+    return response()->json(['message' => 'User deleted successfully']);
     }
 
 

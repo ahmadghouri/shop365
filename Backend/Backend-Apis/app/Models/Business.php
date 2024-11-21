@@ -23,4 +23,9 @@ class Business extends Model
     public function products() {
         return $this->hasMany(Product::class);
     }
+
+    public function type()
+    {
+        return $this->type;
+    }    
 }

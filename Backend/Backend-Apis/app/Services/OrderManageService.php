@@ -133,8 +133,25 @@ class OrderManageService
     public function updateOrderStatus($orderId, $status)
     {
         $order = Order::findOrFail($orderId);
+        $previousStatus = $order->status;
+
         $order->status = $status;
         $order->save();
+
+        if ($status === 'delivered' && $previousStatus !== 'delivered') {
+            $isGroceryOrder = $order->items->every(function ($item) {
+                return $item->product->business->type === 'Grocery';
+            });
+    
+            if ($isGroceryOrder) {
+                $totalPrice = $order->total_price;
+                $points = $totalPrice * 0.01;
+    
+                $user = $order->user;
+                $user->points += $points;
+                $user->save();
+            }
+        }
 
         return $order;
     }

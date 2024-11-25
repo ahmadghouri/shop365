@@ -80,6 +80,7 @@ const services = ref([
   ["Home", "/Decor.png"],
   // ["Electronics", "/electronics.png"],
   ["Toys", "/toys.png"],
+  ["Lawyers", "/lawyer.png"],
   ["Services", "/services1.png"],
 ]);
 

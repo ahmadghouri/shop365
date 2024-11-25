@@ -19,9 +19,13 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
-    public function placeOrder()
+    public function placeOrder(Request $request)
     {
-        return $this->orderService->placeOrder();
+        $request->validate([
+            'userPoints' => 'nullable|boolean',
+        ]);
+        $userPoints = $request->input('userPoints', false);
+        return $this->orderService->placeOrder($userPoints);
     }
 
     public function viewOrders()

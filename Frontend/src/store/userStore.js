@@ -9,13 +9,13 @@ export const useUserStore = defineStore("user", {
     totalUsersCount: 0,
     todayUsersCount: 0,
     totalUsersPrevCount: 0,
+    points: 0,
   }),
 
   actions: {
     async getUsers() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
-        });
+        const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {});
         this.users = response.data.users;
         this.totalUsersCount = response.data.total_users_count;
         this.todayUsersCount = response.data.today_users_count;
@@ -28,8 +28,7 @@ export const useUserStore = defineStore("user", {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/admin/users/previous-two-days`,
-          {
-          }
+          {}
         );
 
         this.users = response.data.users;
@@ -44,8 +43,7 @@ export const useUserStore = defineStore("user", {
       try {
         const response = await axios.delete(
           `${API_BASE_URL}/api/admin/users/${id}`,
-          {
-          }
+          {}
         );
 
         localStorage.removeItem("token");
@@ -68,13 +66,12 @@ export const useUserStore = defineStore("user", {
 
     async getSingleProfile() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/profile`, {
-        });
+        const response = await axios.get(`${API_BASE_URL}/api/profile`, {});
 
         this.user = response.data.data.user;
         this.user.household = response.data.data.household;
         this.user.town = response.data.data.town;
-      } catch (error) { }
+      } catch (error) {}
     },
   },
 });

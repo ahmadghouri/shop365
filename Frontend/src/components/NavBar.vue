@@ -1,30 +1,5 @@
 <template>
   <div class="relative">
-    <!-- <div class="bg-yellow-500 overflow-hidden">
-      <div class="animate-marquee whitespace-nowrap py-2">
-        <span class="text-white font-semibold mx-8"
-          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
-          and your favorite foods delivered straight to you with a single tap!
-        </span>
-        <span class="text-white font-semibold mx-8"
-          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
-          and your favorite foods delivered straight to you with a single tap!
-        </span>
-        <span class="text-white font-semibold mx-8"
-          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
-          and your favorite foods delivered straight to you with a single tap!
-        </span>
-        <span class="text-white font-semibold mx-8"
-          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
-          and your favorite foods delivered straight to you with a single tap!
-        </span>
-        <span class="text-white font-semibold mx-8"
-          >🚀 Welcome To SHOP365 Too busy to shop? Let us handle it! Groceries
-          and your favorite foods delivered straight to you with a single tap!
-        </span>
-      </div>
-    </div> -->
-
     <nav
       class="mobile-spacing sticky top-0 flex justify-between bg-white items-center lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200"
     >
@@ -66,23 +41,43 @@
         </router-link>
       </div>
 
-      <!-- Cart Icon with Counter -->
-      <div
-        class="relative bg-yellow-500 rounded-full w-16 h-16 lg:w-10 lg:h-10 flex justify-center items-center lg:ml-8 shadow-lg transition-transform duration-200 transform hover:scale-105 navbar-cart-icon"
-      >
-        <router-link to="/home/cart">
-          <font-awesome-icon
-            :icon="['fas', 'shopping-cart']"
-            class="text-white text-3xl lg:text-xl"
-          />
-          <!-- Counter Badge -->
-          <span
-            v-if="cartStore.cartCount > 0"
-            class="absolute -top-1 -right-2 lg:-top-1 lg:-right-2 lg:w-5 lg:h-5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs lg:text-xs font-bold rounded-full px-1.5 lg:px-0.5 py-0.5 lg:py-0 w-7 h-7 flex items-center justify-center border border-white"
-          >
-            {{ cartStore.cartCount }}
-          </span>
-        </router-link>
+      <!-- Points and Cart Container -->
+      <div class="flex items-center space-x-4">
+        <!-- Points Display (Desktop Only) -->
+        <div v-if="points >= 0" class="hidden lg:flex points-badge group">
+          <div class="points-display">
+            <div class="points-icon">
+              <font-awesome-icon :icon="['fas', 'crown']" />
+            </div>
+            <div class="points-value">
+              {{ points }}
+              <span class="points-label">points</span>
+            </div>
+            <!-- Tooltip -->
+            <div class="points-tooltip">
+              Earn more points with every purchase!
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart Icon with Counter -->
+        <div
+          class="relative bg-yellow-500 rounded-full w-16 h-16 lg:w-10 lg:h-10 flex justify-center items-center shadow-lg transition-transform duration-200 transform hover:scale-105 navbar-cart-icon"
+        >
+          <router-link to="/home/cart">
+            <font-awesome-icon
+              :icon="['fas', 'shopping-cart']"
+              class="text-white text-3xl lg:text-xl"
+            />
+            <!-- Counter Badge -->
+            <span
+              v-if="cartStore.cartCount > 0"
+              class="absolute -top-1 -right-2 lg:-top-1 lg:-right-2 lg:w-5 lg:h-5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs lg:text-xs font-bold rounded-full px-1.5 lg:px-0.5 py-0.5 lg:py-0 w-7 h-7 flex items-center justify-center border border-white"
+            >
+              {{ cartStore.cartCount }}
+            </span>
+          </router-link>
+        </div>
       </div>
     </nav>
 
@@ -115,6 +110,17 @@
               />
             </svg>
           </button>
+
+          <!-- Points Display in Sidebar -->
+          <div v-if="points >= 0" class="mobile-points-container">
+            <div class="points-crown">
+              <font-awesome-icon :icon="['fas', 'crown']" />
+            </div>
+            <div class="points-info">
+              <span class="points-number">{{ points }}</span>
+              <span class="points-text">Reward Points</span>
+            </div>
+          </div>
 
           <!-- Sidebar Links -->
           <ul class="mt-12 space-y-6">
@@ -150,13 +156,17 @@ import { ref, onMounted } from "vue";
 import { useCartStore } from "../store/cartStore";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
+import { faShoppingCart, faCrown } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "vue-router";
 import { watch } from "vue";
+import { useAuthStore } from "../stores/authStore";
+import { storeToRefs } from "pinia";
 
-library.add(faShoppingCart);
+library.add(faShoppingCart, faCrown);
 
 const cartStore = useCartStore();
+const authStore = useAuthStore();
+const { points } = storeToRefs(authStore);
 const router = useRouter();
 const sidebarOpen = ref(false);
 
@@ -181,11 +191,13 @@ const closeSidebar = () => {
 
 onMounted(() => {
   cartStore.fetchCartCount();
+  authStore.refreshUser();
+  console.log(points);
 });
 </script>
 
 <style scoped>
-/* Transition styles for the sidebar */
+/* Existing transition styles */
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition: all 0.3s ease-in-out;
@@ -196,33 +208,149 @@ onMounted(() => {
   transform: translateX(-100%);
 }
 
-/* Responsive styles for desktop */
-@media (min-width: 1024px) {
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+/* Desktop Points Badge Styles */
+.points-badge {
+  position: relative;
 }
 
-/* Animation for the marquee */
-@keyframes marquee {
-  0% {
-    transform: translateX(10%);
-  }
-
-  100% {
-    transform: translateX(-50%);
-  }
+.points-display {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.animate-marquee {
-  display: inline-block;
+.points-display:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.points-icon {
+  margin-right: 8px;
+  font-size: 1.2rem;
+  animation: crown-shine 2s infinite;
+}
+
+.points-value {
+  font-weight: bold;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.points-label {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+/* Tooltip styles */
+.points-tooltip {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
   white-space: nowrap;
-  animation: marquee 60s linear infinite;
+  transition: all 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
+.points-display:hover .points-tooltip {
+  transform: translateX(-50%) scale(1);
+  opacity: 1;
+}
+
+/* Mobile Points Styles */
+.mobile-points-container {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.points-crown {
+  font-size: 1.5rem;
+  color: white;
+  animation: crown-shine 2s infinite;
+}
+
+.points-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.points-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  line-height: 1;
+}
+
+.points-text {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Animations */
+@keyframes crown-shine {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Shimmer effect for desktop points display */
+.points-display::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(45deg);
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .points-container {
+    display: none;
+  }
 }
 </style>

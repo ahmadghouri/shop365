@@ -7,9 +7,23 @@ use App\Models\Order;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+
+
+    public function refreshUser()
+    {
+        $user = Auth::user();
+    
+        if ($user) {
+            return response()->json([
+                'user' => $user,
+            ], 200);
+        }
+        return response()->json(['message' => 'User not authenticated'], 401);
+    }
     
     public function index()
     {

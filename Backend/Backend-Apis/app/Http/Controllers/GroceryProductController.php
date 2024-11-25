@@ -33,17 +33,27 @@ class GroceryProductController extends Controller
         ]);
 
         if ($response->successful()) {
-            // Get the product data from the response
-            $products = $response->json(); // Assuming the data is in JSON format
+            $products = $response->json();
 
             foreach ($products as $product) {
-                $existingProduct = Product::where('title', trim($product['ITEM_DESC']))->first();
+                $productName = trim($product['ITEM_DESC'] .' - ' . $product['PACK_DESC']);
+    
+                $existingProduct = Product::where('title', $productName)->first();
 
                 if ($existingProduct) {
-                        $existingProduct->title = $product['ITEM_DESC'] .' - ' . $product['PACK_DESC'];
+                        $existingProduct->title = $productName;
                         $existingProduct->description = $product['ITEM_DESC_LONG'] .' - ' . $product['PACK_DESC'];
                         $existingProduct->price = $product['UNIT_PRICE'];
                         $existingProduct->save();
+                } else {
+                    Product::create([
+                        'title' => $productName,
+                        'description' => $product['ITEM_DESC_LONG'] . ' - ' . $product['PACK_DESC'],
+                        'image' => null,
+                        'price' => $product['UNIT_PRICE'],
+                        'business_id' => 6,
+                        'type' => 'grocery',
+                    ]);
                 }
             }
 

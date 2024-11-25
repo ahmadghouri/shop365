@@ -9,6 +9,7 @@ export const useAuthStore = defineStore("auth", () => {
   const user = ref(null);
   const token = ref(null);
   const role = ref(null);
+  const points = ref(0);
 
   // Initialize state from localStorage
   const initializeStore = () => {
@@ -53,6 +54,29 @@ export const useAuthStore = defineStore("auth", () => {
   // Logout action
   const logout = () => {
     setLoginData(null, null);
+  };
+
+  const refreshUser = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/refreshUser`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      points.value = response.data.user.points;
+      console.log(points.value);
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        errors: error.response?.data?.errors || {},
+        message: error.response?.data?.message || "Invalid credentials",
+      };
+    }
   };
 
   const setLoginData = (tokenValue = null, userValue = null) => {
@@ -181,6 +205,8 @@ export const useAuthStore = defineStore("auth", () => {
     role,
     login,
     logout,
+    refreshUser,
+    points,
     isAuthenticated,
     initializeStore,
   };

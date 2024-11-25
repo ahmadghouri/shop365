@@ -2,6 +2,7 @@ import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
 import axios from "axios";
 import { useCartStore } from "./cartStore";
+import { useUserStore } from "./userStore";
 
 export const useOrderStore = defineStore("order", {
   state: () => ({
@@ -11,9 +12,15 @@ export const useOrderStore = defineStore("order", {
     adminOrders: [],
   }),
   actions: {
-    async placeOrder() {
+    async placeOrder(usePoints) {
       try {
-        const response = await axios.post(`${API_BASE_URL}/api/order`, {}, {});
+        const response = await axios.post(
+          `${API_BASE_URL}/api/order`,
+          {
+            userPoints: usePoints,
+          },
+          {}
+        );
         const cartStore = useCartStore();
         cartStore.cartCount = 0;
         return response;
@@ -60,7 +67,6 @@ export const useOrderStore = defineStore("order", {
         );
 
         const updatedOrder = response.data.data;
-
         // Update in ordersList
         const orderIndex = this.ordersList.findIndex(
           (order) => order.id === updatedOrder.id

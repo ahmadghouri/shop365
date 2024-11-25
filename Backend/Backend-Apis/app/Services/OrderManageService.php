@@ -10,17 +10,20 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class OrderManageService
 {
-    public function placeOrder()
+    public function placeOrder($userPoints = false)
 {
     $cartItems = Cart::where('user_id', auth()->id())->get();
 
     if ($cartItems->isEmpty()) {
         return response()->json(['message' => 'Your cart is empty'], 200);
     }
+
+    $user = Auth::user();
 
     $ordersByBusiness = $cartItems->groupBy(function ($cartItem) {
         return $cartItem->product->business_id;
@@ -53,11 +56,17 @@ class OrderManageService
     }
 
     foreach ($ordersByBusiness as $businessId => $items) {
-        // Calculate total price using final_price if available
         $totalPrice = $items->sum(function ($cartItem) {
             $product = $cartItem->product;
             return ($product->final_price ?? $product->price) * $cartItem->quantity;
         });
+
+        if($userPoints && $user->points >= 250){
+            $pointsToUse = min($user->points, $totalPrice);
+            $totalPrice -= $pointsToUse; 
+            $user->points -= $pointsToUse; 
+            $user->save();
+        }
 
         // Create the order
         $order = Order::create([

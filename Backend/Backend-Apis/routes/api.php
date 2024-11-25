@@ -56,6 +56,7 @@ Route::get('/getNumber/{businessId}', [BusinessController::class, 'getNumber']);
 // Routes requiring authentication
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/refreshUser', [UserController::class, 'refreshUser']);
     Route::post('/add-details', [AuthController::class, 'addDetails']);
 
     // Complaints

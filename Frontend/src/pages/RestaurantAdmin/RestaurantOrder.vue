@@ -112,16 +112,16 @@
         <div class="flex items-center">
           <div class="flex-grow flex flex-col space-y-2 mb-8">
             <div class="text-sm">
-              <strong>Name:</strong> {{ order.user.name || "No name" }}
+              <strong>Name:</strong> {{ order.user?.name || "No name" }}
             </div>
             <div class="text-sm">
               <strong>Phone:</strong>
-              {{ order.user.phone_no || "No phone number" }}
+              {{ order.user?.phone_no || "No phone number" }}
             </div>
             <div class="text-sm">
               <strong>Address:</strong>
-              {{ order.user.household?.address || "No Address" }},
-              {{ order.user.household?.town?.town_name || "No Town Provided" }}
+              {{ order.user?.household?.address || "No Address" }},
+              {{ order.user?.household?.town?.town_name || "No Town Provided" }}
             </div>
           </div>
           <div class="text-right mb-4">

@@ -16,6 +16,7 @@ class OrderPlaced implements ShouldBroadcastNow
     public $user;
     public $orderItems;
     public $businessId;
+    public $orderData;
 
     /**
      * Create a new event instance.
@@ -25,9 +26,27 @@ class OrderPlaced implements ShouldBroadcastNow
      */
     public function __construct(Order $order, $businessId)
     {
-        $this->order = $order->load('user.household.town');
-        $this->user = $order->user;
-        $this->orderItems = $order->items()->with('product')->get();
+        // $this->order = $order->load('user.household.town');
+        // $this->user = $order->user;
+        // $this->orderItems = $order->items()->with('product')->get();
+
+        // for address
+        $order->load('user.household.town');
+        
+        $this->orderData = [
+            'id' => $order->id,
+            'name' => $order->user->name,
+            'phone_no' => $order->user->phone_no,
+            'status' => $order->status,
+            'totalPrice' => $order->total_price,
+            'createdAt' => $order->created_at->toDateTimeString(),
+            // Combine the address data into an array
+            'address' => [
+                'household' => $order->user->household->address ?? null, // Household address field
+                'town' => $order->user->household->town->town_name ?? null, // Town name
+                'fullAddress' => $order->user->household->address . ', ' . $order->user->household->town->name ?? null, // Full address combining both
+            ],
+        ];
         $this->businessId = $businessId; 
     }
 
@@ -51,8 +70,7 @@ class OrderPlaced implements ShouldBroadcastNow
         return [
             'businessId' => $this->businessId,
             'mergedData' => [
-                'order' => $this->order,
-                'items' => $this->orderItems,
+                'order' => $this->orderData,
             ]
         ];
     }

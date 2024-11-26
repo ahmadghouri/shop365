@@ -186,7 +186,8 @@ export const useOrderStore = defineStore("order", {
       console.log("new order", newOrder);
       console.log("orderlist", this.ordersList);
 
-      this.ordersList = [newOrder, ...this.ordersList];
+      this.ordersList = JSON.parse(JSON.stringify([newOrder, ...this.ordersList]));
+
       console.log("after orderlist", this.ordersList);
     },
   },

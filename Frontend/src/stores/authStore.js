@@ -131,7 +131,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     const channelName = "order-channel." + businessId;
 
-    // Check if Echo exists and the channel is not already subscribed
     if (window.Echo && !window.Echo.connector.channels[channelName]) {
       const notificationAudio = new Audio("/notification.mp3");
       notificationAudio.volume = 1;
@@ -154,6 +153,7 @@ export const useAuthStore = defineStore("auth", () => {
       window.Echo.channel(channelName)
         .listen("OrderPlaced", (event) => {
           handleNewOrder(event);
+          console.log(event);
           playNotificationSound();
 
           if (navigator?.vibrate) {

@@ -113,59 +113,81 @@ export const useOrderStore = defineStore("order", {
         return;
       }
 
+      // const newOrder = {
+      //   id: order.id,
+      //   user_id: order.user_id,
+      //   total_price: order.total_price,
+      //   status: order.status,
+      //   created_at: order.created_at,
+      //   updated_at: order.updated_at,
+      //   items: items
+      //     ? items.map((item) => ({
+      //         id: item.id,
+      //         order_id: item.order_id,
+      //         product_id: item.product_id,
+      //         price: item.price,
+      //         quantity: item.quantity,
+      //         created_at: item.created_at,
+      //         updated_at: item.updated_at,
+      //         product: {
+      //           id: item.product.id,
+      //           title: item.product.title,
+      //           description: item.product.description,
+      //           price: item.product.price,
+      //           image: item.product.image,
+      //           image_url: item.product.image_url,
+      //           type: item.product.type,
+      //           created_at: item.product.created_at,
+      //           updated_at: item.product.updated_at,
+      //         },
+      //       }))
+      //     : [],
+      //   user: order.user
+      //     ? {
+      //         id: order.user.id,
+      //         phone_no: order.user.phone_no,
+      //         name: order.user.name,
+      //         role: order.user.role,
+      //         household: order.user.household
+      //           ? {
+      //               address: order.user.household.address,
+      //               town: order.user.household.town
+      //                 ? {
+      //                     town_name: order.user.household.town.town_name,
+      //                   }
+      //                 : {},
+      //             }
+      //           : {},
+      //         created_at: order.user.created_at,
+      //         updated_at: order.user.updated_at,
+      //       }
+      //     : {},
+      //   newOrder: true,
+      // };
+
       const newOrder = {
         id: order.id,
-        user_id: order.user_id,
-        total_price: order.total_price,
+        total_price: order.totalPrice,
         status: order.status,
-        created_at: order.created_at,
-        updated_at: order.updated_at,
-        items: items
-          ? items.map((item) => ({
-              id: item.id,
-              order_id: item.order_id,
-              product_id: item.product_id,
-              price: item.price,
-              quantity: item.quantity,
-              created_at: item.created_at,
-              updated_at: item.updated_at,
-              product: {
-                id: item.product.id,
-                title: item.product.title,
-                description: item.product.description,
-                price: item.product.price,
-                image: item.product.image,
-                image_url: item.product.image_url,
-                type: item.product.type,
-                created_at: item.product.created_at,
-                updated_at: item.product.updated_at,
-              },
-            }))
-          : [],
-        user: order.user
-          ? {
-              id: order.user.id,
-              phone_no: order.user.phone_no,
-              name: order.user.name,
-              role: order.user.role,
-              household: order.user.household
-                ? {
-                    address: order.user.household.address,
-                    town: order.user.household.town
-                      ? {
-                          town_name: order.user.household.town.town_name,
-                        }
-                      : {},
-                  }
-                : {},
-              created_at: order.user.created_at,
-              updated_at: order.user.updated_at,
-            }
-          : {},
+        created_at: order.createdAt,
         newOrder: true,
+        user: {
+          name: order.name,
+          phone_no: order.phone_no,
+          household: {
+            address: order.address.household,
+            town: {
+              town_name: order.address.town,
+            },
+          },
+        },
+        items: [], // You might want to modify this if items are sent separately
       };
+      console.log("new order", newOrder);
+      console.log("orderlist", this.ordersList);
 
       this.ordersList = [newOrder, ...this.ordersList];
+      console.log("after orderlist", this.ordersList);
     },
   },
 });

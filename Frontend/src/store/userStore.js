@@ -5,11 +5,14 @@ import axios from "axios";
 export const useUserStore = defineStore("user", {
   state: () => ({
     users: [],
+    groceryUsers: [],
     user: [],
     totalUsersCount: 0,
     todayUsersCount: 0,
     totalUsersPrevCount: 0,
     points: 0,
+    loading: false,
+    error: null,
   }),
 
   actions: {
@@ -72,6 +75,23 @@ export const useUserStore = defineStore("user", {
         this.user.household = response.data.data.household;
         this.user.town = response.data.data.town;
       } catch (error) {}
+    },
+
+    // only for grocery store
+    async fetchUsers() {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/admin/grocery/6`);
+        this.groceryUsers = response.data;
+      } catch (error) {
+        this.error =
+          error instanceof Error ? error.message : "An error occurred";
+        console.error("Failed to fetch users:", error);
+      } finally {
+        this.loading = false;
+      }
     },
   },
 });

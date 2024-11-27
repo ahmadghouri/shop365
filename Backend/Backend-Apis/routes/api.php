@@ -95,6 +95,8 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
     ->group(function () {
 
         Route::get('/business-orders/{id}', [OrderController::class, 'superAdminOrders']);
+        // for just grocery
+        Route::get('/grocery/{id}', [OrderController::class, 'getGroceryOrders']);
 
         Route::get('/business-stats', [BusinessController::class, 'getBusinessStats']);
 

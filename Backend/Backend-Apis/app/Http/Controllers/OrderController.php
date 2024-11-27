@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\TestEvent;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Order;
+use App\Models\User;
 use App\Services\OrderManageService;
 use Exception;
 use Illuminate\Http\Request;
@@ -75,6 +76,32 @@ class OrderController extends Controller
     
         return $this->successResponse($data, "Restaurant Orders", 200);
     }
+
+    // return the only users who places order on the grocery
+public function getGroceryOrders($businessId)
+{
+    return User::whereHas('orders.items.product', function ($query) use ($businessId) {
+        $query->where('business_id', $businessId);
+    })
+    ->with(['household:id,address,town_id', 'household.town:id,town_name']) // Include related household and town
+    ->select(['id', 'name', 'phone_no', 'points', 'household_id', 'town_id']) // Select user-specific fields
+    ->addSelect([
+        'order_count' => Order::selectRaw('count(*)')
+            ->whereHas('items.product', function ($query) use ($businessId) {
+                $query->where('business_id', $businessId);
+            })
+            ->whereColumn('orders.user_id', 'users.id')
+    ])
+    ->get();
+}
+
+
+    
+    
+    
+    
+    
+    
 
 
     public function updateStatus(Request $request, $id)

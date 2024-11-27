@@ -25,6 +25,7 @@ import Product from "../pages/Admin/Products.vue";
 import UserAdmin from "../pages/Admin/User.vue";
 import RegisterAdmin from "../pages/Admin/RegisterAdmin.vue";
 import RestaurantAdminDashboard from "../pages/RestaurantAdmin/RestaurantAdminDashboard.vue";
+import OurStoreUsers from "../pages/Admin/OurStoreUsers.vue";
 import RestaurantOrder from "../pages/RestaurantAdmin/RestaurantOrder.vue";
 import Profile from "../pages/Profile.vue";
 import OrderHistory from "../pages/OrderHistory.vue";
@@ -235,6 +236,14 @@ const routes = [
         path: "total-users",
         name: "TotalUsers",
         component: TotalUsers,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "shop365/users",
+        name: "OuStoreUsers",
+        component: OurStoreUsers,
         meta: {
           requiresAdminAuth: true,
         },

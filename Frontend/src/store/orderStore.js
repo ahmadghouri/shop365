@@ -183,25 +183,10 @@ export const useOrderStore = defineStore("order", {
         },
         items: [], // You might want to modify this if items are sent separately
       };
-      console.log("new order", newOrder);
-      console.log("orderlist", this.ordersList);
 
       this.ordersList = JSON.parse(
         JSON.stringify([newOrder, ...this.ordersList])
       );
-
-      console.log("after orderlist", this.ordersList);
-    },
-
-    async fetchOrderById(orderId) {
-      try {
-        const response = await axios.get(`/api/orders/${orderId}`);
-        console.log(response.data);
-        return response.data;
-      } catch (error) {
-        console.error("Error fetching order details:", error);
-        throw error;
-      }
     },
   },
 });

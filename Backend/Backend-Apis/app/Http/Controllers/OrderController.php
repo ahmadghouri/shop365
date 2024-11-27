@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\TestEvent;
 use App\Http\Requests\UpdateOrderStatusRequest;
+use App\Models\Order;
 use App\Services\OrderManageService;
 use Exception;
 use Illuminate\Http\Request;
@@ -17,6 +18,19 @@ class OrderController extends Controller
     public function __construct(OrderManageService $orderService)
     {
         $this->orderService = $orderService;
+    }
+
+    public function show($id)
+    {
+        $order = Order::with([
+            'user', 
+            'user.household', 
+            'user.household.town', 
+            'Items', 
+            'Items.product'
+        ])->findOrFail($id);
+
+        return response()->json($order);
     }
 
     public function placeOrder(Request $request)

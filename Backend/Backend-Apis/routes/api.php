@@ -43,6 +43,7 @@ Route::get('/random-products', [ProductController::class, 'randomProductsByBusin
 Route::get('/business/{businessId}/products', [ProductController::class, 'businessProductsDiscount']);
 
 Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+Route::get('/orders/{id}', [OrderController::class, 'show']);
 
 Route::apiResource('/towns', TownController::class);
 

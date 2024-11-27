@@ -111,6 +111,10 @@
               {{ new Date(user.created_at).toLocaleDateString() }}
             </p>
             <p class="mb-1">
+              <span class="font-medium">Points:</span>
+              {{ user.points || 0 }}
+            </p>
+            <p class="mb-1">
               <span class="font-medium">Address:</span>
               {{ user.household?.address || "No Address" }}
             </p>

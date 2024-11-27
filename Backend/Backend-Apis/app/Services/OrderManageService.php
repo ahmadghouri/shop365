@@ -139,29 +139,40 @@ class OrderManageService
             ->get();
     }
 
-    public function updateOrderStatus($orderId, $status)
+    public function updateOrderStatus($orderId, $newStatus)
     {
         $order = Order::findOrFail($orderId);
         $previousStatus = $order->status;
-
-        $order->status = $status;
-        $order->save();
-
-        if ($status === 'delivered' && $previousStatus !== 'delivered') {
+    
+        // Only proceed if the status has changed
+        if ($previousStatus !== $newStatus) {
+            $order->status = $newStatus;
+            $order->save();
+    
             $isGroceryOrder = $order->items->every(function ($item) {
                 return $item->product->business->type === 'Grocery';
             });
     
             if ($isGroceryOrder) {
-                $totalPrice = $order->total_price;
-                $points = $totalPrice * 0.01;
-    
                 $user = $order->user;
-                $user->points += $points;
+                $totalPrice = $order->total_price;
+    
+                // Points adjustment logic
+                if ($newStatus === 'delivered') {
+                    // Add points if the new status is 'delivered'
+                    $pointsToAdd = $totalPrice * 0.01;
+                    $user->points += $pointsToAdd;
+                } elseif ($previousStatus === 'delivered') {
+                    // Subtract points if reverting from 'delivered'
+                    $pointsToSubtract = $totalPrice * 0.01;
+                    $user->points -= $pointsToSubtract;
+                }
+    
                 $user->save();
             }
         }
-
+    
         return $order;
     }
+    
 }

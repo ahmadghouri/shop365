@@ -423,7 +423,6 @@ const openModal = async (order) => {
   if (order.newOrder) {
     const response = await axios.get(`${API_BASE_URL}/api/orders/${order.id}`);
     selectedOrder.value = response.data;
-    console.log(response.data);
   } else {
     selectedOrder.value = order;
   }

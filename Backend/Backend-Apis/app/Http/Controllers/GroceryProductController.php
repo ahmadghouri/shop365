@@ -13,7 +13,9 @@ class GroceryProductController extends Controller
         // Make the API request
         $response = Http::withHeaders([
             'ConStr' => 'ConStr2', // Your custom header
-        ])->timeout(600)->post('https://cyberneticonline.com/webapi/api/product/getProductList', [
+        ])->timeout(600)
+        ->withoutVerifying()
+        ->post('https://cyberneticonline.com/webapi/api/product/getProductList', [
             'mode' => '0',
             'locno' => '1',
             'deptId' => '0',
@@ -29,7 +31,7 @@ class GroceryProductController extends Controller
             'bDefault' => '0',
             'query' => '',
             'offset' => '0',
-            'pagesize' => '5000', // Or use a larger number as needed
+            'pagesize' => '10000', // Or use a larger number as needed
         ]);
 
         if ($response->successful()) {

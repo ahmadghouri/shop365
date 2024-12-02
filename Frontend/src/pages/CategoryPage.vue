@@ -129,6 +129,28 @@
       </div>
     </div>
 
+    <div class="lg:hidden mb-4 flex justify-center">
+      <button
+        @click="showFilterModal = true"
+        class="flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v1.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+          />
+        </svg>
+        <span>Filters</span>
+      </button>
+    </div>
     <!-- Horizontal Scrollable Filter Section -->
     <div class="overflow-x-auto whitespace-nowrap mb-8">
       <button
@@ -292,6 +314,61 @@
         </div>
       </div>
     </div>
+
+    <transition name="modal">
+      <div
+        v-if="showFilterModal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center"
+        @click="showFilterModal = false"
+      >
+        <div
+          class="bg-white w-full rounded-t-2xl p-6 max-h-[70vh] overflow-y-auto transform transition-transform duration-300 ease-in-out"
+          @click.stop
+        >
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800">Filters</h2>
+            <button
+              @click="showFilterModal = false"
+              class="text-gray-600 hover:text-gray-800"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <button
+              v-for="filter in filters"
+              :key="filter"
+              @click="
+                filterProducts(filter);
+                showFilterModal = false;
+              "
+              :class="[
+                filter === selectedFilter
+                  ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+                'px-4 py-3 rounded-xl font-medium text-sm transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400',
+              ]"
+            >
+              {{ filter }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -321,6 +398,7 @@ const {
 } = storeToRefs(productStore);
 const cartStore = useCartStore();
 const businessId = route.params.id;
+const showFilterModal = ref(false);
 
 const categoryTitle = ref(route.query.title);
 
@@ -565,6 +643,12 @@ onUnmounted(() => {
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+  transform: translateY(100%);
+}
+.modal-enter-to,
+.modal-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .product-card {

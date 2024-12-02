@@ -348,9 +348,18 @@
             </button>
           </div>
 
+          <div class="mb-4">
+            <input
+              type="text"
+              v-model="filterSearchQuery"
+              placeholder="Search filters..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+          </div>
+
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <button
-              v-for="filter in filters"
+              v-for="filter in filteredFilters"
               :key="filter"
               @click="
                 filterProducts(filter);
@@ -399,6 +408,7 @@ const {
 const cartStore = useCartStore();
 const businessId = route.params.id;
 const showFilterModal = ref(false);
+const filterSearchQuery = ref("");
 
 const categoryTitle = ref(route.query.title);
 
@@ -411,6 +421,21 @@ const showFixedSearch = ref(false);
 const showSearchModal = ref(false);
 const searchContainer = ref(null);
 const modalSearchInput = ref(null);
+
+const filteredFilters = computed(() => {
+  if (!filterSearchQuery.value) return filters.value;
+
+  return filters.value.filter((filter) =>
+    filter.toLowerCase().includes(filterSearchQuery.value.toLowerCase())
+  );
+});
+
+// Reset search query when modal is opened or closed
+watch(showFilterModal, (newValue) => {
+  if (newValue) {
+    filterSearchQuery.value = "";
+  }
+});
 
 const handleScroll = () => {
   const scrollPosition = window.scrollY;

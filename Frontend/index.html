@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>The Shop 365</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>The Shop 365</title>
-
-  <!-- <meta http-equiv="Content-Security-Policy" content="
+    <!-- <meta http-equiv="Content-Security-Policy" content="
     default-src 'self' data: *; 
     script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ssl.gstatic.com; 
     frame-src 'self' *; 
@@ -13,19 +12,36 @@
         media-src *; 
         img-src 'self' data: content: *;"> -->
 
-  <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
-  <meta name="format-detection" content="telephone=no">
-  <meta name="msapplication-tap-highlight" content="no">
-  <!-- <meta name="color-scheme" content="light dark"> -->
+    <meta
+      name="viewport"
+      content="initial-scale=1, width=device-width, viewport-fit=cover"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <!-- <meta name="color-scheme" content="light dark"> -->
 
-  <link rel="icon" type="image/svg+xml" href="/Appicon.svg" />
-  <script src="cordova.js"></script>
-</head>
+    <link rel="icon" type="image/svg+xml" href="/Appicon.svg" />
+    <script src="cordova.js"></script>
 
-<body>
-  <div id="app"></div>
+    <script type="text/javascript">
+      (function (c, l, a, r, i, t, y) {
+        c[a] =
+          c[a] ||
+          function () {
+            (c[a].q = c[a].q || []).push(arguments);
+          };
+        t = l.createElement(r);
+        t.async = 1;
+        t.src = "https://www.clarity.ms/tag/" + i;
+        y = l.getElementsByTagName(r)[0];
+        y.parentNode.insertBefore(t, y);
+      })(window, document, "clarity", "script", "p7smhn1v3k");
+    </script>
+  </head>
 
-  <script type="module" src="/src/main.js"></script>
-</body>
+  <body>
+    <div id="app"></div>
 
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>

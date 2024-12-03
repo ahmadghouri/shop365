@@ -349,7 +349,7 @@
 
         <button
           @click="orderNow"
-          class="bg-white text-yellow-600 hover:bg-yellow-100 rounded-full px-8 py-3 font-bold shadow-md transition ease-in-out duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:ring-opacity-50"
+          class="relative bg-white text-yellow-600 rounded-full px-8 py-3 font-bold animate-pulse-glow transform hover:scale-110 transition-all duration-300 shadow-2xl hover:shadow-yellow-500/50"
         >
           Order Now
         </button>
@@ -610,6 +610,22 @@ const goBack = () => {
   stroke-dasharray: 126;
   stroke-dashoffset: 126;
   animation: progress 1.5s ease-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.6);
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 1.5s infinite;
 }
 
 @keyframes progress {

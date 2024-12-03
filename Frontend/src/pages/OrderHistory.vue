@@ -89,10 +89,18 @@
         </div>
       </div>
 
-      <div class="mt-2 text-right">
+      <div class="mt-2 flex justify-between items-center">
         <h1 class="text-lg font-semibold">
           Total Price: PKR {{ order.total_price.toLocaleString() }}
         </h1>
+
+        <!-- Reorder Button -->
+        <button
+          @click="reorderOrder(order.id)"
+          class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+        >
+          Reorder
+        </button>
       </div>
     </div>
   </div>
@@ -135,9 +143,12 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useOrderStore } from "../store/orderStore";
+import { useCartStore } from "../store/cartStore";
+import { toast } from "vue3-toastify";
 
 const orderDetails = ref([]);
 const orderStore = useOrderStore();
+const cartStore = useCartStore();
 const router = useRouter();
 const isLoading = ref(true);
 
@@ -152,6 +163,7 @@ async function getOrderDetails() {
     );
   } catch (error) {
     console.error(error);
+    toast.error("Failed to fetch order details");
   } finally {
     isLoading.value = false;
   }
@@ -159,6 +171,24 @@ async function getOrderDetails() {
 
 async function refreshOrders() {
   await getOrderDetails();
+}
+
+async function reorderOrder(orderId) {
+  try {
+    console.log(orderId);
+
+    const result = await cartStore.reorderPreviousOrder(orderId);
+    if (result.success) {
+      toast.success(result.message);
+      // Optionally navigate to cart or show a confirmation
+      router.push("/home/cart");
+    } else {
+      toast.error(result.message);
+    }
+  } catch (error) {
+    console.error("Reorder failed", error);
+    toast.error("Failed to reorder. Please try again.");
+  }
 }
 
 onMounted(async () => {

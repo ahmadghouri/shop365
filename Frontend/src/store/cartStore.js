@@ -10,8 +10,7 @@ export const useCartStore = defineStore("cart", {
   actions: {
     async addToCart(productInfo) {
       try {
-        await axios.post(`${API_BASE_URL}/api/cart`, productInfo, {
-        });
+        await axios.post(`${API_BASE_URL}/api/cart`, productInfo, {});
         await this.fetchCartCount();
       } catch (error) {
         console.error("Failed to add to cart", error);
@@ -20,8 +19,7 @@ export const useCartStore = defineStore("cart", {
 
     async getCartItems() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/cart`, {
-        });
+        const response = await axios.get(`${API_BASE_URL}/api/cart`, {});
         this.cartItems = response.data.data;
         console.log(response.data);
       } catch (error) {
@@ -32,8 +30,7 @@ export const useCartStore = defineStore("cart", {
     async removeItem(id) {
       try {
         // Delete the item from the server
-        await axios.delete(`${API_BASE_URL}/api/cart/${id}`, {
-        });
+        await axios.delete(`${API_BASE_URL}/api/cart/${id}`, {});
 
         // Refresh cart items to ensure state is in sync with server
         await this.getCartItems();
@@ -48,9 +45,7 @@ export const useCartStore = defineStore("cart", {
         await axios.patch(
           `${API_BASE_URL}/api/cart/update/${id}`,
           { quantity },
-          {
-
-          }
+          {}
         );
 
         // Refresh cart items to ensure state is in sync with server
@@ -65,12 +60,53 @@ export const useCartStore = defineStore("cart", {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/cart/item-count`,
-          {
-          }
+          {}
         );
         this.cartCount = response.data.item_count; // This should trigger reactivity
       } catch (error) {
         console.error("Error fetching cart count:", error);
+      }
+    },
+
+    // Move reorderPreviousOrder inside actions
+    async reorderPreviousOrder(orderId) {
+      try {
+        console.log("order", orderId);
+
+        const response = await axios.post(
+          `${API_BASE_URL}/api/reorder/${orderId}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        // Update cart count based on the response
+        if (response.data.count) {
+          this.cartCount += response.data.count;
+        }
+
+        // Refresh cart items to ensure the latest state
+        await this.getCartItems();
+
+        // Show success message (you might want to handle this differently based on your UI)
+        return {
+          success: true,
+          message: response.data.message,
+          count: response.data.count,
+        };
+      } catch (error) {
+        console.error("Failed to reorder previous order", error);
+
+        // Return error details
+        return {
+          success: false,
+          message:
+            error.response?.data?.message || "Failed to reorder previous order",
+          error: error,
+        };
       }
     },
   },

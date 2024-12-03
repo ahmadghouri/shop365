@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\TestEvent;
 use App\Http\Requests\UpdateOrderStatusRequest;
+use App\Models\cart;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\OrderManageService;
@@ -20,6 +21,43 @@ class OrderController extends Controller
     {
         $this->orderService = $orderService;
     }
+
+    public function reorder(Order $order)
+{
+    $user = Auth::user();
+
+    // Ensure the order belongs to the logged-in user
+    if ($order->user_id !== $user->id) {
+        return response()->json(['message' => 'You are not authorized to reorder this order'], 403);
+    }
+
+    $totalAdded = 0;
+    // Loop through the order items and add them to the cart
+    foreach ($order->items as $orderItem) {
+        $cartItem = Cart::where('user_id', $user->id)
+            ->where('product_id', $orderItem->product_id)
+            ->first();
+
+        if ($cartItem) {
+            // Update the quantity if the item already exists in the cart
+            $cartItem->quantity += $orderItem->quantity;
+            $cartItem->save();
+        } else {
+            // Create a new cart item
+            Cart::create([
+                'user_id' => $user->id,
+                'product_id' => $orderItem->product_id,
+                'quantity' => $orderItem->quantity,
+            ]);
+        }
+        $totalAdded += $orderItem->quantity;
+    }
+
+    return response()->json([
+        'message' => 'Order items added to the cart successfully',
+        'count' => $totalAdded, // Return the total count of items added
+    ]);
+}
 
     public function show($id)
     {
@@ -94,16 +132,6 @@ public function getGroceryOrders($businessId)
     ])
     ->get();
 }
-
-
-    
-    
-    
-    
-    
-    
-
-
     public function updateStatus(Request $request, $id)
     {
         $request->validate([

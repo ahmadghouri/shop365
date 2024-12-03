@@ -132,7 +132,7 @@
     <div class="lg:hidden mb-4 flex justify-center">
       <button
         @click="showFilterModal = true"
-        class="flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300"
+        class="flex items-center animate-pulse-glow justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -660,6 +660,21 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 10px 5px rgba(255, 215, 0, 0.6);
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 1.5s infinite;
+}
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.3s ease;

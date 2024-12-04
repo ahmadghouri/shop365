@@ -28,4 +28,9 @@ class Business extends Model
     {
         return $this->type;
     }    
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

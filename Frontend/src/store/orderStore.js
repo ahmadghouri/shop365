@@ -33,6 +33,7 @@ export const useOrderStore = defineStore("order", {
     async getOrderDetails() {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/order`, {});
+        console.log(response.data.data);
 
         this.userOrderDetails = response.data.data;
       } catch (error) {

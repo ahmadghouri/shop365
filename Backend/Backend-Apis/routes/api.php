@@ -10,6 +10,7 @@ use App\Http\Controllers\GroceryProductController;
 use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TownController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\AdminMiddleware;
@@ -60,6 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reorder/{order}', [OrderController::class, 'reorder']);
     Route::get('/refreshUser', [UserController::class, 'refreshUser']);
     Route::post('/add-details', [AuthController::class, 'addDetails']);
+
+    Route::post('/reviews', [ReviewController::class, 'store']);
+    Route::get('/reviews/{business_id}', [ReviewController::class, 'index']);
 
     // Complaints
     Route::post('/complaints', [ComplainController::class, 'store']);

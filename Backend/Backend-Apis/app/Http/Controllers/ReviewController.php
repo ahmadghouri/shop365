@@ -20,6 +20,14 @@ class ReviewController extends Controller
 
         $user = Auth::user();
 
+        $existingReview = Review::where('order_id', $validated['order_id'])
+        ->where('user_id', $user->id)
+        ->first();
+
+        if ($existingReview) {
+            return response()->json(['message' => 'You have already reviewed this order.'], 422);
+        }
+
         Review::create([
             'user_id' => $user->id,
             'business_id' => $validated['business_id'],

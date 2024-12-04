@@ -106,11 +106,14 @@ class OrderManageService
 
     public function viewOrders($userId)
     {
-        $today = Carbon::now()->toDateString();
+        $today = Carbon::now('Asia/karachi')->toDateString();
+        $startOfLastMonth = Carbon::now('Asia/karachi')->subMonth()->startOfMonth()->toDateString();
+        $endOfMonth = Carbon::now()->endOfMonth()->toDateString();
 
         return Order::where('user_id', $userId)
-                    ->whereDate('created_at', $today)
+                    ->whereBetween('created_at', [$startOfLastMonth, $today])
                     ->with('items.product')
+                    ->orderBy('created_at', 'desc')
                     ->get();
     }
 

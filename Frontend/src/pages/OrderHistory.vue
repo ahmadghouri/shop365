@@ -271,7 +271,7 @@ const submitReview = async () => {
     closeReviewModal();
   } catch (error) {
     console.error("Error posting review", error);
-    toast.error("Failed to post review");
+    toast.error("You have already reviewed this order");
   }
 };
 

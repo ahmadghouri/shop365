@@ -77,6 +77,29 @@
       </div>
     </div>
 
+    <div class="hidden lg:flex justify-center items-center mb-8">
+      <button
+        @click="openReviewsModal"
+        class="flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 mr-2"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+          />
+        </svg>
+        Reviews
+      </button>
+    </div>
+
     <!-- Fixed search button -->
     <button
       v-show="showFixedSearch"
@@ -129,7 +152,28 @@
       </div>
     </div>
 
-    <div class="lg:hidden mb-4 flex justify-center">
+    <div class="lg:hidden mb-4 flex justify-between items-center">
+      <button
+        @click="openReviewsModal"
+        class="flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 mr-2"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+          />
+        </svg>
+        Reviews
+      </button>
+
       <button
         @click="showFilterModal = true"
         class="flex items-center animate-pulse-glow justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300"
@@ -379,6 +423,127 @@
       </div>
     </transition>
   </div>
+
+  <div
+    v-if="showReviewsModal"
+    class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+    @click="closeReviewsModal"
+  >
+    <div
+      class="bg-white w-full max-w-md rounded-lg shadow-xl max-h-[80vh] overflow-y-auto"
+      @click.stop
+    >
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Customer Reviews</h2>
+          <button
+            @click="closeReviewsModal"
+            class="text-gray-600 hover:text-gray-800"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Overall Rating -->
+        <div class="mb-6 text-center">
+          <div class="flex justify-center items-center mb-2">
+            <template v-for="n in 5" :key="n">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                :class="
+                  n <= averageRating ? 'text-yellow-500' : 'text-gray-300'
+                "
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                />
+              </svg>
+            </template>
+          </div>
+          <p class="text-gray-600">
+            {{ averageRating.toFixed(1) }} / 5.0
+            <span class="text-sm"
+              >({{ reviewStore.reviewsList.length }} reviews)</span
+            >
+          </p>
+        </div>
+
+        <!-- Reviews List -->
+        <div
+          v-if="reviewStore.reviewsList.length === 0"
+          class="text-center text-gray-600"
+        >
+          No reviews yet
+        </div>
+        <div v-else>
+          <div
+            v-for="review in reviewStore.reviewsList"
+            :key="review.id"
+            class="flex items-start space-x-4 mb-6 pb-6 border-b last:border-b-0"
+          >
+            <!-- User Avatar -->
+            <div
+              class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl"
+              :style="{ backgroundColor: getUserColor(review.user.name) }"
+            >
+              {{ review.user.name[0].toUpperCase() }}
+            </div>
+
+            <!-- Review Content -->
+            <div class="flex-grow">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="font-semibold text-gray-800">
+                  {{ review.user.name }}
+                </h3>
+                <div class="flex">
+                  <template v-for="n in 5" :key="n">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      :class="
+                        n <= review.rating ? 'text-yellow-500' : 'text-gray-300'
+                      "
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                      />
+                    </svg>
+                  </template>
+                </div>
+              </div>
+              <p v-if="review.comments" class="text-gray-600 text-sm">
+                {{ review.comments }}
+              </p>
+              <p v-else class="text-gray-500 italic text-sm">
+                No comments provided
+              </p>
+              <span class="text-xs text-gray-500 mt-2 block">
+                {{ formatDate(review.created_at) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -391,6 +556,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import debounce from "lodash/debounce";
 import { storeToRefs } from "pinia";
+import { useReviewStore } from "../store/useReviewStore";
 
 const route = useRoute();
 const router = useRouter();
@@ -406,6 +572,7 @@ const {
   number,
 } = storeToRefs(productStore);
 const cartStore = useCartStore();
+const reviewStore = useReviewStore();
 const businessId = route.params.id;
 const showFilterModal = ref(false);
 const filterSearchQuery = ref("");
@@ -421,6 +588,69 @@ const showFixedSearch = ref(false);
 const showSearchModal = ref(false);
 const searchContainer = ref(null);
 const modalSearchInput = ref(null);
+
+// State
+const showReviewsModal = ref(false);
+
+// Computed
+const averageRating = computed(() => {
+  if (reviewStore.reviewsList.length === 0) return 0;
+  const total = reviewStore.reviewsList.reduce(
+    (sum, review) => sum + review.rating,
+    0
+  );
+  return total / reviewStore.reviewsList.length;
+});
+
+// Methods
+const openReviewsModal = async () => {
+  showReviewsModal.value = true;
+  await fetchReviews();
+};
+
+const closeReviewsModal = () => {
+  showReviewsModal.value = false;
+};
+
+const fetchReviews = async () => {
+  try {
+    await reviewStore.getReviews(businessId);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    toast.error("Failed to load reviews");
+  }
+};
+
+// Utility Methods
+const getUserColor = (name) => {
+  const colors = [
+    "#F44336",
+    "#E91E63",
+    "#9C27B0",
+    "#673AB7",
+    "#3F51B5",
+    "#2196F3",
+    "#03A9F4",
+    "#00BCD4",
+    "#009688",
+    "#4CAF50",
+    "#8BC34A",
+    "#CDDC39",
+  ];
+  const hashCode = name.split("").reduce((hash, char) => {
+    return char.charCodeAt(0) + ((hash << 5) - hash);
+  }, 0);
+  return colors[Math.abs(hashCode) % colors.length];
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 
 const filteredFilters = computed(() => {
   if (!filterSearchQuery.value) return filters.value;

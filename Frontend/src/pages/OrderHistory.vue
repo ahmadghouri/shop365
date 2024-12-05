@@ -115,6 +115,7 @@
             Reorder
           </button>
           <button
+            v-if="order.status == 'delivered'"
             @click="handleReview(order)"
             class="px-3 py-2 text-xs bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
           >

@@ -171,10 +171,15 @@ class ProductController extends Controller
 
     public function businessProductsTypes($businessId)
     {
-        $types = Product::where('business_id', $businessId)->select('type')->distinct()->get();
-
+        $types = Product::where('business_id', $businessId)
+            ->select('type')
+            ->distinct()
+            ->orderBy('type', 'asc') // Sort types alphabetically in ascending order
+            ->get();
+    
         return $this->successResponse($types);
     }
+    
 
     public function businessProductsFiltered(Request $request, $businessId)
     {

@@ -89,11 +89,12 @@
           class="flex justify-between text-sm py-1"
         >
           <span class="text-gray-700">
-            {{ item.product.title }}
+            {{ item.product?.title || "Unnamed Product" }}
             <span class="text-gray-500 ml-2">x {{ item.quantity }}</span>
           </span>
           <span class="font-semibold text-gray-800">
-            PKR {{ (item.price * item.quantity).toLocaleString() }}
+            PKR
+            {{ ((item.price || 0) * (item.quantity || 1)).toLocaleString() }}
           </span>
         </div>
       </div>
@@ -102,7 +103,7 @@
       <div class="mt-4 pt-4 border-t flex justify-between items-center">
         <div>
           <p class="text-base font-semibold text-gray-800">
-            Total: PKR {{ order.total_price.toLocaleString() }}
+            Total: PKR {{ (order.total_price || 0).toLocaleString() }}
           </p>
         </div>
 
@@ -219,7 +220,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useOrderStore } from "../store/orderStore";
 import { useCartStore } from "../store/cartStore";
@@ -241,8 +242,13 @@ const rating = ref(0);
 const hoverRating = ref(0);
 
 const handleReview = (order) => {
-  currentReviewOrder.value = order;
-  showReviewModal.value = true;
+  // Ensure we have a valid order before opening review modal
+  if (order && order.items && order.items.length > 0) {
+    currentReviewOrder.value = order;
+    showReviewModal.value = true;
+  } else {
+    toast.error("Unable to review this order");
+  }
 };
 
 const closeReviewModal = () => {
@@ -257,8 +263,16 @@ const submitReview = async () => {
   if (rating.value === 0) return;
 
   try {
-    const order_id = currentReviewOrder.value.id;
-    const business_id = currentReviewOrder.value.items[0]?.product.business_id;
+    // Add additional null checks
+    const order_id = currentReviewOrder.value?.id;
+    const first_item = currentReviewOrder.value?.items?.[0];
+    const business_id =
+      first_item?.product?.business_id || first_item?.business_id;
+
+    if (!order_id || !business_id) {
+      toast.error("Invalid order information");
+      return;
+    }
 
     await reviewStore.postReview(
       order_id,
@@ -271,38 +285,23 @@ const submitReview = async () => {
     closeReviewModal();
   } catch (error) {
     console.error("Error posting review", error);
-    toast.error("You have already reviewed this order");
+    toast.error("You have already reviewed this order or an error occurred");
   }
 };
 
-// const handleReview = async (order) => {
-//   try {
-//     const order_id = order.id;
-//     const business_id = order.items[0]?.product.business_id;
-
-//     // Implement the logic to handle the review
-//     await reviewStore.postReview(
-//       order_id,
-//       business_id,
-//       comment.value,
-//       rating.value
-//     );
-//   } catch (error) {
-//     console.error("Error posting review", error);
-//     toast.error("Failed to post review");
-//   }
-// };
 async function getOrderDetails() {
   isLoading.value = true;
   try {
     await orderStore.getOrderDetails();
-    orderDetails.value = orderStore.userOrderDetails;
+    // Add null check and fallback
+    orderDetails.value = orderStore.userOrderDetails || [];
     orderDetails.value.sort(
       (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
   } catch (error) {
     console.error(error);
     toast.error("Failed to fetch order details");
+    orderDetails.value = []; // Ensure it's an empty array on error
   } finally {
     isLoading.value = false;
   }
@@ -317,12 +316,11 @@ async function reorderOrder(orderId) {
     console.log(orderId);
 
     const result = await cartStore.reorderPreviousOrder(orderId);
-    if (result.success) {
+    if (result?.success) {
       toast.success(result.message);
-      // Optionally navigate to cart or show a confirmation
       router.push("/home/cart");
     } else {
-      toast.error(result.message);
+      toast.error(result?.message || "Failed to reorder");
     }
   } catch (error) {
     console.error("Reorder failed", error);
@@ -335,6 +333,8 @@ onMounted(async () => {
 });
 
 const formatDate = (dateString) => {
+  if (!dateString) return "Unknown Date";
+
   const options = {
     year: "numeric",
     month: "long",

@@ -16,105 +16,105 @@ use Illuminate\Support\Facades\Log;
 class OrderManageService
 {
     public function placeOrder($userPoints = false)
-{
-    $cartItems = Cart::where('user_id', auth()->id())->get();
+    {
+        $cartItems = Cart::where('user_id', auth()->id())->get();
 
-    if ($cartItems->isEmpty()) {
-        return response()->json(['message' => 'Your cart is empty'], 200);
-    }
-
-    $user = Auth::user();
-
-    $ordersByBusiness = $cartItems->groupBy(function ($cartItem) {
-        return $cartItem->product->business_id;
-    });
-
-    $orders = [];
-    $failedBusinesses = [];
-
-    foreach ($ordersByBusiness as $businessId => $items) {
-        // Calculate total price using final_price if available
-        $totalPrice = $items->sum(function ($cartItem) {
-            $product = $cartItem->product;
-            return ($product->final_price ?? $product->price) * $cartItem->quantity;
-        });
-
-        if ($totalPrice < 500) {
-            $business = Business::find($businessId);
-            $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
-        }
-    }
-
-    if (count($failedBusinesses) > 0) {
-        return response()->json(
-            [
-                'message' => 'Order(s) cannot be placed. Minimum order amount is 500 rupees for each business.',
-                'failed_businesses' => $failedBusinesses,
-            ],
-            400
-        );
-    }
-
-    foreach ($ordersByBusiness as $businessId => $items) {
-        $totalPrice = $items->sum(function ($cartItem) {
-            $product = $cartItem->product;
-            return ($product->final_price ?? $product->price) * $cartItem->quantity;
-        });
-
-        if($userPoints && $user->points >= 250){
-            $pointsToUse = min($user->points, $totalPrice);
-            $totalPrice -= $pointsToUse; 
-            $user->points -= $pointsToUse; 
-            $user->save();
+        if ($cartItems->isEmpty()) {
+            return response()->json(['message' => 'Your cart is empty'], 200);
         }
 
-        // Create the order
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'total_price' => $totalPrice,
-            'status' => 'pending',
-        ]);
+        $user = Auth::user();
 
-        foreach ($items as $cartItem) {
-            $product = $cartItem->product;
+        $ordersByBusiness = $cartItems->groupBy(function ($cartItem) {
+            return $cartItem->product->business_id;
+        });
 
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $product->id,
-                // Use final_price if available
-                'price' => $product->final_price ?? $product->price,
-                'quantity' => $cartItem->quantity,
+        $orders = [];
+        $failedBusinesses = [];
+
+        foreach ($ordersByBusiness as $businessId => $items) {
+            // Calculate total price using final_price if available
+            $totalPrice = $items->sum(function ($cartItem) {
+                $product = $cartItem->product;
+                return ($product->final_price ?? $product->price) * $cartItem->quantity;
+            });
+
+            if ($totalPrice < 500) {
+                $business = Business::find($businessId);
+                $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
+            }
+        }
+
+        if (count($failedBusinesses) > 0) {
+            return response()->json(
+                [
+                    'message' => 'Order(s) cannot be placed. Minimum order amount is 500 rupees for each business.',
+                    'failed_businesses' => $failedBusinesses,
+                ],
+                400
+            );
+        }
+
+        foreach ($ordersByBusiness as $businessId => $items) {
+            $totalPrice = $items->sum(function ($cartItem) {
+                $product = $cartItem->product;
+                return ($product->final_price ?? $product->price) * $cartItem->quantity;
+            });
+
+            if ($userPoints && $user->points >= 250) {
+                $pointsToUse = min($user->points, $totalPrice);
+                $totalPrice -= $pointsToUse;
+                $user->points -= $pointsToUse;
+                $user->save();
+            }
+
+            // Create the order
+            $order = Order::create([
+                'user_id' => auth()->id(),
+                'total_price' => $totalPrice,
+                'status' => 'pending',
             ]);
 
-            $cartItem->delete();
+            foreach ($items as $cartItem) {
+                $product = $cartItem->product;
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    // Use final_price if available
+                    'price' => $product->final_price ?? $product->price,
+                    'quantity' => $cartItem->quantity,
+                ]);
+
+                $cartItem->delete();
+            }
+
+            // Dispatch the event
+            // OrderPlaced::dispatch($order, $businessId);
+            event(new OrderPlaced($order, $businessId));
+            $orders[] = $order;
         }
 
-        // Dispatch the event
-        // OrderPlaced::dispatch($order, $businessId);
-        event(new OrderPlaced($order, $businessId));
-        $orders[] = $order;
+        return response()->json([
+            'message' => 'Order(s) placed successfully',
+            'orders' => $orders
+        ], 200);
     }
-
-    return response()->json([
-        'message' => 'Order(s) placed successfully',
-        'orders' => $orders
-    ], 200);
-}
 
 
 
 
     public function viewOrders($userId)
     {
-        $today = Carbon::now('Asia/karachi')->toDateString();
+        $today = Carbon::now('Asia/karachi')->addDay()->toDateString();
         $startOfLastMonth = Carbon::now('Asia/karachi')->subMonth()->startOfMonth()->toDateString();
         $endOfMonth = Carbon::now()->endOfMonth()->toDateString();
 
         return Order::where('user_id', $userId)
-                    ->whereBetween('created_at', [$startOfLastMonth, $today])
-                    ->with('items.product')
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+            ->whereBetween('created_at', [$startOfLastMonth, $today])
+            ->with('items.product')
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     public function viewAllOrders()
@@ -148,20 +148,20 @@ class OrderManageService
     {
         $order = Order::findOrFail($orderId);
         $previousStatus = $order->status;
-    
+
         // Only proceed if the status has changed
         if ($previousStatus !== $newStatus) {
             $order->status = $newStatus;
             $order->save();
-    
+
             $isGroceryOrder = $order->items->every(function ($item) {
                 return $item->product->business->type === 'Grocery';
             });
-    
+
             if ($isGroceryOrder) {
                 $user = $order->user;
                 $totalPrice = $order->total_price;
-    
+
                 // Points adjustment logic
                 if ($newStatus === 'delivered') {
                     // Add points if the new status is 'delivered'
@@ -172,12 +172,12 @@ class OrderManageService
                     $pointsToSubtract = $totalPrice * 0.01;
                     $user->points -= $pointsToSubtract;
                 }
-    
+
                 $user->save();
             }
         }
-    
+
         return $order;
     }
-    
+
 }

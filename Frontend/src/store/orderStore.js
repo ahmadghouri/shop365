@@ -70,6 +70,8 @@ export const useOrderStore = defineStore("order", {
     },
 
     async addToOrderList() {
+      console.log("called");
+
       this.getRestaurantOrders(this.page + 1);
     },
 

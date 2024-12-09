@@ -10,6 +10,8 @@ export const useOrderStore = defineStore("order", {
     userOrderDetails: [],
     businessId: "",
     adminOrders: [],
+    page: 1,
+    isLoaded: false,
   }),
   actions: {
     async placeOrder(usePoints) {
@@ -45,18 +47,30 @@ export const useOrderStore = defineStore("order", {
       this.ordersList.push(order);
     },
 
-    async getRestaurantOrders() {
+    async getRestaurantOrders(page = 1) {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/restaurantAdmin/orders`,
-          {}
+          {
+            params: { page },
+          }
         );
-
-        this.ordersList = response.data.data.orders;
+        const newOrders = response.data.data.orders.filter(
+          (order) =>
+            !this.ordersList.some(
+              (existingOrder) => existingOrder.id === order.id
+            )
+        );
+        this.ordersList = [...this.ordersList, ...newOrders];
         this.businessId = response.data.data.business_id;
+        this.isLoaded = true;
       } catch (error) {
         console.error("Something went wrong", error);
       }
+    },
+
+    async addToOrderList() {
+      this.getRestaurantOrders(this.page + 1);
     },
 
     async updateStatus(id, status) {

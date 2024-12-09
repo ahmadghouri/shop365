@@ -341,6 +341,8 @@
         </div>
       </div>
     </div>
+
+    <div ref="target" class="translate-y-20"></div>
   </div>
 </template>
 
@@ -351,6 +353,9 @@ import { toast } from "vue3-toastify";
 import { storeToRefs } from "pinia";
 import axios from "axios";
 import { API_BASE_URL } from "../../config/api";
+import { useIntersectionObserver } from "@vueuse/core";
+
+const target = ref(null);
 
 const orderStore = useOrderStore();
 const { ordersList } = storeToRefs(useOrderStore());
@@ -362,6 +367,15 @@ const selectedStatus = ref("pending");
 
 const I = new Audio("/notification.mp3");
 I.volume = 0.25;
+
+const { stop } = useIntersectionObserver(
+  target,
+  ([{ isIntersecting }], observerElement) => {
+    if (isIntersecting && orderStore.isLoaded) {
+      orderStore.addToOrderList();
+    }
+  }
+);
 
 const ordersListSortedAndFiltered = computed(() => {
   return [...ordersList.value]

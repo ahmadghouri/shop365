@@ -96,14 +96,26 @@ class OrderController extends Controller
 
     public function viewRestaurantOrders()
     {
-    $businessId = Auth::user()->business_id;
-    $orders = $this->orderService->viewRestaurantOrders($businessId);
-
-    // Merge orders and businessId into a single array
-    $data = array_merge(['orders' => $orders], ['business_id' => $businessId]);
-
-    return $this->successResponse($data, "Restaurant Orders", 200);
+        $businessId = Auth::user()->business_id;
+    
+        // Fetch paginated orders
+        $orders = $this->orderService->viewRestaurantOrders($businessId, request()->get('page', 1));
+    
+        // Structure response
+        $data = [
+            'orders' => $orders->items(), // Current page's orders
+            'business_id' => $businessId, 
+            'pagination' => [
+                'total' => $orders->total(), // Total number of orders
+                'per_page' => $orders->perPage(), // Orders per page (30 here)
+                'current_page' => $orders->currentPage(), // Current page
+                'last_page' => $orders->lastPage(), // Last page number
+            ],
+        ];
+    
+        return $this->successResponse($data, "Restaurant Orders", 200);
     }
+    
 
 
 

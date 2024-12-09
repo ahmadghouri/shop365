@@ -122,14 +122,16 @@ class OrderManageService
         return Order::with('items.product', 'user')->get();
     }
 
-    public function viewRestaurantOrders($businessId)
+    public function viewRestaurantOrders($businessId, $page)
     {
         return Order::whereHas('items.product', function ($query) use ($businessId) {
-            $query->where('business_id', $businessId);
-        })
+                $query->where('business_id', $businessId);
+            })
             ->with('items.product', 'user', 'user.household', 'user.household.town')
-            ->get();
+            ->orderBy('created_at', 'desc') // Ensure consistent order
+            ->paginate(15, ['*'], 'page', $page); // Paginate with 30 orders per page
     }
+    
 
 
     public function viewRestaurantOrdersAdmin($businessId)

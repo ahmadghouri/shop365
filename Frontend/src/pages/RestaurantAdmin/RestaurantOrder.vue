@@ -342,7 +342,7 @@
       </div>
     </div>
 
-    <div ref="target" class="translate-y-20"></div>
+    <div ref="target"></div>
   </div>
 </template>
 

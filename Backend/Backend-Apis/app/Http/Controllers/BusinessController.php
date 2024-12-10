@@ -32,7 +32,7 @@ class BusinessController extends Controller
      */
     public function index(): JsonResponse
     {
-        $businesses = Business::orderBy('discount', 'desc')->get();
+        $businesses = Business::withAvg('reviews', 'rating')->orderBy('discount', 'desc')->get();
 
         return $this->successResponse($businesses, 'All the businesses');
     }

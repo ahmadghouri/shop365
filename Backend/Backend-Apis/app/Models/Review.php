@@ -21,9 +21,15 @@ class Review extends Model
         return $this->belongsTo(Business::class);
     }
 
+
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public static function getAvgReview($business_id)
+    {
+        return self::where('business_id', $business_id)->avg('rating');
     }
 
 }

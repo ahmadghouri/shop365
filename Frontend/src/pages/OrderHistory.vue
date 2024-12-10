@@ -196,7 +196,7 @@
       <!-- Comment Textarea -->
       <textarea
         v-model="comment"
-        placeholder="Write your review (optional)"
+        placeholder="Write your review!"
         class="w-full p-2 border rounded mb-4 h-24 resize-none"
       ></textarea>
 

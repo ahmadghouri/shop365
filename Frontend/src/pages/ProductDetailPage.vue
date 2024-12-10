@@ -106,7 +106,7 @@
 
         <div v-else class="mt-8 flex items-center">
           <button class="button" @click.prevent="openContactPopup(product)">
-            Book Now
+            Appointment Now
           </button>
         </div>
       </div>

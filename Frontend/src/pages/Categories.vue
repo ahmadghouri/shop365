@@ -1,11 +1,11 @@
 <template>
   <div class="mobile-spacing relative lg:px-16">
-    <button
+    <!-- <button
       @click="handleSearch"
       class="fixed bottom-6 left-1/2 lg:left-[95%] transform -translate-x-1/2 z-50 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 py-4 shadow-lg"
     >
       <img src="/search.png" alt="" />
-    </button>
+    </button> -->
 
     <section class="lg:hidden">
       <div>

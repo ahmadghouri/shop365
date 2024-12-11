@@ -199,12 +199,12 @@
               </div>
             </div>
             <div class="mt-4 flex space-x-4">
-              <button
+              <!-- <button
                 @click="confirmDelete(product.id)"
                 class="text-red-500 border-2 w-full border-red-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               >
                 Delete
-              </button>
+              </button> -->
 
               <button
                 @click="openFormForUpdate(product)"

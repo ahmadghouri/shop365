@@ -176,17 +176,19 @@
       v-if="cartStore.cartItems.length > 0"
       class="bg-white p-4 rounded-lg shadow mb-4"
     >
-      <div class="flex items-center space-x-2">
+      <div
+        class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2"
+      >
         <input
           v-model="voucherCode"
           type="text"
           placeholder="Enter voucher code"
-          class="flex-1 p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+          class="w-full sm:flex-1 p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
         />
         <button
           @click="applyVoucher"
           :disabled="!voucherCode"
-          class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition duration-300 disabled:opacity-50"
+          class="w-full sm:w-auto bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition duration-300 disabled:opacity-50"
         >
           Apply
         </button>

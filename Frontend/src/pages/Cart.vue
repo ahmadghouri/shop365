@@ -173,6 +173,39 @@
     </div>
 
     <div
+      v-if="cartStore.cartItems.length > 0"
+      class="bg-white p-4 rounded-lg shadow mb-4"
+    >
+      <div class="flex items-center space-x-2">
+        <input
+          v-model="voucherCode"
+          type="text"
+          placeholder="Enter voucher code"
+          class="flex-1 p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+        />
+        <button
+          @click="applyVoucher"
+          :disabled="!voucherCode"
+          class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition duration-300 disabled:opacity-50"
+        >
+          Apply
+        </button>
+      </div>
+
+      <!-- Voucher success/error message -->
+      <p
+        v-if="voucherMessage"
+        :class="{
+          'text-green-600': voucherSuccess,
+          'text-red-600': !voucherSuccess,
+        }"
+        class="mt-2 text-sm"
+      >
+        {{ voucherMessage }}
+      </p>
+    </div>
+
+    <div
       v-if="showErrorPopup"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
     >
@@ -329,9 +362,26 @@
         v-if="cartStore.cartItems.length > 0"
         class="bg-white p-4 rounded-md shadow-md max-w-48 hidden lg:block"
       >
-        <div class="flex justify-center gap-4 items-center">
-          <h2 class="text-lg font-medium">Total:</h2>
-          <p class="text-yellow-600 font-bold">{{ total }}</p>
+        <div class="flex flex-col justify-center items-center">
+          <div class="flex gap-4 items-center">
+            <h2 class="text-lg font-medium">Sub Total:</h2>
+            <p class="text-gray-600 font-bold">
+              {{ originalTotal.toFixed(2) }}
+            </p>
+          </div>
+          <div
+            class="flex gap-4 items-center"
+            v-if="cartStore.voucherDiscount > 0"
+          >
+            <h2 class="text-lg font-medium">Discount:</h2>
+            <p class="text-red-600 font-bold">
+              -{{ cartStore.voucherDiscount.toFixed(2) }}
+            </p>
+          </div>
+          <div class="flex gap-4 items-center">
+            <h2 class="text-lg font-medium">Total:</h2>
+            <p class="text-yellow-600 font-bold">{{ total.toFixed(2) }}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -415,6 +465,11 @@ const orderStore = useOrderStore();
 const router = useRouter();
 const authStore = useAuthStore();
 
+// voucher code
+const voucherCode = ref("");
+const voucherMessage = ref("");
+const voucherSuccess = ref(false);
+
 const showErrorPopup = ref(false);
 const errorMessage = ref("");
 const isProcessing = ref(false);
@@ -432,6 +487,94 @@ const editAddress = ref("");
 const isEditingAddress = ref(false);
 const profile_id = ref();
 const usePointsForOrder = ref(false);
+
+const applyVoucher = async () => {
+  try {
+    voucherMessage.value = "";
+    voucherSuccess.value = false;
+
+    cartStore.resetVoucherDiscount();
+
+    // Apply voucher
+    const result = await cartStore.applyVoucher(voucherCode.value);
+
+    // Set success message
+    voucherMessage.value = result.message || "Voucher applied successfully";
+    voucherSuccess.value = true;
+  } catch (error) {
+    // Set error message
+    voucherMessage.value =
+      error.response?.data?.message || "Failed to apply voucher";
+    voucherSuccess.value = false;
+  }
+};
+
+const originalTotal = computed(() => {
+  return cartStore.cartItems.reduce((sum, item) => {
+    if (item.product) {
+      const price = item.product.final_price || item.product.price;
+      return sum + price * item.quantity;
+    }
+    return sum;
+  }, 0);
+});
+
+const total = computed(() => {
+  return Math.max(originalTotal.value - cartStore.voucherDiscount, 0);
+});
+
+const orderNow = async () => {
+  if (total.value <= 0) {
+    showError("You cannot place an order with a total amount of 0.");
+    return;
+  }
+  if (usePointsForOrder.value && authStore.points <= 250) {
+    showError("Minimum 250 points required to use points.");
+    return;
+  }
+  isProcessing.value = true;
+  try {
+    console.log(voucherCode.value, "voucher code");
+
+    const response = await orderStore.placeOrder(
+      usePointsForOrder.value,
+      voucherCode.value
+    );
+
+    if (
+      response.status === 200 &&
+      response.data.message === "Order(s) placed successfully"
+    ) {
+      if (usePointsForOrder.value) {
+        const pointsUsed = response.data.pointsUsed || 0;
+        await authStore.refreshUser(); // Refresh to get updated points
+      }
+      showOrderConfirmation.value = true;
+      startConfirmationTimer();
+      cartStore.resetVoucherDiscount();
+    } else {
+      let errorMessage = response.data.message || "Something went wrong.";
+      if (response.data.failed_businesses?.length > 0) {
+        const failedBusinesses = response.data.failed_businesses.join(", ");
+        errorMessage += ` The following restaurants have an order amount less than 500: ${failedBusinesses}.`;
+      }
+      showError(errorMessage);
+    }
+  } catch (error) {
+    let errorMessage = "Something went wrong.";
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+      if (error.response.data.failed_businesses?.length > 0) {
+        const failedBusinesses =
+          error.response.data.failed_businesses.join(", ");
+        errorMessage += ` The following restaurants have an order amount less than 500: ${failedBusinesses}.`;
+      }
+    }
+    showError(errorMessage);
+  } finally {
+    isProcessing.value = false;
+  }
+};
 
 async function getProfileData() {
   try {
@@ -514,63 +657,6 @@ const decreaseQuantity = async (item) => {
     }
   } catch (error) {
     console.error("Failed to decrease quantity", error);
-  }
-};
-
-const total = computed(() => {
-  return cartStore.cartItems.reduce((sum, item) => {
-    if (item.product) {
-      const price = item.product.final_price || item.product.price;
-      return sum + price * item.quantity;
-    }
-    return sum;
-  }, 0);
-});
-
-const orderNow = async () => {
-  if (total.value <= 0) {
-    showError("You cannot place an order with a total amount of 0.");
-    return;
-  }
-  if (usePointsForOrder.value && authStore.points <= 250) {
-    showError("Minimum 40 points required to use points.");
-    return;
-  }
-  isProcessing.value = true;
-  try {
-    const response = await orderStore.placeOrder(usePointsForOrder.value);
-
-    if (
-      response.status === 200 &&
-      response.data.message === "Order(s) placed successfully"
-    ) {
-      if (usePointsForOrder.value) {
-        const pointsUsed = response.data.pointsUsed || 0;
-        await authStore.refreshUser(); // Refresh to get updated points
-      }
-      showOrderConfirmation.value = true;
-      startConfirmationTimer();
-    } else {
-      let errorMessage = response.data.message || "Something went wrong.";
-      if (response.data.failed_businesses?.length > 0) {
-        const failedBusinesses = response.data.failed_businesses.join(", ");
-        errorMessage += ` The following restaurants have an order amount less than 500: ${failedBusinesses}.`;
-      }
-      showError(errorMessage);
-    }
-  } catch (error) {
-    let errorMessage = "Something went wrong.";
-    if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-      if (error.response.data.failed_businesses?.length > 0) {
-        const failedBusinesses =
-          error.response.data.failed_businesses.join(", ");
-        errorMessage += ` The following restaurants have an order amount less than 500: ${failedBusinesses}.`;
-      }
-    }
-    showError(errorMessage);
-  } finally {
-    isProcessing.value = false;
   }
 };
 

@@ -54,6 +54,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Review::class);
     }
+
+    public function vouchers()
+    {
+        return $this->belongsToMany(Voucher::class, 'voucher_user');
+    }
+
+    public function hasVoucher(Voucher $voucher)
+    {
+        return $this->vouchers()->where('voucher_id', $voucher->id)->exists();
+    }
         
 
     /**

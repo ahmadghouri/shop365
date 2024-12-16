@@ -76,9 +76,11 @@ class OrderController extends Controller
     {
         $request->validate([
             'userPoints' => 'nullable|boolean',
+            'voucher_code' => 'nullable|string', 
         ]);
         $userPoints = $request->input('userPoints', false);
-        return $this->orderService->placeOrder($userPoints);
+        $voucherCode = $request->input('voucher_code', null);
+        return $this->orderService->placeOrder($userPoints, $voucherCode);
     }
 
     public function viewOrders()

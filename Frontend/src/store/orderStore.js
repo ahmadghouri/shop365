@@ -14,12 +14,13 @@ export const useOrderStore = defineStore("order", {
     isLoaded: false,
   }),
   actions: {
-    async placeOrder(usePoints) {
+    async placeOrder(usePoints, voucherCode = null) {
       try {
         const response = await axios.post(
           `${API_BASE_URL}/api/order`,
           {
             userPoints: usePoints,
+            voucher_code: voucherCode,
           },
           {}
         );

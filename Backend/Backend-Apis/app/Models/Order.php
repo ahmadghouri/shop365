@@ -9,7 +9,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'total_price', 'status'];
+    protected $fillable = ['user_id', 'total_price', 'status', 'voucher_id'];
 
     public function user() 
     {
@@ -19,6 +19,11 @@ class Order extends Model
     public function items()  // This must match the name used in the query
     {
          return $this->hasMany(OrderItem::class);
+    }
+    
+    public function voucher()
+    {
+        return $this->belongsTo(Voucher::class);
     }
 
     

@@ -8,6 +8,7 @@ use App\Models\Business;
 use App\Models\cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Voucher;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -15,36 +16,36 @@ use Illuminate\Support\Facades\Log;
 
 class OrderManageService
 {
-    public function placeOrder($userPoints = false)
+    public function placeOrder($userPoints = false, $voucherCode = null)
     {
-        $cartItems = Cart::where('user_id', auth()->id())->get();
-
+        // Retrieve the user's cart items
+        $cartItems = cart::where('user_id', auth()->id())->get();
+    
         if ($cartItems->isEmpty()) {
-            return response()->json(['message' => 'Your cart is empty'], 200);
+            return response()->json(['message' => 'Your cart is empty'], 400);
         }
-
+    
         $user = Auth::user();
-
         $ordersByBusiness = $cartItems->groupBy(function ($cartItem) {
             return $cartItem->product->business_id;
         });
-
+    
         $orders = [];
         $failedBusinesses = [];
-
+    
         foreach ($ordersByBusiness as $businessId => $items) {
             // Calculate total price using final_price if available
             $totalPrice = $items->sum(function ($cartItem) {
                 $product = $cartItem->product;
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
             });
-
+    
             if ($totalPrice < 500) {
                 $business = Business::find($businessId);
                 $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
             }
         }
-
+    
         if (count($failedBusinesses) > 0) {
             return response()->json(
                 [
@@ -54,53 +55,74 @@ class OrderManageService
                 400
             );
         }
-
+    
+        // Apply voucher discount if voucher code is provided
+        $voucher = null;
+        if ($voucherCode) {
+            $voucher = Voucher::where('code', strtolower($voucherCode))->first();
+    
+            if (!$voucher) {
+                return response()->json(['message' => 'Invalid voucher code'], 400);
+            }
+    
+            // Check if the voucher has expired
+            if ($voucher->expiry_date && Carbon::parse($voucher->expiry_date)->isBefore(Carbon::now())) {
+                return response()->json(['message' => 'Voucher has expired'], 400);
+            }
+        }
+    
         foreach ($ordersByBusiness as $businessId => $items) {
             $totalPrice = $items->sum(function ($cartItem) {
                 $product = $cartItem->product;
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
             });
-
+    
+            // Apply user points discount if available
             if ($userPoints && $user->points >= 250) {
                 $pointsToUse = min($user->points, $totalPrice);
                 $totalPrice -= $pointsToUse;
                 $user->points -= $pointsToUse;
                 $user->save();
             }
-
+    
+            // Apply voucher discount if available
+            if ($voucher) {
+                $discountAmount = min($voucher->discount_amount, $totalPrice);
+                $totalPrice -= $discountAmount;
+            }
+    
             // Create the order
             $order = Order::create([
                 'user_id' => auth()->id(),
                 'total_price' => $totalPrice,
                 'status' => 'pending',
+                'voucher_id' => $voucher ? $voucher->id : null, // Store the voucher ID in the order
             ]);
-
+    
             foreach ($items as $cartItem) {
                 $product = $cartItem->product;
-
+    
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
-                    // Use final_price if available
                     'price' => $product->final_price ?? $product->price,
                     'quantity' => $cartItem->quantity,
                 ]);
-
+    
                 $cartItem->delete();
             }
-
-            // Dispatch the event
-            // OrderPlaced::dispatch($order, $businessId);
+    
+            // Dispatch the event (optional)
             event(new OrderPlaced($order, $businessId));
             $orders[] = $order;
         }
-
+    
         return response()->json([
             'message' => 'Order(s) placed successfully',
             'orders' => $orders
         ], 200);
     }
-
+    
 
 
 

@@ -6,8 +6,48 @@ export const useCartStore = defineStore("cart", {
   state: () => ({
     cartItems: [],
     cartCount: 0,
+    voucherDiscount: 0,
   }),
   actions: {
+    // In your cartStore
+    async applyVoucher(voucherCode) {
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/cart/apply-voucher`,
+          {
+            voucher_code: voucherCode,
+          }
+        );
+
+        // Explicitly set the discount
+        this.voucherDiscount = response.data.discount;
+
+        // Return an object with a message and the full response data
+        return {
+          message: "Voucher applied successfully",
+          ...response.data,
+        };
+      } catch (error) {
+        this.voucherDiscount = 0;
+
+        // Log the full error for debugging
+        console.error("Voucher application error:", error);
+
+        // Throw the error with a specific message
+        throw {
+          response: {
+            data: {
+              message:
+                error.response?.data?.message || "Failed to apply voucher",
+            },
+          },
+        };
+      }
+    },
+
+    resetVoucherDiscount() {
+      this.voucherDiscount = 0;
+    },
     async addToCart(productInfo) {
       try {
         await axios.post(`${API_BASE_URL}/api/cart`, productInfo, {});

@@ -39,6 +39,7 @@ import ShopStats from "../pages/Admin/ShopStats.vue";
 import TotalUsers from "../pages/Admin/TotalUsers.vue";
 import { useAuthStore } from "../stores/authStore";
 import { storeToRefs } from "pinia";
+import Voucher from "../pages/Admin/Voucher.vue";
 
 const routes = [
   {
@@ -220,6 +221,14 @@ const routes = [
         path: "products/:id",
         name: "Products",
         component: Product,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "create-voucher",
+        name: "Voucher",
+        component: Voucher,
         meta: {
           requiresAdminAuth: true,
         },

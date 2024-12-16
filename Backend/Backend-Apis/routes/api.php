@@ -13,6 +13,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TownController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\TownAdminMiddleware;
 use App\Models\Order;
@@ -58,6 +59,8 @@ Route::get('/getNumber/{businessId}', [BusinessController::class, 'getNumber']);
 // Routes requiring authentication
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/cart/apply-voucher', [VoucherController::class, 'applyVoucher']);
+
     Route::post('/reorder/{order}', [OrderController::class, 'reorder']);
     Route::get('/refreshUser', [UserController::class, 'refreshUser']);
     Route::post('/add-details', [AuthController::class, 'addDetails']);
@@ -98,6 +101,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', AdminMiddleware::class])
     ->prefix('/admin')
     ->group(function () {
+        // create the voucher
+        Route::post('/create-voucher', [VoucherController::class, 'store']);
 
         Route::get('/business-orders/{id}', [OrderController::class, 'superAdminOrders']);
         // for just grocery

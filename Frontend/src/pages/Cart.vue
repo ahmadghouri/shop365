@@ -391,19 +391,45 @@
       v-if="cartStore.cartItems.length > 0"
       class="bg-gradient-to-r from-yellow-400 to-yellow-500 mobile-spacing rounded-2xl shadow-lg fixed bottom-0 left-0 right-0 mx-4 mb-6 lg:hidden overflow-hidden"
     >
-      <div class="flex items-center justify-between space-x-4">
+      <div class="flex items-center justify-between p-4 space-x-4">
         <div class="flex flex-col">
-          <h2 class="text-lg font-semibold text-white">Total:</h2>
-          <p class="text-2xl font-bold text-white">{{ total }}</p>
+          <!-- Sub Total and Total Container -->
+          <div class="flex items-center space-x-2">
+            <span class="text-white text-sm font-medium">Sub:</span>
+            <span class="text-white text-base font-bold">
+              {{ originalTotal.toFixed(2) }}
+            </span>
+          </div>
+
+          <!-- Discount -->
+          <div
+            v-if="cartStore.voucherDiscount > 0"
+            class="flex items-center space-x-2"
+          >
+            <span class="text-white text-sm font-medium">Disc:</span>
+            <span class="text-red-100 text-base font-bold">
+              -{{ cartStore.voucherDiscount.toFixed(2) }}
+            </span>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <span class="text-white text-sm font-medium">Total:</span>
+            <span class="text-white text-lg font-bold">
+              {{ total.toFixed(2) }}
+            </span>
+          </div>
         </div>
 
+        <!-- Order Now Button -->
         <button
           @click="orderNow"
-          class="relative bg-white text-yellow-600 rounded-full px-8 py-3 font-bold animate-pulse-glow transform hover:scale-110 transition-all duration-300 shadow-2xl hover:shadow-yellow-500/50"
+          class="bg-white text-yellow-600 rounded-full px-6 py-2 font-bold text-sm animate-pulse-glow transform hover:scale-110 transition-all duration-300 shadow-2xl hover:shadow-yellow-500/50"
         >
           Order Now
         </button>
       </div>
+
+      <!-- Gradient Accent Line -->
       <div
         class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-300 to-yellow-500"
       ></div>

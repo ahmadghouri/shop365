@@ -67,10 +67,10 @@
         </li>
         <li class="px-4 py-2">
           <router-link
-            to="/admin/create-voucher"
+            to="/admin/vouchers"
             class="block text-gray-700 hover:text-gray-900"
           >
-            Create Voucher
+            Voucher
           </router-link>
         </li>
         <li class="px-4 py-2">

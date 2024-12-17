@@ -86,5 +86,30 @@ class VoucherController extends Controller
             'discount' => $voucher->discount_amount,
         ], 200);
     }
+
+    public function getVoucher()
+    {
+        try {
+            $vouchers = Voucher::with('business:id,name')->orderBy('created_at', 'desc')->get();            ;
+            return $this->successResponse($vouchers, 'Vouchers retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to retrieve vouchers', 500);
+        }
+    }
+
+    public function deleteVoucher($id)
+    {
+        try {
+            $voucher = Voucher::find($id);
+            if (!$voucher) {
+                return $this->errorResponse('Voucher not found', 404);
+            }
+            $voucher->delete();
+            return $this->successResponse('Voucher deleted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to delete voucher: ' . $e->getMessage(), 500);
+        }
+    }
+    
     
 }

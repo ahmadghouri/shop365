@@ -103,6 +103,10 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
     ->group(function () {
         // create the voucher
         Route::post('/create-voucher', [VoucherController::class, 'store']);
+        // get all the voucher
+        Route::get('/get-voucher', [VoucherController::class, 'getVoucher']);
+        // delete the specific voucher
+        Route::delete('/voucher/{id}/delete', [VoucherController::class, 'deleteVoucher']);
 
         Route::get('/business-orders/{id}', [OrderController::class, 'superAdminOrders']);
         // for just grocery

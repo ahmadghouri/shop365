@@ -33,4 +33,9 @@ class Business extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    public function vouchers()
+    {
+        return $this->hasMany(Voucher::class);
+    }
 }

@@ -134,6 +134,9 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
 Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
     ->prefix('/restaurantAdmin')
     ->group(function () {
+        // get and reply to the reviews
+        Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
+        Route::post('/review/{review_id}/reply', [ReviewController::class, 'reply']);
         // Complaints management
         Route::put('/complaint-status', [ComplainController::class, 'update']);
         Route::get('/complaints', [ComplainController::class, 'complaintsOfTown']);

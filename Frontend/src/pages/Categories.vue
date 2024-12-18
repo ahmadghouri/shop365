@@ -211,6 +211,10 @@
                       : "0.0"
                   }}
                 </span>
+
+                <span class="text-sm text-gray-600 ml-1">
+                  ({{ category.reviews_count }})</span
+                >
               </div>
               <div class="flex items-center mb-2">
                 <!-- Dot Indicator for Open/Closed -->

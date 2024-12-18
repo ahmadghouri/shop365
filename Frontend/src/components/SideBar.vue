@@ -109,6 +109,14 @@
         </li>
         <li class="px-4 py-2">
           <router-link
+            to="/admin/business-reviews"
+            class="block text-gray-700 hover:text-gray-900"
+          >
+            Reviews
+          </router-link>
+        </li>
+        <li class="px-4 py-2">
+          <router-link
             to="/userLogin"
             class="block text-gray-700 hover:text-gray-900"
           >

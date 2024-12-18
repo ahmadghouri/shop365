@@ -499,8 +499,13 @@
           >
             <!-- User Avatar -->
             <div
-              class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl"
-              :style="{ backgroundColor: getUserColor(review.user.name) }"
+              class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0 aspect-square"
+              :style="{
+                backgroundColor: getUserColor(review.user.name),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }"
             >
               {{ review.user.name[0].toUpperCase() }}
             </div>

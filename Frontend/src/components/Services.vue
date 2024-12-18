@@ -74,7 +74,7 @@ const services = ref([
   // ["Shop365", "/Asset 2.png"],
   ["Grocery", "/Groccery1.png"],
   ["Food", "/food1.png"],
-  ["Pakwan Center", "/pakwan.png"],
+  ["Pakwan", "/pakwan.png"],
   ["Doctor", "/doctor1.png"],
   // ["Vehicle", "/car1.png"],
   ["Mobile", "/mobile1.png"],

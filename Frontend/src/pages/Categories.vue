@@ -423,21 +423,84 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Responsive Category Link Styles */
 .category-link {
-  height: 300px;
-  /* Set fixed height for the link container */
+  height: 100%; /* Change from fixed height to full height */
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.category-link:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .category-image-container {
-  height: 40%;
-  /* Adjust as needed */
+  position: relative;
+  padding-top: 56.25%; /* 16:9 aspect ratio for responsive image container */
+  width: 100%;
 }
 
 .category-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Ensure image covers the container */
+}
+
+/* Ensure content is flexible and doesn't overflow */
+.category-link > div:last-child {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+/* Improve text handling */
+.category-link h1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Make rating and status more flexible */
+.category-link .rating-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.category-link .rating-container > * {
+  margin-right: 0.25rem;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 640px) {
+  .category-link {
+    height: auto; /* Allow natural height on small screens */
+  }
+
+  .category-image-container {
+    padding-top: 66.66%; /* Slightly taller aspect ratio for mobile */
+  }
+
+  .category-link h1 {
+    font-size: 1rem; /* Smaller font size on mobile */
+    height: auto;
+  }
+
+  .category-link .rating-container {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+  }
 }
 
 @keyframes shimmer {

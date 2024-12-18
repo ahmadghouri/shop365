@@ -27,6 +27,7 @@ import RegisterAdmin from "../pages/Admin/RegisterAdmin.vue";
 import RestaurantAdminDashboard from "../pages/RestaurantAdmin/RestaurantAdminDashboard.vue";
 import OurStoreUsers from "../pages/Admin/OurStoreUsers.vue";
 import RestaurantOrder from "../pages/RestaurantAdmin/RestaurantOrder.vue";
+import BusinessReviews from "../pages/RestaurantAdmin/BusinessReviews.vue";
 import Profile from "../pages/Profile.vue";
 import OrderHistory from "../pages/OrderHistory.vue";
 import UserLogin from "../pages/Login.vue";
@@ -302,6 +303,14 @@ const routes = [
         path: "restaurantAdminDashboard",
         name: "RestaurantAdminDashboard",
         component: RestaurantAdminDashboard,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "business-reviews",
+        name: "Business-Reviews",
+        component: BusinessReviews,
         meta: {
           requiresAdminAuth: true,
         },

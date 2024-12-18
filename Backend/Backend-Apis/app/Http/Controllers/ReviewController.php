@@ -42,7 +42,44 @@ class ReviewController extends Controller
 
     public function index($business_id)
     {
-        $reviews = Review::with('user')->where( 'business_id', $business_id)->orderBy('created_at', 'desc')->paginate(1000);
+        $reviews = Review::with('user')->with('business:id,name')->where( 'business_id', $business_id)->orderBy('created_at', 'desc')->paginate(1000);
+        return response()->json(['reviews' => $reviews]);
+    }
+
+    public function reply(Request $request, $review_id)
+    {
+        $validated = $request->validate([
+            'reply' => 'required|string',
+        ]);
+
+        $review = Review::find($review_id);
+
+        if(!$review)
+        {
+            return response()->json(['message' => 'Review not found'], 404);
+        }
+
+        $business = Auth::user();
+
+        if($business->business_id != $review->business_id)
+        {
+            return response()->json(['message' => 'You are not authorized to reply to this review'], 403);
+        }
+
+        if ($review->reply) {
+            return response()->json(['message' => 'This review has already been replied to'], 422);
+        }
+
+        $review->reply = $validated['reply'];
+        $review->save();
+
+        return response()->json(['message' => 'Reply submitted successfully.', 'review' => $review]);
+    }
+
+    public function getReviews()
+    {
+        $business_id = Auth::user()->business_id;
+        $reviews = Review::with('user')->with('business:id,name')->where('business_id', $business_id)->orderBy('created_at', 'desc')->get();
         return response()->json(['reviews' => $reviews]);
     }
 }

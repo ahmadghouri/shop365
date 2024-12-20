@@ -12,7 +12,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div
           v-for="user in users"
-          :key="user.id"
+          :key="user?.id || index"
           class="bg-white shadow-xl rounded-2xl p-6 transform transition-all hover:scale-105 hover:shadow-2xl"
         >
           <!-- User Profile Header -->
@@ -20,11 +20,13 @@
             <div
               class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mr-4"
             >
-              {{ user.name.charAt(0) }}
+              {{ (user?.name || "U").charAt(0) }}
             </div>
             <div>
-              <h2 class="text-2xl font-bold text-gray-800">{{ user.name }}</h2>
-              <p class="text-gray-500">User ID: {{ user.id }}</p>
+              <h2 class="text-2xl font-bold text-gray-800">
+                {{ user?.name || "Unknown User" }}
+              </h2>
+              <p class="text-gray-500">User ID: {{ user?.id || "N/A" }}</p>
             </div>
           </div>
 
@@ -35,7 +37,7 @@
                 Contact Information
               </h3>
               <p class="text-gray-800">
-                <strong>Phone:</strong> {{ user.phone_no }}
+                <strong>Phone:</strong> {{ user?.phone_no || "Not provided" }}
               </p>
             </div>
 
@@ -46,12 +48,14 @@
               <div class="flex justify-between">
                 <div>
                   <strong>Points:</strong>
-                  <span class="text-blue-600 font-bold">{{ user.points }}</span>
+                  <span class="text-blue-600 font-bold">{{
+                    user?.points || 0
+                  }}</span>
                 </div>
                 <div>
                   <strong>Orders:</strong>
                   <span class="text-green-600 font-bold">{{
-                    user.order_count
+                    user?.order_count || 0
                   }}</span>
                 </div>
               </div>
@@ -61,8 +65,14 @@
               <h3 class="text-sm font-semibold text-gray-600 mb-1">
                 Location Details
               </h3>
-              <p><strong>Address:</strong> {{ user.household.address }}</p>
-              <p><strong>Town:</strong> {{ user.household.town.town_name }}</p>
+              <p>
+                <strong>Address:</strong>
+                {{ user?.household?.address || "Not provided" }}
+              </p>
+              <p>
+                <strong>Town:</strong>
+                {{ user?.household?.town?.town_name || "Not provided" }}
+              </p>
             </div>
           </div>
         </div>
@@ -70,7 +80,7 @@
 
       <!-- No Users Placeholder -->
       <div
-        v-if="users.length === 0"
+        v-if="!users?.length"
         class="text-center bg-white shadow-md rounded-lg p-12 mt-8"
       >
         <p class="text-2xl text-gray-500">No users found</p>

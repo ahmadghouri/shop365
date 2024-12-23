@@ -28,14 +28,14 @@ const initVueApp = () => {
 
   app.mount("#app");
 
-  useAuthStore().initializeStore()
+  useAuthStore().initializeStore();
 };
 
 function onDeviceReady() {
   console.log("application ready", window);
 
   if (typeof window.cordova !== "undefined") {
-    window.cordovaApp = new cordovaApp()
+    window.cordovaApp = new cordovaApp();
 
     // if (window.document.hidden) {
     //   console.log("application hidden", window);
@@ -52,18 +52,26 @@ function onDeviceReady() {
 
 document.addEventListener("deviceready", onDeviceReady);
 
-document.addEventListener("pause", function () {
-  console.log("application paused", window);
-  window.cordovaAppkeepAwakeInterval = setInterval(function () {
-    console.log("application initializing store", { window });
-    useAuthStore().initializeStore()
-  }, 1000 * 60)
-}, false);
+document.addEventListener(
+  "pause",
+  function () {
+    console.log("application paused", window);
+    window.cordovaAppkeepAwakeInterval = setInterval(function () {
+      console.log("application initializing store", { window });
+      useAuthStore().initializeStore();
+    }, 1000 * 60);
+  },
+  false
+);
 
-document.addEventListener("resume", function () {
-  console.log("application resumed", window);
-  clearInterval(window.cordovaAppkeepAwakeInterval);
-}, false);
+document.addEventListener(
+  "resume",
+  function () {
+    console.log("application resumed", window);
+    clearInterval(window.cordovaAppkeepAwakeInterval);
+  },
+  false
+);
 
 if (typeof window.cordova === "undefined") {
   document.dispatchEvent(new CustomEvent("deviceready", {}));

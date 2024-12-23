@@ -180,13 +180,16 @@
         <div
           v-for="product in productStore.products"
           :key="product.id"
-          class="bg-white shadow-md rounded-lg overflow-hidden"
+          class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col justify-between"
         >
-          <div class="p-4">
+          <div class="p-4 flex-grow">
             <div class="flex items-start justify-between">
               <div>
                 <h2 class="text-xl font-semibold">{{ product.title }}</h2>
-                <p class="text-gray-600">{{ product.description }}</p>
+                <div
+                  v-html="product.description"
+                  class="prose text-sm lg:text-base text-gray-600 mt-1"
+                ></div>
               </div>
               <div class="mt-1 text-right">
                 <span class="text-lg font-bold block">{{ product.price }}</span>
@@ -198,21 +201,14 @@
                 </span>
               </div>
             </div>
-            <div class="mt-4 flex space-x-4">
-              <!-- <button
-                @click="confirmDelete(product.id)"
-                class="text-red-500 border-2 w-full border-red-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-              >
-                Delete
-              </button> -->
-
-              <button
-                @click="openFormForUpdate(product)"
-                class="bg-yellow-500 text-white w-full font-bold rounded-lg px-4 py-2 hover:bg-yellow-600 transition duration-150 ease-in-out"
-              >
-                Update
-              </button>
-            </div>
+          </div>
+          <div class="p-4">
+            <button
+              @click="openFormForUpdate(product)"
+              class="bg-yellow-500 text-white w-full font-bold rounded-lg px-4 py-2 hover:bg-yellow-600 transition duration-150 ease-in-out"
+            >
+              Update
+            </button>
           </div>
         </div>
       </div>
@@ -410,6 +406,45 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.prose {
+  max-width: none;
+  width: 100%;
+}
+
+/* Table styling */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.prose th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+/* List styling */
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+}
+
+/* Maintain spacing */
+.prose > * + * {
+  margin-top: 1rem;
+}
 /* Custom styling for the select element */
 select::-ms-expand {
   display: none;

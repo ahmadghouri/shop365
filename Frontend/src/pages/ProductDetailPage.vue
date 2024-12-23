@@ -1,7 +1,7 @@
 <template>
   <div v-if="product" class="mobile-spacing lg:px-20 xl:px-32 py-10">
     <!-- Back Arrow -->
-    <div class="flex items-center mt-4 lg:mt-0">
+    <div class="flex items-center mt-6 lg:mt-0">
       <button @click="goBack" class="h-4 w-4 lg:h-6 lg:w-6">
         <!-- Back Arrow Icon -->
         <svg
@@ -66,9 +66,10 @@
         <div class="mt-6 space-y-4">
           <div>
             <label class="font-semibold text-gray-900">Description</label>
-            <p class="text-sm lg:text-base text-gray-600 mt-1">
-              {{ product.description }}
-            </p>
+            <div
+              v-html="product.description"
+              class="prose text-sm lg:text-base text-gray-600 mt-1"
+            ></div>
           </div>
         </div>
 
@@ -268,4 +269,43 @@ const goBack = () => {
 
 <style scoped>
 /* Add your styles here */
+.prose {
+  max-width: none;
+  width: 100%;
+}
+
+/* Table styling */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.prose th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+/* List styling */
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+}
+
+/* Maintain spacing */
+.prose > * + * {
+  margin-top: 1rem;
+}
 </style>

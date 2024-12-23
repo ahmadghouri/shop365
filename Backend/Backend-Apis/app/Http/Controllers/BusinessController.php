@@ -33,13 +33,15 @@ class BusinessController extends Controller
     public function index(): JsonResponse
     {
         $businesses = Business::withAvg('reviews', 'rating')
-        ->withCount('reviews')
-        ->orderByDesc('discount')
-        ->orderByDesc('reviews_avg_rating') // Ordering by the average rating
-        ->get();
-
+            ->withCount('reviews')
+            ->orderByDesc('discount') // Then by discount
+            ->orderByDesc('reviews_count') // Order by the number of reviews first
+            ->orderByDesc('reviews_avg_rating') // Then by average rating
+            ->get();
+    
         return $this->successResponse($businesses, 'All the businesses');
     }
+    
 
 
     /**

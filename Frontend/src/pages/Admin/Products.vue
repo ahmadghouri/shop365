@@ -63,7 +63,8 @@
       >
         <div class="p-4">
           <h2 class="text-xl font-semibold">{{ product.title }}</h2>
-          <p class="text-gray-600">{{ product.description }}</p>
+          <!-- <div v-html="product.description" class="prose max-w-none"></div> -->
+          <p v-html="product.description" class="prose max-w-none"></p>
           <div class="mt-1">
             <span class="text-lg font-bold">{{ product.price }}</span>
           </div>

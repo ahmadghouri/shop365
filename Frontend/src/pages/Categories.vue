@@ -282,6 +282,7 @@ import Services from "../components/Services.vue";
 import { useRouter } from "vue-router";
 import Launchment from "./Launchment.vue";
 import StoreClosedPopUp from "../components/StoreClosedPopUp.vue";
+import { useAuthStore } from "../stores/authStore";
 
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);
@@ -292,6 +293,7 @@ const name = ref("");
 const router = useRouter();
 const shopsSection = ref(null);
 const isLoading = ref(true);
+const authStore = useAuthStore();
 
 const showStoreClosedPopup = ref(false);
 const pendingBusinessId = ref(null);
@@ -396,9 +398,11 @@ const filterByService = (service) => {
 
 async function getProfileData() {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/profile`, {});
-    profile.value = response.data.data;
-    name.value = response.data.data.user.name;
+    if (authStore.isAuthenticated) {
+      const response = await axios.get(`${API_BASE_URL}/api/profile`, {});
+      profile.value = response.data.data;
+      name.value = response.data.data.user.name;
+    }
   } catch (error) {
     console.error(error);
   }

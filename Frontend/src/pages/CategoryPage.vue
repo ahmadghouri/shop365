@@ -347,7 +347,10 @@
     >
       <div class="bg-white mobile-spacing md:p-8 rounded-lg max-w-md w-full">
         <h2 class="text-2xl font-bold mb-4">{{ selectedProduct.title }}</h2>
-        <p class="text-gray-700 mb-6">{{ selectedProduct.description }}</p>
+        <div
+          class="text-gray-700 mb-6"
+          v-html="selectedProduct.description"
+        ></div>
         <div class="flex justify-end">
           <button
             @click="closeContactPopup"

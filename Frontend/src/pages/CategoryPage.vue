@@ -432,6 +432,33 @@
     :reviews-list="reviewStore.reviewsList"
     @close="showReviewsModal = false"
   />
+
+  <!-- Registration Popup -->
+  <div
+    v-if="showRegisterPopup"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  >
+    <div class="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+      <h2 class="text-2xl font-bold mb-4">Register to Continue</h2>
+      <p class="text-gray-600 mb-6">
+        Please register or login to add items to your cart.
+      </p>
+      <div class="flex justify-end space-x-4">
+        <button
+          @click="showRegisterPopup = false"
+          class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+        >
+          Cancel
+        </button>
+        <button
+          @click="redirectToRegister"
+          class="px-6 py-2 bg-yellow-500 text-white font-semibold rounded-full hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75"
+        >
+          Register Now
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -446,9 +473,12 @@ import { API_BASE_URL } from "../config/api";
 import debounce from "lodash/debounce";
 import { storeToRefs } from "pinia";
 import { useReviewStore } from "../store/useReviewStore";
+import { useAuthStore } from "../stores/authStore";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
+const showRegisterPopup = ref(false);
 const productStore = useProductStore();
 const {
   filters,
@@ -678,6 +708,11 @@ const goBack = () => {
 };
 
 const addToCart = async (product) => {
+  if (!authStore.isAuthenticated) {
+    showRegisterPopup.value = true; // Changed this line
+    return;
+  }
+
   const cartItem = {
     product_id: product.id,
     quantity: 1,
@@ -699,6 +734,11 @@ const addToCart = async (product) => {
   } catch (error) {
     toast.error("Failed to add product to cart.");
   }
+};
+
+const redirectToRegister = () => {
+  showRegisterPopup.value = true;
+  router.push({ name: "Register" });
 };
 
 function createFlyingElement(productImage, startRect, endRect) {

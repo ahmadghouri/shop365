@@ -103,17 +103,17 @@ const routes = [
         path: "categories",
         name: "Categories",
         component: Categories,
-        meta: {
-          requiresAuth: true,
-        },
+        // meta: {
+        //   requiresAuth: true,
+        // },
       },
       {
         path: "search",
         name: "Search",
         component: SearchProduct,
-        meta: {
-          requiresAuth: true,
-        },
+        // meta: {
+        //   requiresAuth: true,
+        // },
       },
       {
         path: "category/:id",
@@ -123,9 +123,9 @@ const routes = [
           id: route.params.id,
           categoryTitle: route.query.title,
         }),
-        meta: {
-          requiresAuth: true,
-        },
+        // meta: {
+        //   requiresAuth: true,
+        // },
       },
       {
         path: "product/:id",
@@ -353,6 +353,11 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const { isAuthenticated, role } = storeToRefs(authStore);
+
+  const publicRoutes = ["Categories", "CategoryPage"];
+  if (publicRoutes.includes(to.name)) {
+    return next();
+  }
 
   if (to.meta.requiresAuth) {
     if (isAuthenticated.value) {

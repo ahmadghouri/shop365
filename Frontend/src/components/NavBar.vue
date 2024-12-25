@@ -190,9 +190,10 @@ const closeSidebar = () => {
 };
 
 onMounted(() => {
-  cartStore.fetchCartCount();
-  authStore.refreshUser();
-  console.log(points);
+  if (authStore.isAuthenticated) {
+    cartStore.fetchCartCount();
+    authStore.refreshUser();
+  }
 });
 </script>
 

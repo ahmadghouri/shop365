@@ -8,10 +8,12 @@ const refreshInterval = 10 * 60 * 1000; // 5 minutes in milliseconds
 let refreshIntervalId;
 
 onMounted(() => {
-  authStore.refreshUser();
-  refreshIntervalId = setInterval(() => {
+  if (authStore.isAuthenticated) {
     authStore.refreshUser();
-  }, refreshInterval);
+    refreshIntervalId = setInterval(() => {
+      authStore.refreshUser();
+    }, refreshInterval);
+  }
 });
 
 onUnmounted(() => {

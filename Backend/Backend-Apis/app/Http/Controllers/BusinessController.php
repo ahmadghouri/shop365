@@ -34,9 +34,9 @@ class BusinessController extends Controller
     {
         $businesses = Business::withAvg('reviews', 'rating')
             ->withCount('reviews')
-            ->orderByDesc('discount') // Then by discount
-            ->orderByDesc('reviews_count') // Order by the number of reviews first
-            ->orderByDesc('reviews_avg_rating') // Then by average rating
+            ->orderByDesc('discount') 
+            ->orderByDesc('reviews_count') 
+            ->orderByDesc('reviews_avg_rating')
             ->get();
     
         return $this->successResponse($businesses, 'All the businesses');

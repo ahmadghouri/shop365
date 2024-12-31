@@ -25,6 +25,7 @@ class VoucherStoreRequest extends FormRequest
             'business_id' => 'required|exists:businesses,id',
             'code' => 'required|min:4|max:12',
             'discount_amount' => 'required|numeric|min:0',
+            'min_purchase_amount' => 'required|numeric|min:0',
             'expiry_date' => 'nullable|date'
         ];
     }

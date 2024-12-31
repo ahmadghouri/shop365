@@ -89,6 +89,23 @@
                 for="discount"
                 class="block text-sm font-medium text-gray-700 mb-2"
               >
+                Price Limit
+              </label>
+              <input
+                type="number"
+                v-model.number="voucherData.min_purchase_amount"
+                required
+                min="0"
+                placeholder="Enter price limit amount"
+                class="w-full rounded-lg py-3 px-4 text-sm border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out"
+              />
+            </div>
+
+            <div>
+              <label
+                for="discount"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Discount Amount
               </label>
               <input
@@ -240,6 +257,7 @@ const businessStore = useBusinessStore();
 const voucherData = ref({
   business_id: null,
   code: "",
+  min_purchase_amount: null,
   discount_amount: null,
   expiry_date: null,
 });
@@ -276,6 +294,7 @@ const createVoucher = async () => {
         business_id: voucherData.value.business_id,
         code: voucherData.value.code,
         discount_amount: voucherData.value.discount_amount,
+        min_purchase_amount: voucherData.value.min_purchase_amount,
         expiry_date: voucherData.value.expiry_date,
       }
     );

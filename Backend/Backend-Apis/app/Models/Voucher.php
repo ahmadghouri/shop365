@@ -13,7 +13,7 @@ class Voucher extends Model
 
     protected $dates = ['deleted_at'];
 
-    protected $fillable = ['business_id', 'code', 'discount_amount', 'expiry_date', 'is_used'];
+    protected $fillable = ['business_id', 'code', 'discount_amount', 'expiry_date', 'is_used', 'min_purchase_amount'];
 
     public function business()
     {

@@ -8,12 +8,15 @@ use App\Models\Order;
 use App\Models\Voucher;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class VoucherController extends Controller
 {
     
     public function store(VoucherStoreRequest $request)
     {
+        $validated = $request->validated();
+        Log::info($validated);
         $voucher = Voucher::create($request->validated());
         return $this->successResponse($voucher, 'Voucher created successfully');
     }
@@ -59,10 +62,14 @@ class VoucherController extends Controller
             return response()->json(['message' => 'Voucher cannot be applied to the products in your cart'], 400);
         }
     
-        // $totalPrice = $cartItems->sum(function ($cartItem) {
-        //     $product = $cartItem->product;
-        //     return ($product->final_price ?? $product->price) * $cartItem->quantity;
-        // });
+        $totalPrice = $cartItems->sum(function ($cartItem) {
+            $product = $cartItem->product;
+            return ($product->final_price ?? $product->price) * $cartItem->quantity;
+        });
+
+        if ($totalPrice < $voucher->min_purchase_amount) {
+            return $this->errorResponse("Minimum purchase amount of {$voucher->min_purchase_amount} required", 400);
+        }
     
         // $discountAmount = min($voucher->discount ?? 0, $totalPrice);
         // $discountedPrice = $totalPrice - $discountAmount;
@@ -84,6 +91,8 @@ class VoucherController extends Controller
         return response()->json([
             'message' => 'Voucher applied successfully',
             'discount' => $voucher->discount_amount,
+            'cart_total' => $totalPrice,
+            'final_price' => $totalPrice - $voucher->discount_amount,
         ], 200);
     }
 

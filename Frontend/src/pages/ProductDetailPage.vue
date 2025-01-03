@@ -118,6 +118,7 @@
       class="fixed inset-0 bg-black mobile-spacing bg-opacity-50 flex items-center justify-center z-50"
     >
       <div class="bg-white mobile-spacing md:p-8 rounded-lg max-w-md w-full">
+        <p>Test</p>
         <h2 class="text-2xl font-bold mb-4">{{ selectedProduct.title }}</h2>
         <div
           class="text-gray-700 mb-6"

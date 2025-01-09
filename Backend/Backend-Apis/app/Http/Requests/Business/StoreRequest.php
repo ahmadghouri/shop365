@@ -28,6 +28,7 @@ class StoreRequest extends BaseRequest
             "type" => 'required|string|max:255',
             "opening_time" => 'required|string',
             "closing_time" => 'required|string',
+            "parent_id" => 'nullable|exists:businesses,id',
         ];
     }
 }

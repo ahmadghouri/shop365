@@ -113,7 +113,9 @@ class OrderManageService
             }
     
             // Dispatch the event (optional)
-            event(new OrderPlaced($order, $businessId));
+            // event(new OrderPlaced($order, $businessId));
+            $currentBusiness = Business::find($businessId);
+            $this->dispatchOrderEvents($order, $currentBusiness);
             $orders[] = $order;
         }
     
@@ -123,7 +125,21 @@ class OrderManageService
         ], 200);
     }
     
-
+    private function dispatchOrderEvents($order, $business)
+    {
+        if (!$business) return;
+    
+        // Dispatch event for the current business
+        event(new OrderPlaced($order, $business->id));
+    
+        // Check for and dispatch event to the parent business
+        if ($business->parent_id) {
+            $parentBusiness = Business::find($business->parent_id);
+            if ($parentBusiness) {
+                event(new OrderPlaced($order, $parentBusiness->id));
+            }
+        }
+    }  
 
 
     public function viewOrders($userId)
@@ -146,13 +162,20 @@ class OrderManageService
 
     public function viewRestaurantOrders($businessId, $page)
     {
-        return Order::whereHas('items.product', function ($query) use ($businessId) {
-                $query->where('business_id', $businessId);
+        // Get the parent business and its immediate children
+        $businessIds = Business::where('id', $businessId)
+            ->orWhere('parent_id', $businessId) // Include child businesses
+            ->pluck('id'); // Get the IDs as a collection
+    
+        // Fetch orders for the parent and its children
+        return Order::whereHas('items.product', function ($query) use ($businessIds) {
+                $query->whereIn('business_id', $businessIds);
             })
             ->with('items.product', 'user', 'user.household', 'user.household.town')
             ->orderBy('created_at', 'desc') // Ensure consistent order
-            ->paginate(15, ['*'], 'page', $page); // Paginate with 30 orders per page
+            ->paginate(15, ['*'], 'page', $page); // Paginate with 15 orders per page
     }
+    
     
 
 

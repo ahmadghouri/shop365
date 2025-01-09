@@ -42,6 +42,7 @@ import { useAuthStore } from "../stores/authStore";
 import { storeToRefs } from "pinia";
 import Voucher from "../pages/Admin/Voucher.vue";
 import ViewVoucher from "../pages/Admin/ViewVoucher.vue";
+import SubBusiness from "../pages/RestaurantAdmin/SubBusiness.vue";
 
 const routes = [
   {
@@ -223,6 +224,14 @@ const routes = [
         path: "products/:id",
         name: "Products",
         component: Product,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "sub-business",
+        name: "Sub-Business",
+        component: SubBusiness,
         meta: {
           requiresAdminAuth: true,
         },

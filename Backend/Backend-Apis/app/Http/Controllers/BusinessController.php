@@ -136,15 +136,19 @@ public function updateStatus(Request $request, Business $business): JsonResponse
     }
 }
 
-    public function getNumber($admin_id) 
-    {
+public function getNumber($admin_id)
+{
+    while ($admin_id) {
         $admin = User::where('business_id', $admin_id)->first();
-        if(!$admin) 
-        {
-            throw new ModelNotFoundException("Admin does not exist");
+        if ($admin) {
+            return $this->successResponse($admin->phone_no);
         }
-
-        return $this->successResponse($admin->phone_no);
+        $parentBusiness = Business::find($admin_id);
+        $admin_id = $parentBusiness ? $parentBusiness->parent_id : null;
     }
+
+    throw new ModelNotFoundException("Admin does not exist");
+}
+
 
 }

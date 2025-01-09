@@ -22,12 +22,19 @@ class BusinessService
 
     public function store(array $data)
     {
+        if (!empty($data['parent_id'])) {
+            $parentBusiness = Business::find($data['parent_id']);
+            if (!$parentBusiness) {
+                throw new \Exception("Parent business not found.");
+            }
+        }
 
         $business = new Business();
         $business->type = $data['type'];
         $business->name = $data['name'];
         $business->opening_time = $data['opening_time'];
         $business->closing_time = $data['closing_time'];
+        $business->parent_id = $data['parent_id'] ?? null; 
         $business->save();
 
         return $business;

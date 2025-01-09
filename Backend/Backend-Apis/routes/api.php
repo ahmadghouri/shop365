@@ -37,6 +37,9 @@ Route::post('/update-password', [ForgotPassword::class, 'updatePassword']);
 Route::apiResource('/business', BusinessController::class);
 Route::apiResource('/products', ProductController::class);
 
+// for child businesses 
+Route::get('/business/{businessId}/sub-businesses', [BusinessController::class, 'getChildBusiness']);
+
 
 Route::get('/all-products/{businessId}', [ProductController::class, 'businessProducts']);
 Route::get('/all-products/{businessId}/admin', [ProductController::class, 'businessAdminsProducts']);

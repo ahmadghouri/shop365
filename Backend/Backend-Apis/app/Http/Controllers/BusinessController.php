@@ -41,6 +41,18 @@ class BusinessController extends Controller
     
         return $this->successResponse($businesses, 'All the businesses');
     }
+
+    // for getting the children business
+
+    public function getChildBusiness($parentId)
+    {
+        try {
+            $childrenBusiness = Business::where('parent_id', $parentId)->get();
+            return $this->successResponse($childrenBusiness, 'Children Business');
+        } catch (Exception $e) {
+            return $this->errorResponse('An error occurred: ' . $e->getMessage(), 500);
+        }
+    }
     
 
 

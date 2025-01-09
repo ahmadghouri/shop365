@@ -5,6 +5,9 @@ import axios from "axios";
 export const useBusinessStore = defineStore("business", {
   state: () => ({
     businesses: [],
+    subBusinesses: [],
+    error: "",
+    loading: true,
   }),
   actions: {
     async getBusinesses() {
@@ -13,6 +16,22 @@ export const useBusinessStore = defineStore("business", {
         this.businesses = response.data.data;
       } catch (error) {
         console.error("Failed to fetch businesses", error);
+      }
+    },
+
+    async subBusiness(businessId) {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/business/${businessId}/sub-businesses`
+        );
+        this.loading = false;
+        this.subBusinesses = response.data.data;
+        console.log(this.subBusiness);
+      } catch (error) {
+        console.error("Failed to fetch sub-business", error);
+        this.error = response.data.message;
+        this.loading = false;
+        // Set the error message from the server response
       }
     },
 
@@ -26,6 +45,7 @@ export const useBusinessStore = defineStore("business", {
         );
       } catch (error) {
         console.error("Failed to fetch businesses", error);
+        throw error;
       }
     },
     async addBusiness(newBusiness) {

@@ -25,6 +25,7 @@
             Restaurants
           </router-link>
         </li>
+
         <li class="px-4 py-2">
           <router-link
             to="/admin/users"
@@ -89,6 +90,14 @@
             class="block text-gray-700 hover:text-gray-900"
           >
             Orders
+          </router-link>
+        </li>
+        <li class="px-4 py-2">
+          <router-link
+            to="/admin/sub-business"
+            class="block text-gray-700 hover:text-gray-900"
+          >
+            Sub Businesses
           </router-link>
         </li>
         <li class="px-4 py-2">

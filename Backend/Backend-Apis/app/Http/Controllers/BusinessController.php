@@ -93,6 +93,11 @@ class BusinessController extends Controller
             $business->save();
         }
 
+        if ($request->has('parent_id')) {
+            $business->parent_id = $request->input('parent_id');
+            $business->save();
+        }
+
         return $this->successResponse($business->refresh(), 'Updated');
     }
 

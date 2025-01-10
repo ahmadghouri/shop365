@@ -18,10 +18,14 @@ const formatTime = (time) => {
   return time ? time.replace(/:00([AP]M)$/, "$1") : "";
 };
 
-const viewProductDetails = (id) => {
+const viewProductDetails = (name, businessId) => {
   try {
-    router.push();
-  } catch (error) {}
+    // Encode the name to make it URL-safe
+    const encodedName = encodeURIComponent(name);
+    router.push(`/business/${businessId}/${encodedName}`);
+  } catch (error) {
+    console.error("Error navigating to products page:", error);
+  }
 };
 
 onMounted(async () => {
@@ -115,7 +119,7 @@ onMounted(async () => {
 
             <!-- Action Button -->
             <button
-              @click="viewProductDetails(product.id)"
+              @click="viewProductDetails(product.name, product.id)"
               class="mt-6 w-full bg-primary hover:bg-primary-dark text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
               View Products

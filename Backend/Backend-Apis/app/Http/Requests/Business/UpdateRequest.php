@@ -28,6 +28,7 @@ class UpdateRequest extends BaseRequest
             "type" => 'nullable|string|max:255',
             "opening_time" => 'nullable|string',
             "closing_time" => 'nullable|string',
+            "parent_id" => 'nullable|exists:businesses,id',
         ];
     }
 }

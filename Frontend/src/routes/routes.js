@@ -43,6 +43,7 @@ import { storeToRefs } from "pinia";
 import Voucher from "../pages/Admin/Voucher.vue";
 import ViewVoucher from "../pages/Admin/ViewVoucher.vue";
 import SubBusiness from "../pages/RestaurantAdmin/SubBusiness.vue";
+import SubProducts from "../pages/RestaurantAdmin/SubProducts.vue";
 
 const routes = [
   {
@@ -320,6 +321,14 @@ const routes = [
         path: "business-reviews",
         name: "Business-Reviews",
         component: BusinessReviews,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "/business/:id/:name",
+        name: "restaurant-products",
+        component: SubProducts,
         meta: {
           requiresAdminAuth: true,
         },

@@ -17,7 +17,7 @@
     </div>
 
     <div class="flex justify-between items-center">
-      <h1 class="text-xl font-semibold mb-4">Select a Product</h1>
+      <h1 class="text-xl font-semibold mb-4">Product List</h1>
       <router-link
         class="bg-blue-500 px-5 py-1 mb-4 text-white rounded-md"
         to="/admin/store-product"
@@ -26,41 +26,7 @@
       </router-link>
     </div>
 
-    <!-- Product Selection -->
-    <div class="relative mb-4">
-      <select
-        v-model="selectedProduct"
-        @change="loadProductDetails"
-        class="block w-full p-3 rounded-md bg-white text-gray-800 text-lg focus:outline-none"
-      >
-        <option value="" disabled>Select a Product</option>
-        <option
-          v-for="product in productStore.products"
-          :key="product.id"
-          :value="product"
-        >
-          {{ product.title }}
-        </option>
-      </select>
-
-      <div
-        class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-      >
-        <svg
-          class="w-5 h-5 text-gray-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M19 9l-7 7-7-7"
-          ></path>
-        </svg>
-      </div>
-    </div>
+    <div class="relative mb-4"></div>
 
     <!-- Product Form -->
     <div v-if="selectedProduct" class="mt-4">
@@ -175,10 +141,9 @@
 
     <!-- Product List -->
     <div v-else>
-      <h1 class="text-2xl font-semibold mb-4">Product List</h1>
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         <div
-          v-for="product in productStore.products"
+          v-for="product in productStore.currentProducts"
           :key="product.id"
           class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col justify-between"
         >
@@ -277,6 +242,7 @@ const loadProductDetails = () => {
       price: selectedProduct.value.price,
       description: selectedProduct.value.description,
       type: selectedProduct.value.type,
+      image: null,
     };
     discount.value = selectedProduct.value.discount || 0; // Load existing discount if available
   }
@@ -359,7 +325,8 @@ const submitForm = async () => {
   try {
     await productStore.updateProduct(formData, selectedProduct.value.id);
     closeForm();
-    toast.success("Product updated successfully. Refresh to see the update.");
+    toast.success("Product updated successfully.");
+    await productStore.getRestaurantProducts();
   } catch (error) {
     console.error("Error updating product:", error);
     toast.error("Failed to update product.");

@@ -4,6 +4,7 @@ import { useProductStore } from "../../store/productStore";
 import { useRoute, useRouter } from "vue-router";
 import debounce from "lodash/debounce";
 import AddSubProduct from "../../components/AddSubProduct.vue";
+import { toast } from "vue3-toastify";
 
 const route = useRoute();
 const router = useRouter();
@@ -72,6 +73,16 @@ const addProduct = () => {
 };
 
 const submitForm = async () => {
+  if (imageError.value) {
+    toast.error("Please fix the errors before submitting.");
+    return;
+  }
+
+  if (form.value.image && form.value.image.size > 15 * 1024) {
+    imageError.value = "Image size must be less than 15KB.";
+    toast.error("Image size exceeds the limit.");
+    return; // Prevent submission if the image is too large
+  }
   if (selectedProduct.value) {
     const formData = new FormData();
     Object.keys(form.value).forEach((key) => {
@@ -79,19 +90,32 @@ const submitForm = async () => {
         formData.append(key, form.value[key]);
       }
     });
+    if (form.value.image) {
+      formData.append("image", form.value.image);
+    }
+
+    formData.append("_method", "PUT");
     await productStore.updateProduct(formData, selectedProduct.value.id);
     clearForm();
+    toast.success("Product updated successfully.");
     await productStore.getProducts(businessId);
   }
 };
 
 const applyDiscountToProduct = async () => {
-  if (selectedProduct.value && discount.value >= 0 && discount.value <= 100) {
-    const formData = new FormData();
-    formData.append("discount", discount.value);
-    await productStore.updateProduct(formData, selectedProduct.value.id);
-    clearForm();
-    await productStore.getProducts(businessId);
+  if (discount.value === null || discount.value < 0 || discount.value > 100) {
+    toast.error("Please enter a valid discount between 0 and 100.");
+    return;
+  }
+
+  try {
+    await productStore.applyDiscount(selectedProduct.value.id, discount.value);
+    toast.success("Discount applied successfully!");
+    // Update the discount in the selectedProduct
+    selectedProduct.value.discount = discount.value;
+  } catch (error) {
+    console.error("Error applying discount:", error);
+    toast.error("Failed to apply discount.");
   }
 };
 
@@ -142,8 +166,8 @@ onMounted(() => {
     </div>
 
     <!-- Header -->
-    <div class="flex justify-between items-center">
-      <h1 class="text-xl font-semibold mb-4">Select a Product</h1>
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-xl font-semibold">Product List</h1>
       <button
         @click="addProduct"
         class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center min-w-[40px] min-h-[40px]"
@@ -301,10 +325,9 @@ onMounted(() => {
 
     <!-- Product List -->
     <div v-else>
-      <h1 class="text-2xl font-semibold mb-4">Product List</h1>
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         <div
-          v-for="product in productStore.products"
+          v-for="product in productStore.currentProducts"
           :key="product.id"
           class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col justify-between"
         >

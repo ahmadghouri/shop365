@@ -348,15 +348,15 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-import { useOrderStore } from "../../store/orderStore"; // Adjust the path accordingly
+import { useOrderStore } from "../../store/orderStore";
 import { toast } from "vue3-toastify";
 import { storeToRefs } from "pinia";
 import axios from "axios";
 import { API_BASE_URL } from "../../config/api";
 import { useIntersectionObserver } from "@vueuse/core";
 
+// Refs and store setup
 const target = ref(null);
-
 const orderStore = useOrderStore();
 const { ordersList } = storeToRefs(useOrderStore());
 const loading = ref(true);
@@ -365,9 +365,11 @@ const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
 
+// Audio notification setup
 const I = new Audio("/notification.mp3");
 I.volume = 0.25;
 
+// Intersection observer for infinite scroll
 const { stop } = useIntersectionObserver(
   target,
   ([{ isIntersecting }], observerElement) => {
@@ -377,23 +379,45 @@ const { stop } = useIntersectionObserver(
   }
 );
 
+// Computed property for filtered and sorted orders
 const ordersListSortedAndFiltered = computed(() => {
   return [...ordersList.value]
     .map((order) => ({
       ...order,
-      newOrderStatus: order.status, // Track initial status
+      newOrderStatus: order.status,
+      user: {
+        ...order.user,
+        household: {
+          ...order.user?.household,
+          town: {
+            ...order.user?.household?.town,
+          },
+        },
+      },
     }))
     .filter((order) => {
-      if (!!!selectedStatus.value) return true;
-
+      if (!selectedStatus.value) return true;
       return order.status === selectedStatus.value;
     })
     .sort((a, b) => b.id - a.id);
 });
 
+// Function to fetch restaurant orders
 const fetchRestaurantOrders = async () => {
   try {
     await orderStore.getRestaurantOrders();
+    ordersList.value = ordersList.value.map((order) => ({
+      ...order,
+      user: {
+        ...order.user,
+        household: {
+          ...order.user?.household,
+          town: {
+            ...order.user?.household?.town,
+          },
+        },
+      },
+    }));
   } catch (err) {
     error.value = "Failed to fetch orders";
     console.error("Error fetching restaurant orders:", err);
@@ -402,14 +426,70 @@ const fetchRestaurantOrders = async () => {
   }
 };
 
+// Function to refresh orders
+const refreshOrders = async () => {
+  await fetchRestaurantOrders();
+};
+
 // Function to update order status
 const updateOrderStatus = async (status) => {
   try {
+    const currentOrder = { ...selectedOrder.value };
     await orderStore.updateStatus(selectedOrder.value.id, status);
+
+    ordersList.value = ordersList.value.map((order) => {
+      if (order.id === currentOrder.id) {
+        return {
+          ...order,
+          status,
+          user: currentOrder.user,
+          items: currentOrder.items,
+        };
+      }
+      return order;
+    });
+
     closeModal();
+    toast.success(`Order status updated to ${status}`);
   } catch (err) {
     console.error("Error updating order status:", err);
+    toast.error("Failed to update order status");
   }
+};
+
+// Function to open modal
+const openModal = async (order) => {
+  try {
+    if (order.newOrder) {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/orders/${order.id}`
+      );
+      selectedOrder.value = {
+        ...response.data,
+        user: {
+          ...response.data.user,
+          household: {
+            ...response.data.user?.household,
+            town: {
+              ...response.data.user?.household?.town,
+            },
+          },
+        },
+      };
+    } else {
+      selectedOrder.value = { ...order };
+    }
+    isModalOpen.value = true;
+  } catch (err) {
+    console.error("Error fetching order details:", err);
+    toast.error("Failed to load order details");
+  }
+};
+
+// Function to close modal
+const closeModal = () => {
+  isModalOpen.value = false;
+  selectedOrder.value = null;
 };
 
 // Function to format date
@@ -427,34 +507,12 @@ const formatDate = (dateString) => {
 // Function to capitalize text
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
-// Function to refresh orders
-const refreshOrders = async () => {
-  await fetchRestaurantOrders();
-};
-
-// Function to open modal
-const openModal = async (order) => {
-  if (order.newOrder) {
-    const response = await axios.get(`${API_BASE_URL}/api/orders/${order.id}`);
-    selectedOrder.value = response.data;
-  } else {
-    selectedOrder.value = order;
-  }
-  isModalOpen.value = true;
-};
-
-// Function to close modal
-const closeModal = () => {
-  isModalOpen.value = false;
-  selectedOrder.value = null;
-};
-
-// Watch for changes in selectedStatus and fetch new orders if needed
+// Watch for status changes
 watch(selectedStatus, async () => {
   await fetchRestaurantOrders();
 });
 
-// Set up WebSocket connection on mounted
+// Initialize component
 onMounted(async () => {
   await fetchRestaurantOrders();
 });

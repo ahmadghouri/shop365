@@ -180,7 +180,7 @@
 
       <div v-if="productStore.isLoading" class="text-center py-4">
         <div
-          class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"
+          class="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent"
         ></div>
       </div>
 

@@ -10,20 +10,39 @@ export const useUserStore = defineStore("user", {
     totalUsersCount: 0,
     todayUsersCount: 0,
     totalUsersPrevCount: 0,
+    currentPage: 1,
+    lastPage: 1,
+    perPage: 10,
     points: 0,
     loading: false,
     error: null,
   }),
 
   actions: {
-    async getUsers() {
+    async getUsers(page = 1, perPage = 10) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {});
-        this.users = response.data.users;
-        this.totalUsersCount = response.data.total_users_count;
-        this.todayUsersCount = response.data.today_users_count;
+        this.loading = true;
+        const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
+          params: { page, per_page: perPage },
+        });
+        const data = response.data;
+
+        if (page === 1) {
+          this.users = data.users.data;
+        } else {
+          this.users = [...this.users, ...data.users.data];
+        }
+
+        this.currentPage = data.users.current_page;
+        this.lastPage = data.users.last_page;
+        this.perPage = data.users.per_page;
+        this.totalUsersCount = data.total_users_count;
+        this.todayUsersCount = data.today_users_count;
       } catch (error) {
         console.error(error);
+        this.error = error.response?.data?.message || "An error occurred.";
+      } finally {
+        this.loading = false;
       }
     },
 

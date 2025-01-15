@@ -25,18 +25,21 @@ class UserController extends Controller
         return response()->json(['message' => 'User not authenticated'], 401);
     }
     
-    public function index()
+    public function index(Request $request)
     {
         $totalUsers = User::where('role', 'end_user')->count();
-
-        $todaysUser = User::where('role', 'end_user')->whereDate('created_at', Carbon::today())->count();
-        $users = User::where('role', 'end_user')
-        ->with(['household.town']) 
-        ->withCount(['orders']) 
-        ->get();
-
+        $todaysUser = User::where('role', 'end_user')
+            ->whereDate('created_at', Carbon::today())
+            ->count();
+    
         
-
+    
+        // Apply pagination
+        $users = User::where('role', 'end_user')
+            ->with(['household.town']) 
+            ->withCount(['orders']) 
+            ->paginate(20);
+    
         return response()->json([
             'total_users_count' => $totalUsers,
             'today_users_count' => $todaysUser,

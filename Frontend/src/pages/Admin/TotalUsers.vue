@@ -1,6 +1,8 @@
 <template>
   <div class="bg-gray-50 min-h-screen p-6">
+    <!-- Stats Card -->
     <div class="mb-6 bg-white shadow-sm rounded-lg p-4">
+      <!-- Existing stats content -->
       <div class="flex justify-between items-center mb-3">
         <h2 class="text-xl font-semibold text-gray-800">User Statistics</h2>
         <div class="flex gap-2">
@@ -62,6 +64,8 @@
         </div>
       </div>
     </div>
+
+    <!-- Header with Sort -->
     <div class="mb-6 flex items-center justify-between">
       <h1 class="text-3xl font-semibold text-gray-900">Users</h1>
       <select
@@ -73,6 +77,7 @@
       </select>
     </div>
 
+    <!-- Users Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
         v-for="(user, index) in sortedUsers"
@@ -84,6 +89,7 @@
             : 'hover:shadow-lg',
         ]"
       >
+        <!-- Existing user card content -->
         <div class="p-4 flex-grow">
           <div class="flex justify-between items-start mb-4">
             <div>
@@ -141,6 +147,17 @@
       </div>
     </div>
 
+    <!-- Loading Spinner -->
+    <div v-if="userStore.loading" class="flex justify-center my-8">
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent"
+      ></div>
+    </div>
+
+    <!-- Infinite Scroll Trigger -->
+    <div ref="loadMoreTrigger" class="h-4 w-full"></div>
+
+    <!-- Delete Confirmation Modal -->
     <div
       v-if="showDeleteConfirm"
       class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50"
@@ -168,7 +185,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useUserStore } from "../../store/userStore";
 import { toast } from "vue3-toastify";
 
@@ -176,6 +193,8 @@ const userStore = useUserStore();
 const sortOrder = ref("desc");
 const showDeleteConfirm = ref(false);
 const userId = ref("");
+const loadMoreTrigger = ref(null);
+let observer = null;
 
 const showDeleteConfirmation = (id) => {
   userId.value = id;
@@ -184,7 +203,7 @@ const showDeleteConfirmation = (id) => {
 
 const cancelDelete = () => {
   showDeleteConfirm.value = false;
-  restaurantToDeleteId.value = null;
+  userId.value = null;
 };
 
 const confirmDelete = async () => {
@@ -192,20 +211,53 @@ const confirmDelete = async () => {
     await userStore.deleteUser(userId.value);
     showDeleteConfirm.value = false;
     userId.value = null;
-    toast.success("Admin Deleted Successfully");
+    toast.success("User Deleted Successfully");
   }
 };
 
-const fetchUsers = async () => {
-  await userStore.getUsers();
+const setupIntersectionObserver = () => {
+  const options = {
+    root: null,
+    rootMargin: "100px",
+    threshold: 0.1,
+  };
+
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (
+        entry.isIntersecting &&
+        !userStore.loading &&
+        userStore.currentPage < userStore.lastPage
+      ) {
+        loadMoreUsers();
+      }
+    });
+  }, options);
+
+  if (loadMoreTrigger.value) {
+    observer.observe(loadMoreTrigger.value);
+  }
+};
+
+const loadMoreUsers = async () => {
+  const nextPage = userStore.currentPage + 1;
+  await userStore.getUsers(nextPage, userStore.perPage);
 };
 
 const refreshData = async () => {
-  await fetchUsers();
+  userStore.users = [];
+  await userStore.getUsers(1, userStore.perPage);
 };
 
 onMounted(() => {
-  fetchUsers();
+  refreshData();
+  setupIntersectionObserver();
+});
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect();
+  }
 });
 
 const sortedUsers = computed(() => {
@@ -222,5 +274,3 @@ const isTopThree = (index) => {
   return index < 3 && sortOrder.value === "desc";
 };
 </script>
-
-<style scoped></style>

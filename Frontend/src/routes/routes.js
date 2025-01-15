@@ -4,6 +4,8 @@ import {
   createWebHashHistory,
 } from "vue-router";
 
+import { useCartStore } from "../store/cartStore";
+
 // User Pages
 import Splash from "../pages/Splash.vue";
 import RegisterPage from "../pages/RegisterPage.vue";
@@ -146,7 +148,7 @@ const routes = [
         name: "Cart",
         component: Cart,
         meta: {
-          requiresAuth: true,
+          allowGuest: true, // Add this meta field
         },
       },
       {
@@ -371,10 +373,18 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const { isAuthenticated, role } = storeToRefs(authStore);
+  const cartStore = useCartStore();
 
   const publicRoutes = ["Categories", "CategoryPage"];
   if (publicRoutes.includes(to.name)) {
     return next();
+  }
+
+  if (to.name === "Cart") {
+    // Allow access if authenticated or has items in guest cart
+    if (isAuthenticated.value || cartStore.cartItems.length > 0) {
+      return next();
+    }
   }
 
   if (to.meta.requiresAuth) {

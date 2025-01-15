@@ -140,6 +140,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
+import { useCartStore } from "../store/cartStore";
 
 // Reactive variables for form fields and state
 const phone = ref("");
@@ -160,7 +161,7 @@ const register = async () => {
   // Clear previous errors
   errors.value = {};
   generalError.value = "";
-  confirmPasswordError.value = ""; // Clear confirm password error
+  confirmPasswordError.value = "";
 
   // Check if password and confirm password match
   if (password.value !== confirmPassword.value) {
@@ -169,23 +170,46 @@ const register = async () => {
   }
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/api/register`, {
+    // Register the user
+    await axios.post(`${API_BASE_URL}/api/register`, {
       phone_no: phone.value,
       password: password.value,
     });
 
     const authStore = useAuthStore();
-    const { login } = authStore;
+    const cartStore = useCartStore();
 
-    await login(phone.value, password.value);
+    // Store the initial cart status before login
+    const hasGuestCartItems = cartStore.cartItems.length > 0;
 
-    router.push("/compregister");
+    // Login the user
+    const loginResult = await authStore.login(phone.value, password.value);
+
+    if (loginResult.success) {
+      // Ensure cart store is initialized properly
+      cartStore.$patch({ isGuest: false });
+
+      // Wait for cart migration to complete if there are guest items
+      if (hasGuestCartItems) {
+        try {
+          await cartStore.migrateGuestCart();
+          // Redirect to cart page since user had items in guest cart
+          router.push("/home/cart");
+        } catch (error) {
+          console.error("Failed to migrate cart:", error);
+          // Still redirect to cart page even if migration failed
+          router.push("/home/cart");
+        }
+      } else {
+        // If no guest cart items, redirect to company registration
+        router.push("/compregister");
+      }
+    }
   } catch (error) {
-    console.log(error);
+    console.error("Registration error:", error);
 
     if (error.response) {
       const responseData = error.response.data;
-
       if (responseData.errors) {
         errors.value = responseData.errors;
       } else {
@@ -198,7 +222,6 @@ const register = async () => {
     }
   }
 };
-
 const sanitizePhoneInput = () => {
   phone.value = phone.value.replace(/[^0-9]/g, "");
 };

@@ -51,7 +51,9 @@
               d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <h2 class="text-lg font-semibold text-gray-800">Delivery Address</h2>
+          <h2 class="text-lg font-semibold text-gray-800">
+            {{ cartStore.isGuest ? "Guest User" : "Delivery Address" }}
+          </h2>
         </div>
         <button
           @click="toggleEditAddress"
@@ -59,6 +61,24 @@
         >
           {{ isEditingAddress ? "Cancel" : "Edit" }}
         </button>
+      </div>
+
+      <div v-if="cartStore.isGuest" class="text-gray-700">
+        <p class="mb-2">
+          Please
+          <router-link
+            to="/register"
+            class="text-yellow-600 hover:text-yellow-700"
+            >create an account</router-link
+          >
+          or
+          <router-link
+            to="/userlogin"
+            class="text-yellow-600 hover:text-yellow-700"
+            >login</router-link
+          >
+          to complete your order
+        </p>
       </div>
 
       <div v-if="!isEditingAddress" class="text-gray-700">
@@ -552,6 +572,10 @@ const total = computed(() => {
 });
 
 const orderNow = async () => {
+  if (cartStore.isGuest) {
+    showRegistrationPrompt();
+    return;
+  }
   if (total.value <= 0) {
     showError("You cannot place an order with a total amount of 0.");
     return;
@@ -604,7 +628,18 @@ const orderNow = async () => {
   }
 };
 
+const showRegistrationPrompt = () => {
+  // showErrorPopup.value = true;
+  // errorMessage.value = "Please create an account to complete your order";
+
+  // Add a slight delay before redirecting
+  // setTimeout(() => {
+  router.push("/userLogin");
+  // }, 2000);
+};
+
 async function getProfileData() {
+  if (cartStore.isGuest) return;
   try {
     const response = await axios.get(`${API_BASE_URL}/api/profile`, {});
     const profile = response.data.data;
@@ -662,9 +697,13 @@ const saveAddress = async () => {
 onMounted(async () => {
   try {
     await cartStore.getCartItems();
-    await getProfileData();
+    if (!cartStore.isGuest) {
+      await getProfileData();
+    }
   } catch (error) {
-    showError("Failed to load cart items. Please try again.");
+    if (!cartStore.isGuest) {
+      showError("Failed to load cart items. Please try again.");
+    }
   }
 });
 

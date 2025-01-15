@@ -32,6 +32,7 @@
     "lucide-vue-next": "^0.469.0",
     "moment-timezone": "^0.5.46",
     "pinia": "^2.2.4",
+    "pinia-plugin-persistedstate": "^4.2.0",
     "quill": "^2.0.3",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5",

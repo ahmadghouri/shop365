@@ -281,15 +281,16 @@ class ProductController extends Controller
     {
         $user = auth()->user();
         $businessId = $user->business_id;
-
+    
         $search = $request->input('search');
-
+        $perPage = $request->input('per_page', 10); 
+    
         $products = Product::where('business_id', $businessId)
             ->when($search, function ($query, $search) {
                 return $query->where('title', 'like', '%' . $search . '%');
             })
-            ->get();
-
+            ->paginate($perPage); 
+    
         return $this->successResponse($products, 'Products found');
     }
 

@@ -9,11 +9,11 @@
         placeholder="Search products..."
         class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
       />
-      <div v-if="isLoading" class="mt-2 mb-2 text-center">
+      <!-- <div v-if="isLoading" class="mt-2 mb-2 text-center">
         <div
           class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"
         ></div>
-      </div>
+      </div> -->
     </div>
 
     <div class="flex justify-between items-center">
@@ -177,6 +177,15 @@
           </div>
         </div>
       </div>
+
+      <div v-if="productStore.isLoading" class="text-center py-4">
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"
+        ></div>
+      </div>
+
+      <!-- Intersection observer target -->
+      <div ref="loadMoreTrigger" class="h-4 my-4"></div>
     </div>
 
     <!-- Confirmation Modal -->
@@ -211,7 +220,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, onUnmounted } from "vue";
 import { useProductStore } from "../../store/productStore";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
@@ -233,18 +242,49 @@ const discount = ref(0); // New discount field
 const showConfirmModal = ref(false);
 const confirmDeleteId = ref(null);
 const searchQuery = ref("");
-const isLoading = ref(false);
+const loadMoreTrigger = ref(null);
+const isLoading = ref(true);
+const currentPage = ref(1);
 
-const loadProductDetails = () => {
-  if (selectedProduct.value) {
-    form.value = {
-      title: selectedProduct.value.title,
-      price: selectedProduct.value.price,
-      description: selectedProduct.value.description,
-      type: selectedProduct.value.type,
-      image: null,
-    };
-    discount.value = selectedProduct.value.discount || 0; // Load existing discount if available
+const setupIntersectionObserver = () => {
+  const options = {
+    root: null,
+    rootMargin: "0px",
+    threshold: 0.1,
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (
+        entry.isIntersecting &&
+        !productStore.isLoading &&
+        currentPage.value < productStore.totalPages
+      ) {
+        loadMoreProducts();
+      }
+    });
+  }, options);
+
+  if (loadMoreTrigger.value) {
+    observer.observe(loadMoreTrigger.value);
+  }
+
+  return observer;
+};
+
+const loadMoreProducts = async () => {
+  if (!productStore.isLoading) {
+    currentPage.value += 1;
+    try {
+      await productStore.getRestaurantProducts(
+        searchQuery.value,
+        currentPage.value
+      );
+    } catch (error) {
+      console.error("Error loading more products:", error);
+      toast.error("Failed to load more products");
+      currentPage.value -= 1;
+    }
   }
 };
 
@@ -325,7 +365,7 @@ const submitForm = async () => {
   try {
     await productStore.updateProduct(formData, selectedProduct.value.id);
     closeForm();
-    toast.success("Product updated successfully.");
+    toast.success("Product updated successfully");
     await productStore.getRestaurantProducts();
   } catch (error) {
     console.error("Error updating product:", error);
@@ -368,7 +408,21 @@ const deleteProduct = async (productId) => {
 };
 
 onMounted(async () => {
-  await productStore.getRestaurantProducts();
+  currentPage.value = 1;
+  try {
+    await productStore.getRestaurantProducts();
+    const observer = setupIntersectionObserver();
+
+    // Cleanup observer on component unmount
+    onUnmounted(() => {
+      if (observer && loadMoreTrigger.value) {
+        observer.unobserve(loadMoreTrigger.value);
+      }
+    });
+  } catch (error) {
+    console.error("Error loading products:", error);
+    toast.error("Failed to load products");
+  }
 });
 </script>
 

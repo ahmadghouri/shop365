@@ -18,6 +18,7 @@ export const useProductStore = defineStore("products", {
     currentPage: 0,
     totalPages: 1,
     adminProducts: [],
+    isLoading: false,
   }),
 
   getters: {
@@ -38,6 +39,7 @@ export const useProductStore = defineStore("products", {
       this.number = "";
       this.currentPage = 0;
       this.totalPages = 1;
+      this.isLoading = false;
     },
 
     setBusinessContext(id, type = "child") {
@@ -45,6 +47,42 @@ export const useProductStore = defineStore("products", {
         this.clearData();
         this.activeBusinessId = id;
         this.businessType = type;
+      }
+    },
+
+    async getRestaurantProducts(search = "", page = 1) {
+      this.isLoading = true;
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/restaurantAdmin/allproducts`,
+          {
+            params: {
+              search,
+              page,
+            },
+          }
+        );
+
+        const { data, current_page, last_page, total } = response.data.data;
+
+        // If it's page 1, reset the products array
+        if (page === 1) {
+          this.products = data;
+        } else {
+          // Otherwise append new products
+          this.products = [...this.products, ...data];
+        }
+
+        this.currentPage = current_page;
+        this.totalPages = last_page;
+        this.total = total;
+
+        return this.products;
+      } catch (error) {
+        console.error("Failed to fetch restaurant products", error);
+        throw error;
+      } finally {
+        this.isLoading = false;
       }
     },
 
@@ -75,25 +113,6 @@ export const useProductStore = defineStore("products", {
         return this.products;
       } catch (error) {
         console.error("Failed to fetch products", error);
-        throw error;
-      }
-    },
-
-    async getRestaurantProducts(search = "") {
-      try {
-        this.setBusinessContext(null, "parent");
-
-        const response = await axios.get(
-          `${API_BASE_URL}/api/restaurantAdmin/allproducts`,
-          {
-            params: { search },
-          }
-        );
-
-        this.products = response.data.data;
-        return this.products;
-      } catch (error) {
-        console.error("Failed to fetch restaurant products", error);
         throw error;
       }
     },
@@ -215,6 +234,8 @@ export const useProductStore = defineStore("products", {
           `${API_BASE_URL}/api/getNumber/${businessId}`
         );
         this.number = response.data.data;
+        console.log(response.data.data);
+        console.log(this.number);
       } catch (error) {
         console.error("Error getting business number:", error);
       }

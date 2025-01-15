@@ -708,14 +708,22 @@ const goBack = () => {
 };
 
 const addToCart = async (product) => {
-  if (!authStore.isAuthenticated) {
-    showRegisterPopup.value = true; // Changed this line
-    return;
-  }
+  // if (!authStore.isAuthenticated) {
+  //   showRegisterPopup.value = true; // Changed this line
+  //   return;
+  // }
 
   const cartItem = {
     product_id: product.id,
     quantity: 1,
+    product: {
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      final_price: product.final_price,
+      image_url: product.image_url,
+      business_id: product.business_id,
+    },
   };
 
   const nav = document.querySelector(".navbar-cart-icon");

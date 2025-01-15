@@ -4,6 +4,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import { toast } from "vue3-toastify";
 import { useOrderStore } from "../store/orderStore";
+import { useCartStore } from "../store/cartStore";
 
 export const useAuthStore = defineStore("auth", () => {
   const user = ref(null);
@@ -33,16 +34,19 @@ export const useAuthStore = defineStore("auth", () => {
 
       const { token: newToken, data } = response.data;
 
-      setLoginData(newToken, data);
+      // Set login data first
+      await setLoginData(newToken, data);
+      // After successful login, migrate guest cart if exists
+      const cartStore = useCartStore();
+      await cartStore.migrateGuestCart();
 
       return {
         success: true,
         role: data.role,
       };
     } catch (error) {
-      console.log("Login error:", error.response?.data); // For debugging purposes
+      console.log("Login error:", error.response?.data);
 
-      // Return the full error data, including `errors` and `message`
       return {
         success: false,
         errors: error.response?.data?.errors || {},
@@ -53,6 +57,12 @@ export const useAuthStore = defineStore("auth", () => {
 
   // Logout action
   const logout = () => {
+    const cartStore = useCartStore();
+    cartStore.isGuest = true; // Reset cart store to guest mode
+    cartStore.cartItems = []; // Clear cart items
+    cartStore.cartCount = 0;
+    cartStore.voucherDiscount = 0;
+
     setLoginData(null, null);
   };
 
@@ -65,7 +75,6 @@ export const useAuthStore = defineStore("auth", () => {
       });
 
       points.value = response.data.user.points;
-      console.log(points.value);
 
       return {
         success: true,
@@ -96,6 +105,9 @@ export const useAuthStore = defineStore("auth", () => {
 
       // Set axios default header
       axios.defaults.headers.common["Authorization"] = `Bearer ${tokenValue}`;
+
+      // const cartStore = useCartStore();
+      // cartStore.isGuest = false;
 
       // set business events
       if (businessId) {

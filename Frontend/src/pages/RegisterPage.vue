@@ -186,22 +186,14 @@ const register = async () => {
     const loginResult = await authStore.login(phone.value, password.value);
 
     if (loginResult.success) {
-      // Ensure cart store is initialized properly
       cartStore.$patch({ isGuest: false });
 
-      // Wait for cart migration to complete if there are guest items
       if (hasGuestCartItems) {
-        try {
-          await cartStore.migrateGuestCart();
-          // Redirect to cart page since user had items in guest cart
-          router.push("/home/cart");
-        } catch (error) {
-          console.error("Failed to migrate cart:", error);
-          // Still redirect to cart page even if migration failed
-          router.push("/home/cart");
-        }
+        router.push({
+          path: "/compregister",
+          query: { fromCart: "true" },
+        });
       } else {
-        // If no guest cart items, redirect to company registration
         router.push("/compregister");
       }
     }

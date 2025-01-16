@@ -185,7 +185,6 @@ export const useCartStore = defineStore("cart", {
             await axios.post(`${API_BASE_URL}/api/cart`, cartItem);
           } catch (error) {
             console.error("Failed to migrate item:", error);
-            // Continue with other items even if one fails
           }
         }
 

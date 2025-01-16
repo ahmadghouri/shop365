@@ -573,7 +573,11 @@ const total = computed(() => {
 
 const orderNow = async () => {
   if (cartStore.isGuest) {
-    showRegistrationPrompt();
+    // Redirect to registration with fromCart parameter
+    router.push({
+      path: "/register",
+      query: { fromCart: "true" },
+    });
     return;
   }
   if (total.value <= 0) {

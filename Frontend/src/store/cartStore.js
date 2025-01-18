@@ -7,18 +7,25 @@ export const useCartStore = defineStore("cart", {
     cartItems: [],
     cartCount: 0,
     voucherDiscount: 0,
-    isGuest: !localStorage.getItem("token"),
+    isGuest: true,
     migrationInProgress: false,
   }),
 
   persist: {
     storage: localStorage,
-    paths: ["cartItems", "cartCount", "voucherDiscount", "isGuest"],
+    paths: ["cartItems", "cartCount", "voucherDiscount"],
+  },
+
+  getters: {
+    // Add a computed property to check auth status
+    isGuestUser() {
+      return !localStorage.getItem("token");
+    },
   },
 
   actions: {
     async applyVoucher(voucherCode) {
-      if (this.isGuest) {
+      if (this.isGuestUser) {
         throw {
           response: {
             data: {
@@ -59,7 +66,7 @@ export const useCartStore = defineStore("cart", {
     },
 
     async addToCart(cartItem) {
-      if (this.isGuest) {
+      if (this.isGuestUser) {
         const existingItem = this.cartItems.find(
           (item) => item.product_id === cartItem.product_id
         );
@@ -89,7 +96,7 @@ export const useCartStore = defineStore("cart", {
     },
 
     async getCartItems() {
-      if (this.isGuest) {
+      if (this.isGuestUser) {
         return this.cartItems;
       }
 
@@ -104,7 +111,7 @@ export const useCartStore = defineStore("cart", {
     },
 
     async removeItem(id) {
-      if (this.isGuest) {
+      if (this.isGuestUser) {
         const itemIndex = this.cartItems.findIndex((item) => item.id === id);
         if (itemIndex !== -1) {
           this.cartCount -= this.cartItems[itemIndex].quantity;
@@ -124,7 +131,7 @@ export const useCartStore = defineStore("cart", {
     },
 
     async updateItemQuantity(id, quantity) {
-      if (this.isGuest) {
+      if (this.isGuestUser) {
         const item = this.cartItems.find((item) => item.id === id);
         if (item) {
           const quantityDiff = quantity - item.quantity;
@@ -147,7 +154,7 @@ export const useCartStore = defineStore("cart", {
     },
 
     async fetchCartCount() {
-      if (this.isGuest) {
+      if (this.isGuestUser) {
         this.cartCount = this.cartItems.reduce(
           (sum, item) => sum + item.quantity,
           0

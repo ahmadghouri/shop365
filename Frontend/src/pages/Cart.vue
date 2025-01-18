@@ -52,7 +52,7 @@
             />
           </svg>
           <h2 class="text-lg font-semibold text-gray-800">
-            {{ cartStore.isGuest ? "Guest User" : "Delivery Address" }}
+            {{ cartStore.isGuestUser ? "Guest User" : "Delivery Address" }}
           </h2>
         </div>
         <button
@@ -63,7 +63,7 @@
         </button>
       </div>
 
-      <div v-if="cartStore.isGuest" class="text-gray-700">
+      <div v-if="cartStore.isGuestUser" class="text-gray-700">
         <p class="mb-2">
           Please
           <router-link
@@ -572,7 +572,7 @@ const total = computed(() => {
 });
 
 const orderNow = async () => {
-  if (cartStore.isGuest) {
+  if (cartStore.isGuestUser) {
     // Redirect to registration with fromCart parameter
     router.push({
       path: "/register",

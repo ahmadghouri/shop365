@@ -338,6 +338,17 @@ const openFormForUpdate = (product) => {
   loadProductDetails();
 };
 
+const loadProductDetails = () => {
+  form.value = {
+    title: selectedProduct.value.title,
+    price: selectedProduct.value.price,
+    description: selectedProduct.value.description,
+    type: selectedProduct.value.type,
+    image: null,
+  };
+  discount.value = selectedProduct.value.discount || 0;
+};
+
 const submitForm = async () => {
   if (imageError.value) {
     toast.error("Please fix the errors before submitting.");

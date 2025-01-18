@@ -164,6 +164,42 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
+    async reorderPreviousOrder(orderId) {
+      try {
+        console.log("order", orderId);
+        const response = await axios.post(
+          `${API_BASE_URL}/api/reorder/${orderId}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        // Update cart count based on the response
+        if (response.data.count) {
+          this.cartCount += response.data.count;
+        }
+        // Refresh cart items to ensure the latest state
+        await this.getCartItems();
+        // Show success message (you might want to handle this differently based on your UI)
+        return {
+          success: true,
+          message: response.data.message,
+          count: response.data.count,
+        };
+      } catch (error) {
+        console.error("Failed to reorder previous order", error);
+        // Return error details
+        return {
+          success: false,
+          message:
+            error.response?.data?.message || "Failed to reorder previous order",
+          error: error,
+        };
+      }
+    },
+
     async migrateGuestCart() {
       if (!this.cartItems.length || this.migrationInProgress) return;
 

@@ -240,5 +240,17 @@ export const useProductStore = defineStore("products", {
         console.error("Error getting business number:", error);
       }
     },
+
+    async initializeBusinessData(businessId) {
+      try {
+        await Promise.all([
+          this.getNumber(businessId),
+          this.fetchFilters(businessId),
+        ]);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
   },
 });

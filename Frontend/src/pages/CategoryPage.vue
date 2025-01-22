@@ -809,8 +809,7 @@ onMounted(async () => {
 
     debounceSearch();
 
-    productStore.fetchFilters(businessId);
-    productStore.getNumber(businessId);
+    productStore.initializeBusinessData(businessId);
   }
 
   observerCleaner = setupIntersectionObserver();

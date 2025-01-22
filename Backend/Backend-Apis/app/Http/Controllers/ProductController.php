@@ -10,6 +10,7 @@ use App\Models\cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\ImageService;
 use App\Services\ProductService;
 use Carbon\Carbon;
@@ -139,6 +140,9 @@ class ProductController extends Controller
         $searchTerm = $request->input('search');
 
         $query = Product::where('business_id', $businessId);
+        $user = User::where('business_id', $businessId)->first();
+        $number = $user ? $user->phone_no : null;
+        
 
         if (!empty($searchTerm)) {
             $query->where(function ($q) use ($searchTerm) {
@@ -148,8 +152,16 @@ class ProductController extends Controller
         }
 
         $products = $query->orderBy('discount', 'desc')->paginate(20); // Limit to 10 products per page (adjust as needed)
+        $types = Product::where('business_id', $businessId)->select('type')->distinct()->orderBy('type', 'asc')->get();
 
-        return $this->successResponse($products, 'All the products');
+        $responseData = [
+            'number' => $number,
+            'types' => $types,
+            'products' => $products,
+        ];
+
+
+        return $this->successResponse($responseData, 'All the products');
     }
 
     public function businessAdminsProducts(Request $request, $businessId)

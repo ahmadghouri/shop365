@@ -97,7 +97,18 @@ export const useProductStore = defineStore("products", {
           }
         );
 
-        const newProducts = response.data.data.data;
+        console.log(response.data);
+
+        const data = response.data.data;
+        const newProducts = data.products.data;
+        this.number = data.number;
+
+        let types = data.types;
+
+        const uniqueFilters = [
+          ...new Set(types.map((product) => product.type)),
+        ];
+        this.filters = ["All", ...uniqueFilters];
 
         // If it's the first page, replace products array
         // Otherwise append new products
@@ -107,8 +118,8 @@ export const useProductStore = defineStore("products", {
           this.products = [...this.products, ...newProducts];
         }
 
-        this.currentPage = response.data.data.current_page;
-        this.totalPages = response.data.data.last_page;
+        this.currentPage = data.products.current_page;
+        this.totalPages = data.products.last_page;
 
         return this.products;
       } catch (error) {

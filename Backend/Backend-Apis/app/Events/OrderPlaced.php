@@ -39,7 +39,7 @@ class OrderPlaced implements ShouldBroadcastNow
             'phone_no' => $order->user->phone_no,
             'status' => $order->status,
             'totalPrice' => $order->total_price,
-            'createdAt' => $order->created_at->toDateTimeString(),
+            'createdAt' => $order->created_at->timezone('Asia/Karachi')->toDateTimeString(),
             // Combine the address data into an array
             'address' => [
                 'household' => $order->user->household->address ?? null, // Household address field

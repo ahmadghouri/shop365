@@ -25,6 +25,7 @@ import Login from "../pages/Admin/Login.vue";
 import Dashboard from "../pages/Admin/Dashboard.vue";
 import Product from "../pages/Admin/Products.vue";
 import UserAdmin from "../pages/Admin/User.vue";
+import CarouselImages from "../pages/Admin/CarouselImages.vue";
 import RegisterAdmin from "../pages/Admin/RegisterAdmin.vue";
 import RestaurantAdminDashboard from "../pages/RestaurantAdmin/RestaurantAdminDashboard.vue";
 import OurStoreUsers from "../pages/Admin/OurStoreUsers.vue";
@@ -227,6 +228,14 @@ const routes = [
         path: "products/:id",
         name: "Products",
         component: Product,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "carousel",
+        name: "AdminCarousel",
+        component: CarouselImages,
         meta: {
           requiresAdminAuth: true,
         },

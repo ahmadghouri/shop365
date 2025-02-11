@@ -1,7 +1,7 @@
 <template>
   <section class="">
     <!-- Mobile Version -->
-    <div class="overflow-x-auto py-4 mb-4 lg:hidden">
+    <div class="overflow-x-auto py-2 mb-2 lg:hidden">
       <div class="flex space-x-4">
         <div
           v-for="service in services"

@@ -26,6 +26,6 @@ class HeaderImage extends Model
 
     public function getImageUrlAttribute()
     {
-        return url('/storage/' . $this->image_path);
+        return secure_url('/be/storage/' . $this->image_path);
     }
 }

@@ -7,7 +7,7 @@
       <img src="/search.png" alt="" />
     </button> -->
 
-    <section class="lg:hidden">
+    <section class="lg:hidden mb-2">
       <div>
         <span class="text-[#888888] text-xl mb-2">
           Hi {{ name || "Loading..." }}
@@ -16,24 +16,27 @@
       </div>
     </section>
 
-    <section
-      class="hidden lg:flex lg:items-center lg:justify-center lg:py-12 px-20 bg-white rounded-lg mt-8"
-    >
-      <div class="flex flex-col lg:flex-row lg:items-center lg:space-x-8">
-        <!-- Image Section -->
-        <div class="lg:w-1/2 flex flex-col justify-center mt-6 lg:mt-0">
-          <div class="text-center lg:text-left">
+    <div class="lg:hidden">
+      <Carousel />
+    </div>
+
+    <section class="hidden lg:block">
+      <!-- Desktop Carousel First -->
+
+      <!-- Welcome Section -->
+      <div class="flex items-center py-12 px-20 gap-5 bg-white rounded-lg">
+        <div class="max-w-full flex flex-col justify-center">
+          <div class="text-left">
             <span class="text-[#888888] text-xl mb-2 block">
               Hi {{ name || "Loading..." }}
             </span>
-            <h1 class="text-yellow-500 text-3xl lg:text-4xl font-bold mb-4">
+            <h1 class="text-yellow-500 text-4xl font-bold mb-4">
               Welcome To SHOP365
             </h1>
-            <p class="text-gray-600 text-base lg:text-lg">
+            <p class="text-gray-600 text-lg">
               Too busy to shop? Let us handle it! Groceries and your favorite
               foods delivered straight to you with a single tap!
             </p>
-            <!-- Call to Action Button -->
             <button
               @click="scrollToShops"
               class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out"
@@ -42,21 +45,14 @@
             </button>
           </div>
         </div>
-
-        <div class="lg:w-1/2">
-          <img
-            src="/hero.svg"
-            alt="Hero Image"
-            class="rounded-lg object-cover w-full h-auto"
-          />
+        <div class="w-full">
+          <Carousel class="mb-8" />
         </div>
-
-        <!-- Text Section -->
       </div>
     </section>
 
     <!-- Hero Image Section -->
-    <section class="flex justify-center lg:hidden">
+    <!-- <section class="flex justify-center lg:hidden">
       <div
         class="h-[180px] w-[374px] shadow-md flex justify-center items-center p-5 mt-8 gap-4 bg-yellow-500/15 rounded-lg"
       >
@@ -80,7 +76,7 @@
           </button>
         </div>
       </div>
-    </section>
+    </section> -->
 
     <!-- Services Component -->
     <Services @serviceSelected="filterByService" />
@@ -283,6 +279,7 @@ import { useRouter } from "vue-router";
 import Launchment from "./Launchment.vue";
 import StoreClosedPopUp from "../components/StoreClosedPopUp.vue";
 import { useAuthStore } from "../stores/authStore";
+import Carousel from "../components/Carousel.vue";
 
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);

@@ -7,6 +7,7 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ComplainController;
 use App\Http\Controllers\GroceryProductController;
+use App\Http\Controllers\HeaderImageController;
 use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -20,10 +21,15 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
+
+
+Route::apiResource('header-images', HeaderImageController::class);
+Route::post('header-images/reorder', [HeaderImageController::class, 'reorder']);
+
 Route::post('/update-grocery-business-id', [ProductController::class, 'updateGroceryBusinessId']);
 Route::post('import-grocery-products', [GroceryProductController::class, 'storeGroceryProducts']);
 
-Route::delete('delete-products/{businessId}', [ProductController::class , 'deleteTodayProductsByBusinessId']);
+Route::delete('delete-products/{businessId}', [ProductController::class, 'deleteTodayProductsByBusinessId']);
 Route::delete('/orders/delete-all', [OrderController::class, 'deleteAllOrders']);
 Route::delete('/users/cleanup', [UserController::class, 'deleteUsers']);
 
@@ -74,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Complaints
     Route::post('/complaints', [ComplainController::class, 'store']);
     Route::get('/profile', [AuthController::class, 'profile']);
-    
+
     // Cart
     // routes/api.php
     Route::prefix('cart')->group(function () {

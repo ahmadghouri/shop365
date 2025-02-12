@@ -98,7 +98,7 @@
         </div>
 
         <!-- Discount Field -->
-        <div>
+        <!-- <div>
           <label for="discount" class="block text-sm font-medium text-gray-700">
             Discount (%)
           </label>
@@ -110,6 +110,52 @@
             max="100"
             class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="Enter discount percentage"
+          />
+        </div> -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">
+            Discount Type
+          </label>
+          <div class="mt-1 flex space-x-4">
+            <label class="inline-flex items-center">
+              <input
+                type="radio"
+                v-model="discountType"
+                value="percentage"
+                class="form-radio"
+              />
+              <span class="ml-2">Percentage (%)</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input
+                type="radio"
+                v-model="discountType"
+                value="flat"
+                class="form-radio"
+              />
+              <span class="ml-2">Flat Amount</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label for="discount" class="block text-sm font-medium text-gray-700">
+            {{
+              discountType === "percentage" ? "Discount (%)" : "Discount Amount"
+            }}
+          </label>
+          <input
+            type="number"
+            id="discount"
+            v-model="discount"
+            :min="0"
+            :max="discountType === 'percentage' ? 100 : undefined"
+            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            :placeholder="
+              discountType === 'percentage'
+                ? 'Enter discount percentage'
+                : 'Enter discount amount'
+            "
           />
         </div>
 
@@ -239,6 +285,7 @@ const form = ref({
   image: null,
 });
 const discount = ref(0); // New discount field
+const discountType = ref("percentage");
 const showConfirmModal = ref(false);
 const confirmDeleteId = ref(null);
 const searchQuery = ref("");
@@ -347,6 +394,7 @@ const loadProductDetails = () => {
     image: null,
   };
   discount.value = selectedProduct.value.discount || 0;
+  discountType.value = selectedProduct.value.discount_type || "percentage";
 };
 
 const submitForm = async () => {
@@ -385,16 +433,28 @@ const submitForm = async () => {
 };
 
 const applyDiscountToProduct = async () => {
-  if (discount.value === null || discount.value < 0 || discount.value > 100) {
-    toast.error("Please enter a valid discount between 0 and 100.");
+  if (
+    discountType.value === "percentage" &&
+    (discount.value < 0 || discount.value > 100)
+  ) {
+    toast.error("Percentage discount must be between 0 and 100");
+    return;
+  }
+
+  if (discountType.value === "flat" && discount.value < 0) {
+    toast.error("Flat discount cannot be negative");
     return;
   }
 
   try {
-    await productStore.applyDiscount(selectedProduct.value.id, discount.value);
+    await productStore.applyDiscount(
+      selectedProduct.value.id,
+      discount.value,
+      discountType.value
+    );
     toast.success("Discount applied successfully!");
-    // Update the discount in the selectedProduct
     selectedProduct.value.discount = discount.value;
+    selectedProduct.value.discount_type = discountType.value;
   } catch (error) {
     console.error("Error applying discount:", error);
     toast.error("Failed to apply discount.");

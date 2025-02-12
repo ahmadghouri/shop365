@@ -228,10 +228,18 @@
       >
         <!-- Discount Badge -->
         <div
-          v-if="product.discount > 0"
+          v-if="
+            product.discount &&
+            (product.discount_type === 'percentage' ||
+              product.discount_type === 'flat')
+          "
           class="absolute top-2 left-2 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md transform -rotate-6"
         >
-          {{ product.discount }}% OFF
+          {{
+            product.discount_type === "percentage"
+              ? `${product.discount}% OFF`
+              : `Rs:${product.discount} OFF`
+          }}
         </div>
 
         <!-- Image Section -->
@@ -258,12 +266,19 @@
               product.type.toLowerCase() == 'services' ? 'hidden' : 'mt-auto'
             "
           >
-            <p v-if="product.discount > 0" class="text-sm mb-1">
+            <p
+              v-if="
+                product.discount &&
+                (product.discount_type === 'percentage' ||
+                  product.discount_type === 'flat')
+              "
+              class="text-sm mb-1"
+            >
               <span class="text-gray-500 line-through text-base">
                 Rs:{{ product.price }}
               </span>
               <span class="text-red-600 font-bold text-xl ml-2">
-                Rs:{{ product.final_price }}
+                Rs:{{ calculateFinalPrice(product) }}
               </span>
             </p>
             <p v-else class="text-gray-800 font-semibold text-base">
@@ -538,6 +553,18 @@ const fetchReviews = async () => {
     console.error("Error fetching reviews:", error);
     toast.error("Failed to load reviews");
   }
+};
+
+const calculateFinalPrice = (product) => {
+  if (!product.discount) return product.price;
+
+  if (product.discount_type === "percentage") {
+    return Math.round(product.price - (product.price * product.discount) / 100);
+  } else if (product.discount_type === "flat") {
+    return Math.round(product.price - product.discount);
+  }
+
+  return product.price;
 };
 
 // Utility Methods

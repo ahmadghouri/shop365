@@ -425,19 +425,10 @@ class ProductController extends Controller
 
         $discount = $request->input('discount');
         $discountType = $request->input('discount_type');
-        $originalPrice = $product->price;
 
         // Validate percentage discount
         if ($discountType === 'percentage' && $discount > 100) {
             return response()->json(['message' => 'Percentage discount cannot exceed 100%'], 422);
-        }
-
-        // Calculate new price based on discount type
-        if ($discountType === 'percentage') {
-            $product->price = $originalPrice - ($originalPrice * ($discount / 100));
-        } else {
-            // For flat discount, simply subtract the discount amount
-            $product->price = max(0, $originalPrice - $discount);
         }
 
         // Save discount details
@@ -446,5 +437,17 @@ class ProductController extends Controller
         $product->save();
 
         return $this->successResponse($product, 'Discount applied to the product');
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            $product = Product::find($id);
+            $product->status = $request->input('status');
+            $product->save();
+            return $this->successResponse($product, 'Product status updated successfully');
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
     }
 }

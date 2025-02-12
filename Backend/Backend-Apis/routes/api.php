@@ -46,6 +46,9 @@ Route::apiResource('/products', ProductController::class);
 // for child businesses 
 Route::get('/business/{businessId}/sub-businesses', [BusinessController::class, 'getChildBusiness']);
 
+// for updating the status of the product
+Route::post('/product/{id}/status', [ProductController::class, 'updateStatus']);
+
 
 Route::get('/all-products/{businessId}', [ProductController::class, 'businessProducts']);
 Route::get('/all-products/{businessId}/admin', [ProductController::class, 'businessAdminsProducts']);

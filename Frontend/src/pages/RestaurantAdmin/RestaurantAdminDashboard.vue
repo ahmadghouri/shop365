@@ -212,6 +212,21 @@
                 </span>
               </div>
             </div>
+
+            <div class="flex items-center justify-between mt-4 border-t pt-3">
+              <span class="text-sm text-gray-600">Product Status</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  class="sr-only peer"
+                  :checked="product.status === 1"
+                  @change="() => handleStatusToggle(product)"
+                />
+                <div
+                  class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"
+                ></div>
+              </label>
+            </div>
           </div>
           <div class="p-4">
             <button
@@ -317,6 +332,15 @@ const setupIntersectionObserver = () => {
   }
 
   return observer;
+};
+
+const handleStatusToggle = async (product) => {
+  try {
+    const newStatus = product.status === 1 ? 0 : 1;
+    await productStore.updateProductStatus(product.id, newStatus);
+  } catch (error) {
+    console.error("Error updating status:", error);
+  }
 };
 
 const loadMoreProducts = async () => {

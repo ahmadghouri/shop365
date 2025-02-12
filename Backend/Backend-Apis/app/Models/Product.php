@@ -16,24 +16,32 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
-        return secure_url('/be' .$this->image);
+        return secure_url('/be' . $this->image);
         //return url('' . $this->image);
     }
 
-    public function business(){
+    public function business()
+    {
         return $this->belongsTo(Business::class);
     }
 
 
-// Product.php
-public function getFinalPriceAttribute()
-{
-    if ($this->discount > 0) {
-        return $this->price - ($this->price * ($this->discount / 100));
+    // Product.php
+    public function getFinalPriceAttribute()
+    {
+        $price = $this->price;
+
+        // If a discount is applied, calculate the final price
+        if ($this->discount && $this->discount > 0) {
+            if ($this->discount_type === 'percentage') {
+                // Apply percentage discount
+                $price = $this->price - ($this->price * ($this->discount / 100));
+            } elseif ($this->discount_type === 'flat') {
+                // Apply flat discount
+                $price = max(0, $this->price - $this->discount);
+            }
+        }
+
+        return $price;
     }
-    return $this->price;
-}
-
-
-    
 }

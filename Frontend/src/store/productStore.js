@@ -269,5 +269,29 @@ export const useProductStore = defineStore("products", {
         throw error;
       }
     },
+
+    // Add this to your store's actions
+    async updateProductStatus(productId, status) {
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/product/${productId}/status`,
+          { status }
+        );
+
+        // Update the product in the local state
+        const index = this.products.findIndex((p) => p.id === productId);
+        if (index !== -1) {
+          this.products[index] = {
+            ...this.products[index],
+            status: response.data.status || status,
+          };
+        }
+
+        return true;
+      } catch (error) {
+        console.error("Failed to update product status:", error);
+        throw error;
+      }
+    },
   },
 });

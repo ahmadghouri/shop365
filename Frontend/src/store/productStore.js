@@ -217,25 +217,31 @@ export const useProductStore = defineStore("products", {
       }
     },
 
-    async applyDiscount(productId, discount) {
+    async applyDiscount(productId, discount, discountType) {
       try {
         const response = await axios.post(
           `${API_BASE_URL}/api/restaurantAdmin/products/${productId}/apply-discount`,
-          { discount }
+          {
+            discount,
+            discount_type: discountType,
+          }
         );
 
         const updatedProduct = response.data.data;
+
         const index = this.products.findIndex((p) => p.id === productId);
 
         if (index !== -1) {
           this.products[index] = {
             ...this.products[index],
             discount: updatedProduct.discount,
+            discount_type: updatedProduct.discount_type,
             final_price: updatedProduct.final_price,
           };
         }
       } catch (error) {
         console.error("Failed to apply discount", error);
+        throw error;
       }
     },
 

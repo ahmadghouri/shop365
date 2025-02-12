@@ -95,7 +95,6 @@ class ProductController extends Controller
             Log::info('Executed SQL Queries:', DB::getQueryLog());
 
             return response()->json(['message' => 'All products created today for business deleted successfully, along with associated order items and cart items.'], 200);
-
         } catch (Exception $e) {
             // Log the exception
             Log::error('Failed to delete products', [
@@ -142,7 +141,7 @@ class ProductController extends Controller
         $query = Product::where('business_id', $businessId);
         $user = User::where('business_id', $businessId)->first();
         $number = $user ? $user->phone_no : null;
-        
+
 
         if (!empty($searchTerm)) {
             $query->where(function ($q) use ($searchTerm) {
@@ -188,10 +187,10 @@ class ProductController extends Controller
             ->distinct()
             ->orderBy('type', 'asc') // Sort types alphabetically in ascending order
             ->get();
-    
+
         return $this->successResponse($types);
     }
-    
+
 
     public function businessProductsFiltered(Request $request, $businessId)
     {
@@ -293,16 +292,16 @@ class ProductController extends Controller
     {
         $user = auth()->user();
         $businessId = $user->business_id;
-    
+
         $search = $request->input('search');
-        $perPage = $request->input('per_page', 10); 
-    
+        $perPage = $request->input('per_page', 10);
+
         $products = Product::where('business_id', $businessId)
             ->when($search, function ($query, $search) {
                 return $query->where('title', 'like', '%' . $search . '%');
             })
-            ->paginate($perPage); 
-    
+            ->paginate($perPage);
+
         return $this->successResponse($products, 'Products found');
     }
 
@@ -404,36 +403,48 @@ class ProductController extends Controller
         }
     }
 
-
     public function applyDiscountToProduct(Request $request, $productId)
     {
         // Ensure the user is authenticated
         if (!Auth::check()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
-    
+
         // Validate the discount input
         $request->validate([
-            'discount' => 'required|numeric|min:0|max:100', // Ensure discount is between 0 and 100
+            'discount' => 'required|numeric|min:0',
+            'discount_type' => 'required|in:percentage,flat'
         ]);
-    
+
         // Find the product by its ID
         $product = Product::find($productId);
-    
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-    
-        // Apply the discount and calculate the final price
+
         $discount = $request->input('discount');
+        $discountType = $request->input('discount_type');
+        $originalPrice = $product->price;
+
+        // Validate percentage discount
+        if ($discountType === 'percentage' && $discount > 100) {
+            return response()->json(['message' => 'Percentage discount cannot exceed 100%'], 422);
+        }
+
+        // Calculate new price based on discount type
+        if ($discountType === 'percentage') {
+            $product->price = $originalPrice - ($originalPrice * ($discount / 100));
+        } else {
+            // For flat discount, simply subtract the discount amount
+            $product->price = max(0, $originalPrice - $discount);
+        }
+
+        // Save discount details
         $product->discount = $discount;
-        $product->price = $product->price - ($product->price * ($discount / 100)); // Calculate final price
-    
-        // Save the updated product
+        $product->discount_type = $discountType;
         $product->save();
-    
+
         return $this->successResponse($product, 'Discount applied to the product');
     }
-    
-
 }

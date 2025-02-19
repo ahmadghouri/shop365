@@ -42,22 +42,42 @@ export const useCartStore = defineStore("cart", {
             voucher_code: voucherCode,
           }
         );
+
+        // Handle successful voucher application
         this.voucherDiscount = response.data.discount;
         return {
           message: "Voucher applied successfully",
-          ...response.data,
+          ...response.data, // Include all response data (e.g., inactive_products, etc.)
         };
       } catch (error) {
+        // Reset voucher discount on error
         this.voucherDiscount = 0;
+
+        // Log the error for debugging
         console.error("Voucher application error:", error);
-        throw {
-          response: {
-            data: {
-              message:
-                error.response?.data?.message || "Failed to apply voucher",
+
+        // Propagate the error details from the backend
+        if (error.response && error.response.data) {
+          throw {
+            response: {
+              data: {
+                message:
+                  error.response.data.message || "Failed to apply voucher",
+                inactive_products: error.response.data.inactive_products || "",
+                remaining_amount: error.response.data.remaining_amount || 0,
+              },
             },
-          },
-        };
+          };
+        } else {
+          // Fallback for unexpected errors
+          throw {
+            response: {
+              data: {
+                message: "Failed to apply voucher due to an unexpected error",
+              },
+            },
+          };
+        }
       }
     },
 

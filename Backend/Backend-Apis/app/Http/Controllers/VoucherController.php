@@ -43,29 +43,53 @@ class VoucherController extends Controller
             return $this->errorResponse('Voucher already used', 400);
         }
 
-        $cartItems = cart::where('user_id', $user->id)->get();
+        $cartItems = Cart::where('user_id', $user->id)->get();
 
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty'], 400);
         }
 
-        // Check if any product in the cart has status = false
-        $invalidProducts = $cartItems->filter(function ($cartItem) {
-            return $cartItem->product->status === 0;
+        // Separate active and inactive products
+        $activeProducts = $cartItems->filter(function ($cartItem) {
+            return $cartItem->product->status === 1; // Active products
         });
 
-        if ($invalidProducts->isNotEmpty()) {
+        $inactiveProducts = $cartItems->filter(function ($cartItem) {
+            return $cartItem->product->status === 0; // Inactive products
+        });
+
+        // Calculate total price of active products
+        $totalActivePrice = $activeProducts->sum(function ($cartItem) {
+            $product = $cartItem->product;
+            return ($product->final_price ?? $product->price) * $cartItem->quantity;
+        });
+
+        $totalInActivePrice = $inactiveProducts->sum(function ($cartItem) {
+            $product = $cartItem->product;
+            return ($product->final_price ?? $product->price) * $cartItem->quantity;
+        });
+
+
+        // Check if the total price of active products meets the voucher's minimum purchase requirement
+        if ($totalActivePrice < $voucher->min_purchase_amount) {
+            // Calculate the remaining amount needed to apply the voucher
+            $remainingAmount = $voucher->min_purchase_amount - $totalActivePrice;
+
             // Get the names of inactive products
-            $inactiveProductNames = $invalidProducts->map(function ($cartItem) {
+            $inactiveProductNames = $inactiveProducts->map(function ($cartItem) {
                 return $cartItem->product->title; // Assuming the product name is stored in the 'title' column
             })->implode(', '); // Join the names with a comma
 
             return response()->json([
-                'message' => 'Voucher not applicable products found: ' . $inactiveProductNames,
+                'message' => 'Voucher cannot be applied yet. Due to: ' . $inactiveProductNames . ' Buy products of worth more than : ' . $totalInActivePrice,
+                'remaining_amount' => $remainingAmount,
+                'inactive_products' => $inactiveProductNames,
+                'action_required' => 'Add products worth ' . $remainingAmount . ' more to apply the voucher.',
             ], 400);
         }
 
-        $ordersByBusiness = $cartItems->groupBy(function ($cartItem) {
+        // Check if all active products belong to the same business
+        $ordersByBusiness = $activeProducts->groupBy(function ($cartItem) {
             return $cartItem->product->business_id;
         });
 
@@ -78,20 +102,32 @@ class VoucherController extends Controller
             return response()->json(['message' => 'Voucher cannot be applied to the products in your cart'], 400);
         }
 
-        $totalPrice = $cartItems->sum(function ($cartItem) {
-            $product = $cartItem->product;
-            return ($product->final_price ?? $product->price) * $cartItem->quantity;
-        });
+        // Apply the voucher
+        $discountedPrice = $totalActivePrice - $voucher->discount_amount;
 
-        if ($totalPrice < $voucher->min_purchase_amount) {
-            return $this->errorResponse("Minimum purchase amount of {$voucher->min_purchase_amount} required", 400);
+        // Get the names of inactive products (if any)
+        $inactiveProductNames = $inactiveProducts->map(function ($cartItem) {
+            return $cartItem->product->title;
+        })->implode(', ');
+
+        if ($inactiveProducts) {
+
+            return response()->json([
+                'message' => 'Voucher applied successfully but not on these products:' . $inactiveProductNames,
+                'discount' => $voucher->discount_amount,
+                'cart_total' => $totalActivePrice,
+                'final_price' => $discountedPrice,
+                'inactive_products' => $inactiveProductNames ? 'Voucher not applied to the following inactive products: ' . $inactiveProductNames : null,
+            ], 200);
         }
 
+
         return response()->json([
-            'message' => 'Voucher applied successfully',
+            'message' => 'Voucher applied successfully.',
             'discount' => $voucher->discount_amount,
-            'cart_total' => $totalPrice,
-            'final_price' => $totalPrice - $voucher->discount_amount,
+            'cart_total' => $totalActivePrice,
+            'final_price' => $discountedPrice,
+            'inactive_products' => $inactiveProductNames ? 'Voucher not applied to the following inactive products: ' . $inactiveProductNames : null,
         ], 200);
     }
 

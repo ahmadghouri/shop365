@@ -215,16 +215,39 @@
       </div>
 
       <!-- Voucher success/error message -->
-      <p
-        v-if="voucherMessage"
-        :class="{
-          'text-green-600': voucherSuccess,
-          'text-red-600': !voucherSuccess,
-        }"
-        class="mt-2 text-sm"
-      >
-        {{ voucherMessage }}
-      </p>
+      <div v-if="voucherMessage" class="mt-2">
+        <p
+          :class="{
+            'text-green-600': voucherSuccess,
+            'text-red-600': !voucherSuccess,
+          }"
+          class="text-sm"
+        >
+          {{ voucherMessage }}
+        </p>
+
+        <!-- Additional details for inactive products -->
+        <div v-if="inactiveProductNames" class="mt-2 text-sm text-gray-600">
+          <p v-if="voucherSuccess">
+            Voucher not applied to the following inactive products:
+            <span class="font-medium">{{ inactiveProductNames }}</span>
+          </p>
+          <p v-else>
+            Remove or replace the following inactive products:
+            <span class="font-medium">{{ inactiveProductNames }}</span>
+          </p>
+        </div>
+
+        <!-- Remaining amount needed to apply voucher -->
+        <div
+          v-if="remainingAmount > 0 && !voucherSuccess"
+          class="mt-2 text-sm text-gray-600"
+        >
+          Add products worth
+          <span class="font-medium">{{ remainingAmount }}</span>
+          more to apply the voucher.
+        </div>
+      </div>
     </div>
 
     <div

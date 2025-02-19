@@ -358,7 +358,7 @@ const insertTable = () => {
     .focus()
     .insertTable({
       rows: 3,
-      cols: 3,
+      cols: 2,
       withHeaderRow: true,
     })
     .run();

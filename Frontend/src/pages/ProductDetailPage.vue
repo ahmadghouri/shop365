@@ -183,6 +183,14 @@ const addToCart = async () => {
   const cartItem = {
     product_id: route.params.id,
     quantity: quantity.value,
+    product: {
+      id: product.value.id,
+      title: product.value.title,
+      price: product.value.price,
+      final_price: product.value.final_price,
+      image_url: product.value.image_url,
+      business_id: product.value.business_id,
+    },
   };
 
   const nav = document.querySelector(".navbar-cart-icon");

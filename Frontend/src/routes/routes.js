@@ -141,8 +141,11 @@ const routes = [
           businessId: route.query.business_id,
         }),
         meta: {
-          requiresAuth: true,
+          allowGuest: true, // Add this meta field
         },
+        // meta: {
+        //   requiresAuth: true,
+        // },
       },
       {
         path: "cart",
@@ -384,7 +387,7 @@ router.beforeEach((to, from, next) => {
   const { isAuthenticated, role } = storeToRefs(authStore);
   const cartStore = useCartStore();
 
-  const publicRoutes = ["Categories", "CategoryPage"];
+  const publicRoutes = ["Categories", "CategoryPage", "ProductDetailsPage"];
   if (publicRoutes.includes(to.name)) {
     return next();
   }

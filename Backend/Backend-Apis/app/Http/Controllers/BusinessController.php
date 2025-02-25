@@ -34,11 +34,12 @@ class BusinessController extends Controller
     {
         $businesses = Business::withAvg('reviews', 'rating')
             ->withCount('reviews')
-            ->orderByDesc('discount') 
-            ->orderByDesc('reviews_count') 
+            ->orderByDesc('discount')
+            ->orderByDesc('reviews_count')
             ->orderByDesc('reviews_avg_rating')
+            ->orderBy('created_at', 'asc')
             ->get();
-    
+
         return $this->successResponse($businesses, 'All the businesses');
     }
 
@@ -53,7 +54,7 @@ class BusinessController extends Controller
             return $this->errorResponse('An error occurred: ' . $e->getMessage(), 500);
         }
     }
-    
+
 
 
     /**
@@ -85,7 +86,7 @@ class BusinessController extends Controller
      */
     public function update(UpdateRequest $request, Business $business): JsonResponse
     {
-        $business->update($request->only(['type', 'name', 'opening_time', 'closing_time','image']));
+        $business->update($request->only(['type', 'name', 'opening_time', 'closing_time', 'image']));
 
         if ($request->hasFile('image')) {
             $imagePath = $this->imageService->uploadImage($request, 'image');
@@ -117,43 +118,41 @@ class BusinessController extends Controller
     }
 
 
-public function getBusinessStats(Request $request)
-{
-    try {
-       $filter = $request->query('filter', 'all');
-       $businessStats = $this->businessService->stats($filter);
-       return $this->successResponse($businessStats);
-    } catch (Exception $e) {
-        return $this->errorResponse($e->getMessage());
-    }
-}
-
-
-public function updateStatus(Request $request, Business $business): JsonResponse
-{
-    $status = $request->input('status', 'active');
-    
-    if (in_array($status, ['active', 'inactive'])) {
-        $business->update(['status' => $status]);
-        return $this->successResponse($business, 'Business status updated successfully.');
-    } else {
-        return $this->errorResponse('Invalid status', 400);
-    }
-}
-
-public function getNumber($admin_id)
-{
-    while ($admin_id) {
-        $admin = User::where('business_id', $admin_id)->first();
-        if ($admin) {
-            return $this->successResponse($admin->phone_no);
+    public function getBusinessStats(Request $request)
+    {
+        try {
+            $filter = $request->query('filter', 'all');
+            $businessStats = $this->businessService->stats($filter);
+            return $this->successResponse($businessStats);
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage());
         }
-        $parentBusiness = Business::find($admin_id);
-        $admin_id = $parentBusiness ? $parentBusiness->parent_id : null;
     }
 
-    throw new ModelNotFoundException("Admin does not exist");
-}
 
+    public function updateStatus(Request $request, Business $business): JsonResponse
+    {
+        $status = $request->input('status', 'active');
 
+        if (in_array($status, ['active', 'inactive'])) {
+            $business->update(['status' => $status]);
+            return $this->successResponse($business, 'Business status updated successfully.');
+        } else {
+            return $this->errorResponse('Invalid status', 400);
+        }
+    }
+
+    public function getNumber($admin_id)
+    {
+        while ($admin_id) {
+            $admin = User::where('business_id', $admin_id)->first();
+            if ($admin) {
+                return $this->successResponse($admin->phone_no);
+            }
+            $parentBusiness = Business::find($admin_id);
+            $admin_id = $parentBusiness ? $parentBusiness->parent_id : null;
+        }
+
+        throw new ModelNotFoundException("Admin does not exist");
+    }
 }

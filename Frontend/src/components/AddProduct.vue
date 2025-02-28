@@ -366,7 +366,7 @@ const insertTable = () => {
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];
-  if (file && file.size > 15 * 1024) {
+  if (file && file.size > 50 * 1024) {
     imageError.value = "Image size must be less than 15KB";
     form.value.image = "";
     imagePreview.value = "";

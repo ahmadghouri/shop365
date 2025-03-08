@@ -26,7 +26,7 @@
       <!-- Product Image -->
       <div class="lg:w-1/2 flex justify-center items-center">
         <div
-          class="rounded-lg overflow-hidden w-32 h-32 lg:w-96 lg:h-96 bg-transparent"
+          class="rounded-lg overflow-hidden w-full max-w-sm lg:w-96 lg:h-96 bg-transparent"
         >
           <img
             ref="productImage"
@@ -38,7 +38,9 @@
       </div>
 
       <!-- Product Information -->
-      <div class="bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2">
+      <div
+        class="bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2 mt-6 lg:mt-0"
+      >
         <div
           class="text-center mt-2 lg:text-left flex justify-between items-center"
         >
@@ -113,11 +115,12 @@
       </div>
     </div>
 
+    <!-- Contact Popup -->
     <div
       v-if="showContactPopup"
-      class="fixed inset-0 bg-black mobile-spacing bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
     >
-      <div class="bg-white mobile-spacing md:p-8 rounded-lg max-w-md w-full">
+      <div class="bg-white p-6 md:p-8 rounded-lg max-w-md w-full">
         <h2 class="text-2xl font-bold mb-4">{{ selectedProduct.title }}</h2>
         <div
           class="text-gray-700 mb-6"

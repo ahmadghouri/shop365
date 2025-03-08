@@ -9,25 +9,26 @@ class Business extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','type', 'image', 'opening_time', 'closing_time', 'discount', 'parent_id' ];
+    protected $fillable = ['name', 'type', 'image', 'opening_time', 'closing_time', 'discount', 'parent_id'];
 
     protected $appends = ['image_url'];
 
     public function getImageUrlAttribute()
     {
-        return secure_url('/be' .$this->image);
-        
+        return secure_url('/be' . $this->image);
+
         //return url('' . $this->image);
     }
 
-    public function products() {
+    public function products()
+    {
         return $this->hasMany(Product::class);
     }
 
     public function type()
     {
         return $this->type;
-    }    
+    }
 
     public function reviews()
     {

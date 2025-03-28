@@ -63,9 +63,7 @@ class CartController extends Controller
     {
         // Get the total quantity for the authenticated user
         $totalQuantity = cart::where('user_id', Auth::id())->sum('quantity');
-        
+
         return response()->json(['item_count' => $totalQuantity]);
     }
-    
-    
 }

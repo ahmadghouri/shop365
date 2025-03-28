@@ -10,6 +10,7 @@ use App\Http\Controllers\GroceryProductController;
 use App\Http\Controllers\HeaderImageController;
 use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PerscriptionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TownController;
@@ -92,6 +93,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('{id}', [CartController::class, 'removeCart']);
         Route::delete('product/{id}', [CartController::class, 'removeProduct']);
         Route::patch('update/{id}', [CartController::class, 'updateQuantity']); // Add this line
+    });
+
+    // Prescription
+    // routes/api.php
+    Route::prefix('prescription')->group(function () {
+        Route::post('/', [PerscriptionController::class, 'store']);
     });
 
     // Orders

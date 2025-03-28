@@ -8,6 +8,7 @@ use App\Models\Business;
 use App\Models\cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Perscription;
 use App\Models\Voucher;
 use Carbon\Carbon;
 use Exception;
@@ -16,14 +17,21 @@ use Illuminate\Support\Facades\Log;
 
 class OrderManageService
 {
+    protected $imageService;
+
     public function placeOrder($userPoints = false, $voucherCode = null)
     {
         // Retrieve the user's cart items
-        $cartItems = cart::where('user_id', auth()->id())->get();
+        $cartItems = Cart::where('user_id', auth()->id())->get();
 
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty'], 400);
         }
+
+        // Check if the cart contains any prescription items
+        $hasPrescriptionInCart = $cartItems->contains(function ($cartItem) {
+            return strtolower($cartItem->product->title) === 'prescription';
+        });
 
         $user = Auth::user();
         $ordersByBusiness = $cartItems->groupBy(function ($cartItem) {
@@ -34,48 +42,36 @@ class OrderManageService
         $failedBusinesses = [];
 
         foreach ($ordersByBusiness as $businessId => $items) {
-            // Calculate total price using final_price if available
-            $totalPrice = $items->sum(function ($cartItem) {
+            // Separate prescription items from regular items
+            $prescriptionItems = $items->filter(function ($cartItem) {
+                return strtolower($cartItem->product->title) === 'prescription';
+            });
+
+            $regularItems = $items->reject(function ($cartItem) {
+                return strtolower($cartItem->product->title) === 'prescription';
+            });
+
+            // Calculate total price for regular items
+            $totalRegularPrice = $regularItems->sum(function ($cartItem) {
                 $product = $cartItem->product;
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
             });
 
-            if ($totalPrice < 500) {
+            // Check if regular items meet the minimum order amount
+            if ($totalRegularPrice < 500 && $regularItems->isNotEmpty()) {
                 $business = Business::find($businessId);
                 $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
-            }
-        }
-
-        if (count($failedBusinesses) > 0) {
-            return response()->json(
-                [
-                    'message' => 'Order(s) cannot be placed. Minimum order amount is 500 rupees for each business.',
-                    'failed_businesses' => $failedBusinesses,
-                ],
-                400
-            );
-        }
-
-        // Apply voucher discount if voucher code is provided
-        $voucher = null;
-        if ($voucherCode) {
-            $voucher = Voucher::where('code', strtolower($voucherCode))->first();
-
-            if (!$voucher) {
-                return response()->json(['message' => 'Invalid voucher code'], 400);
+                continue; // Skip placing this order
             }
 
-            // Check if the voucher has expired
-            if ($voucher->expiry_date && Carbon::parse($voucher->expiry_date)->isBefore(Carbon::now())) {
-                return response()->json(['message' => 'Voucher has expired'], 400);
-            }
-        }
-
-        foreach ($ordersByBusiness as $businessId => $items) {
-            $totalPrice = $items->sum(function ($cartItem) {
+            // Calculate total price for prescription items
+            $totalPrescriptionPrice = $prescriptionItems->sum(function ($cartItem) {
                 $product = $cartItem->product;
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
             });
+
+            // Combine regular and prescription items if both are present
+            $totalPrice = $totalRegularPrice + $totalPrescriptionPrice;
 
             // Apply user points discount if available
             if ($userPoints && $user->points >= 250) {
@@ -86,7 +82,19 @@ class OrderManageService
             }
 
             // Apply voucher discount if available
-            if ($voucher) {
+            $voucher = null;
+            if ($voucherCode) {
+                $voucher = Voucher::where('code', strtolower($voucherCode))->first();
+
+                if (!$voucher) {
+                    return response()->json(['message' => 'Invalid voucher code'], 400);
+                }
+
+                // Check if the voucher has expired
+                if ($voucher->expiry_date && Carbon::parse($voucher->expiry_date)->isBefore(Carbon::now())) {
+                    return response()->json(['message' => 'Voucher has expired'], 400);
+                }
+
                 $discountAmount = min($voucher->discount_amount, $totalPrice);
                 $totalPrice -= $discountAmount;
             }
@@ -96,10 +104,11 @@ class OrderManageService
                 'user_id' => auth()->id(),
                 'total_price' => $totalPrice,
                 'status' => 'pending',
-                'voucher_id' => $voucher ? $voucher->id : null, // Store the voucher ID in the order
+                'voucher_id' => $voucher ? $voucher->id : null,
             ]);
 
-            foreach ($items as $cartItem) {
+            // Add regular items to the order
+            foreach ($regularItems as $cartItem) {
                 $product = $cartItem->product;
 
                 OrderItem::create([
@@ -112,17 +121,66 @@ class OrderManageService
                 $cartItem->delete();
             }
 
+            // Add prescription items to the order
+            foreach ($prescriptionItems as $cartItem) {
+                $product = $cartItem->product;
+
+                $prescription = Perscription::where('user_id', $order->user_id)
+                    ->whereNull('order_id')
+                    ->latest()
+                    ->first();
+
+                // If prescription found, link it to the order
+                if ($prescription) {
+                    $prescription->update([
+                        'order_id' => $order->id,
+                        'product_id' => $product->id,
+                    ]);
+                }
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'price' => $product->final_price ?? $product->price,
+                    'quantity' => $cartItem->quantity,
+                ]);
+
+                $cartItem->delete();
+            }
+
             // Dispatch the event (optional)
-            // event(new OrderPlaced($order, $businessId));
             $currentBusiness = Business::find($businessId);
             $this->dispatchOrderEvents($order, $currentBusiness);
             $orders[] = $order;
         }
 
-        return response()->json([
+        // Prepare the response
+        $response = [
             'message' => 'Order(s) placed successfully',
-            'orders' => $orders
-        ], 200);
+            'orders' => $orders,
+        ];
+
+        // Add warning or error message if any businesses failed
+        if (count($failedBusinesses) > 0) {
+            if ($hasPrescriptionInCart) {
+                // If the cart contains prescription items, show a warning
+                $response = [
+                    'message' => 'Prescription Order placed. But the other business  order(s) could not be placed. Reason: Minimum order amount is 500 rupees for each business.',
+                    'failed_businesses' => $failedBusinesses,
+                ];
+            } else {
+                // If the cart contains only regular items, show an error
+                return response()->json(
+                    [
+                        'message' => 'Order(s) cannot be placed. Minimum order amount is 500 rupees for each business.',
+                        'failed_businesses' => $failedBusinesses,
+                    ],
+                    400
+                );
+            }
+        }
+
+        return response()->json($response, 200);
     }
 
     private function dispatchOrderEvents($order, $business)
@@ -171,7 +229,7 @@ class OrderManageService
         return Order::whereHas('items.product', function ($query) use ($businessIds) {
             $query->whereIn('business_id', $businessIds);
         })
-            ->with('items.product', 'user', 'user.household', 'user.household.town')
+            ->with('items.product', 'user', 'user.household', 'user.household.town', 'perscription')
             ->orderBy('created_at', 'desc') // Ensure consistent order
             ->paginate(15, ['*'], 'page', $page); // Paginate with 15 orders per page
     }

@@ -25,6 +25,11 @@ class Product extends Model
         return $this->belongsTo(Business::class);
     }
 
+    public function perscriptions()
+    {
+        return $this->hasMany(Perscription::class, 'product_id');
+    }
+
 
     // Product.php
     public function getFinalPriceAttribute()

@@ -284,21 +284,34 @@
                 <!-- Product Image -->
                 <div class="flex-shrink-0">
                   <img
-                    :src="item.product.image_url"
+                    :src="selectedOrder.perscription?.image_url || item.product.image_url"
                     alt="No image"
-                    class="w-full md:w-[100px] h-[100px] object-contain rounded-lg"
+                     @click="openImageModal( selectedOrder.perscription?.image_url || item.product.image_url)"
+                    class="w-full md:w-[100px] h-[100px] object-contain rounded-lg border border-yellow-400 cursor-pointer"
                   />
+                </div>
+
+                <!-- Enlarge image modal  -->
+                <div
+                  v-if="isImageModalOpen"
+                  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md p-4 md:p-0"
+                >
+                  <div class="relative bg-white rounded-lg overflow-hidden">
+                    <button @click="closeImageModal" class="absolute top-2 right-2">
+                      <img src="/public/close-icon.svg" alt="close" />
+                    </button>
+                    <img :src="selectedImageUrl" alt="Product Image" class="max-w-full max-h-full" />
+                  </div>
                 </div>
 
                 <!-- Product Details -->
                 <div class="space-y-2 flex-grow">
                   <p class="text-lg font-semibold">{{ item.product.title }}</p>
-                  <p class="text-sm">
-                    Description:
-                    <span class="ml-2 text-[#6d6d6d]">{{
-                      item.product.description
-                    }}</span>
-                  </p>
+                    <p class="text-sm">
+                      Description:
+                      <span class="ml-2 text-[#6d6d6d]">{{ selectedOrder.perscription?.description || item.product.description
+                      }}</span>
+                    </p>
                   <p class="text-sm">
                     Type:
                     <span class="ml-2 text-[#6d6d6d]">{{
@@ -365,6 +378,20 @@ const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
 
+//Enlarge product image
+const isImageModalOpen = ref(false);
+const selectedImageUrl = ref("");
+
+const openImageModal = (imageUrl) => {
+  selectedImageUrl.value = imageUrl;
+  isImageModalOpen.value = true;
+};
+
+const closeImageModal = () => {
+  isImageModalOpen.value = false;
+  selectedImageUrl.value = "";
+};
+
 // Audio notification setup
 const I = new Audio("/notification.mp3");
 I.volume = 0.25;
@@ -417,6 +444,8 @@ const fetchRestaurantOrders = async () => {
           },
         },
       },
+      perscription: order.perscription || null, // Include prescription details
+
     }));
   } catch (err) {
     error.value = "Failed to fetch orders";
@@ -444,6 +473,7 @@ const updateOrderStatus = async (status) => {
           status,
           user: currentOrder.user,
           items: currentOrder.items,
+          perscription: currentOrder.perscription, // Preserve prescription data
         };
       }
       return order;

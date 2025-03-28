@@ -36,6 +36,7 @@ class ImageService
                 return Storage::url($uploadPath . $filePath);
             } else {
                 $requestFileData = $request->$requestName;
+                FacadesLog::info('Base64 File Data', ['data' => $requestFileData]);
 
                 // Decode the base64 file
                 $file = base64_decode(preg_replace('#^data:([^;]+);base64,#', '', $requestFileData));
@@ -61,6 +62,7 @@ class ImageService
                 return Storage::url('public/' . $filePath);
             }
         } catch (Exception $e) {
+            FacadesLog::error('Image Upload Error', ['message' => $e->getMessage()]);
             throw new Exception("Unable to upload image: " . $e->getMessage());
         }
     }

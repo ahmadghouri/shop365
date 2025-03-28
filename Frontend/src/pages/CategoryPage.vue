@@ -312,10 +312,11 @@
 
         <!-- Minimal Add to Cart Button with Icon -->
         <button
-          v-else
+          v-if="product.title.toLowerCase() !== 'prescription' && product.price !== 0"
           @click.prevent="addToCart(product)"
           class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
         >
+          <!-- Cart Icon -->
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
@@ -332,6 +333,31 @@
           </svg>
           <span class="hidden sm:inline">Add to Cart</span>
           <span class="sm:hidden">Add</span>
+        </button>
+
+        <!-- Prescription Button -->
+        <button
+          v-else
+          @click.prevent="openPrescriptionModal(product)"
+          class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-black text-white font-semibold text-sm rounded-full shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+            />
+          </svg>
+
+          <span class="hidden sm:inline">Upload Prescription</span>
+          <span class="sm:hidden">Prescription</span>
         </button>
       </router-link>
     </div>
@@ -474,6 +500,144 @@
       </div>
     </div>
   </div>
+
+  <!-- Upload Prescription Dialog -->
+  <div
+    v-show="showPrescriptionModal"
+    class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+    @click="closePrescriptionModal"
+  >
+    <div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6" @click.stop>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-gray-800">Upload Prescription</h2>
+        <button
+          @click="closePrescriptionModal"
+          class="text-gray-600 hover:text-gray-800"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <form @submit.prevent="addToCart(selectedProduct)">
+        <!-- Image Upload -->
+        <div class="md:col-span-2">
+          <label class="text-sm font-medium text-gray-600 block mb-2"
+            >Prescription Image</label
+          >
+          <div
+            class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-yellow-400 transition-colors duration-200"
+          >
+            <div class="space-y-2 text-center">
+              <div v-if="imagePreview" class="mb-4">
+                <img
+                  :src="imagePreview"
+                  alt="Preview"
+                  class="mx-auto h-32 w-auto rounded-lg shadow-sm"
+                />
+              </div>
+              <div class="flex text-sm text-gray-600">
+                <label
+                  for="image"
+                  class="relative cursor-pointer bg-white rounded-md font-medium text-yellow-600 hover:text-yellow-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-yellow-500"
+                >
+                  <span>Upload a file</span>
+                  <input
+                    @change="handleFileChange"
+                    id="image"
+                    type="file"
+                    class="sr-only"
+                    accept="image/*"
+                    required
+                  />
+                </label>
+                <p class="pl-1">or drag and drop</p>
+              </div>
+              <p class="text-xs text-gray-500">PNG, JPG, GIF up to 50KB</p>
+              <p v-if="imageError" class="text-xs text-red-500 mt-1">
+                {{ imageError }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-600 font-semibold mb-2"
+            >Description (Optional)</label
+          >
+          <textarea
+            v-model="description"
+            class="w-full border rounded p-2"
+            rows="3"
+            placeholder="Enter additional details..."
+          ></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-600 font-semibold mb-2"
+            >Important *</label
+          >
+          <div
+            class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 rounded-md"
+          >
+            <p class="flex items-center font-medium">
+              <svg
+                class="w-5 h-5 mr-2 text-yellow-500"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.257 3.099c.766-1.36 2.72-1.36 3.486 0l6.588 11.7c.75 1.33-.213 3-1.743 3H3.415c-1.53 0-2.493-1.67-1.743-3l6.585-11.7zM11 14a1 1 0 11-2 0 1 1 0 012 0zm-1-2a1 1 0 01-1-1V7a1 1 0 112 0v4a1 1 0 01-1 1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Prescription payment will be confirmed on call.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <!-- Minimal Add to Cart Button with Icon -->
+          <button
+            type="submit"
+            class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+          >
+            <!-- Cart Icon -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+            <span class="hidden sm:inline">Add to Cart</span>
+            <span class="sm:hidden">Add</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -481,6 +645,7 @@ import { ref, computed, onMounted, watch, onUnmounted, reactive } from "vue";
 import { useProductStore } from "../store/productStore";
 import ReviewsSection from "../components/ReviewsSection.vue";
 import { useCartStore } from "../store/cartStore";
+import { useOrderStore } from "../store/orderStore";
 import { toast } from "vue3-toastify";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
@@ -506,6 +671,7 @@ const {
   number,
 } = storeToRefs(productStore);
 const cartStore = useCartStore();
+const orderStore = useOrderStore();
 const reviewStore = useReviewStore();
 const businessId = route.params.id;
 const showFilterModal = ref(false);
@@ -525,6 +691,7 @@ const modalSearchInput = ref(null);
 
 // State
 const showReviewsModal = ref(false);
+const showPrescriptionModal = ref(false);
 
 // Computed
 const averageRating = computed(() => {
@@ -553,6 +720,16 @@ const fetchReviews = async () => {
     console.error("Error fetching reviews:", error);
     toast.error("Failed to load reviews");
   }
+};
+
+//Open & close prescription modal
+const openPrescriptionModal = (product) => {
+  selectedProduct.value = product;
+  showPrescriptionModal.value = true;
+};
+
+const closePrescriptionModal = () => {
+  showPrescriptionModal.value = false;
 };
 
 const calculateFinalPrice = (product) => {
@@ -734,6 +911,37 @@ const goBack = () => {
   router.back();
 };
 
+const imagePreview = ref(null);
+const imageError = ref(null);
+const description = ref("");
+const MAX_FILE_SIZE = 50 * 1024; // 50KB in bytes
+
+const form = ref({
+  image: null,
+});
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0];
+  imageError.value = null;
+  imagePreview.value = null;
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    imageError.value = "Please select a valid image file.";
+    return;
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    imageError.value = `Image size must be less than 50KB. Current size: ${(
+      file.size / 1024
+    ).toFixed(1)}KB`;
+    return;
+  }
+  form.value.image = file;
+  imagePreview.value = URL.createObjectURL(file);
+};
+
 const addToCart = async (product) => {
   // if (!authStore.isAuthenticated) {
   //   showRegisterPopup.value = true; // Changed this line
@@ -750,6 +958,14 @@ const addToCart = async (product) => {
       final_price: product.final_price,
       image_url: product.image_url,
       business_id: product.business_id,
+      // Add prescription details if available
+      prescription:
+        product.title.toLowerCase() === "prescription"
+          ? {
+              prescription_image: form.value.image,
+              prescription_description: description.value,
+            }
+          : null,
     },
   };
 

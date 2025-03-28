@@ -603,7 +603,11 @@ const orderNow = async () => {
     });
     return;
   }
-  if (total.value <= 0) {
+  
+  const hasNonPrescriptionItems = cartStore.cartItems.some(
+    (item) => item.product.title.toLowerCase() !== "prescription"
+  );
+  if (total.value <= 0 && hasNonPrescriptionItems) {
     showError("You cannot place an order with a total amount of 0.");
     return;
   }
@@ -628,6 +632,10 @@ const orderNow = async () => {
         const pointsUsed = response.data.pointsUsed || 0;
         await authStore.refreshUser(); // Refresh to get updated points
       }
+      
+      // Fetch the updated cart after placing the order
+      await cartStore.getCartItems(); // Add this line
+
       showOrderConfirmation.value = true;
       startConfirmationTimer();
       cartStore.resetVoucherDiscount();

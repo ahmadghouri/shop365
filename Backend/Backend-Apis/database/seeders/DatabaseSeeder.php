@@ -46,6 +46,13 @@ class DatabaseSeeder extends Seeder
                 'opening_time' => '10:00:00',
                 'closing_time' => '23:00:00',
                 'image' => 'https://placehold.co/100x100?text=Burger+king'
+            ],
+            [
+                'name' => 'National Pharmacy',
+                'type' => 'health',
+                'opening_time' => '10:00:00',
+                'closing_time' => '23:00:00',
+                'image' => 'https://placehold.co/100x100?text=Burger+king'
             ]
         ];
 
@@ -174,6 +181,15 @@ class DatabaseSeeder extends Seeder
                     'type' => 'burger',
                     'price' => '350',
                     'image' => 'https://placehold.co/100x100?text=Grilled chicken burger'
+                ]
+            ],
+            3 => [
+                [
+                    'title' => 'Prescription',
+                    'description' => 'Upload your doctors prescription',
+                    'type' => 'prescription',
+                    'price' => '0',
+                    'image' => 'https://placehold.co/100x100?text=Prescription'
                 ]
             ]
         ];

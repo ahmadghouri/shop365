@@ -105,6 +105,24 @@ export const useCartStore = defineStore("cart", {
         this.cartCount += cartItem.quantity;
         return Promise.resolve(); // Return resolved promise for consistent behavior
       }
+    
+      //Create a prescription if the product requires it
+      if(cartItem.product.prescription){
+        try {
+          const response = await axios.post(
+            `${API_BASE_URL}/api/prescription`,
+            cartItem,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+        } catch (error) {
+          console.error("Failed to add to cart", error);
+          throw error;
+        }
+      }
 
       try {
         await axios.post(`${API_BASE_URL}/api/cart`, cartItem);

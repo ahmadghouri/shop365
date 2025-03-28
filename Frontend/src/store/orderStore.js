@@ -16,6 +16,11 @@ export const useOrderStore = defineStore("order", {
   actions: {
     async placeOrder(usePoints, voucherCode = null) {
       try {
+        const cartStore = useCartStore();
+        const cartItems = cartStore.cartItems;
+        cartItems.forEach((item, index) => {
+          console.log("orderStore:", item.product);
+        });
         const response = await axios.post(
           `${API_BASE_URL}/api/order`,
           {
@@ -24,7 +29,7 @@ export const useOrderStore = defineStore("order", {
           },
           {}
         );
-        const cartStore = useCartStore();
+        
         cartStore.cartCount = 0;
         return response;
       } catch (error) {

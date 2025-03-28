@@ -32,6 +32,10 @@ class OrderManageService
 
         $orders = [];
         $failedBusinesses = [];
+<<<<<<< HEAD
+=======
+        $specialBusinesses = []; // For businesses with 1000 minimum
+>>>>>>> 9e1eaf0 (minimum order value updated)
 
         foreach ($ordersByBusiness as $businessId => $items) {
             // Calculate total price using final_price if available
@@ -40,6 +44,7 @@ class OrderManageService
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
             });
 
+<<<<<<< HEAD
             if ($totalPrice < 500) {
                 $business = Business::find($businessId);
                 $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
@@ -47,15 +52,45 @@ class OrderManageService
         }
 
         if (count($failedBusinesses) > 0) {
+=======
+            $minOrderAmount = ($businessId == 6) ? 1000 : 500;
+            $business = Business::find($businessId);
+
+            if ($totalPrice < $minOrderAmount) {
+                if ($businessId == 6) {
+                    $specialBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
+                } else {
+                    $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
+                }
+            }
+        }
+
+        if (count($failedBusinesses) > 0 || count($specialBusinesses) > 0) {
+            $message = 'Order(s) cannot be placed. ';
+
+            if (count($specialBusinesses) > 0) {
+                $message .= 'Minimum order amount is 1000 rupees for: ' . implode(', ', $specialBusinesses) . '. ';
+            }
+
+            if (count($failedBusinesses) > 0) {
+                $message .= 'Minimum order amount is 500 rupees for: ' . implode(', ', $failedBusinesses) . '.';
+            }
+
+>>>>>>> 9e1eaf0 (minimum order value updated)
             return response()->json(
                 [
-                    'message' => 'Order(s) cannot be placed. Minimum order amount is 500 rupees for each business.',
+                    'message' => trim($message),
                     'failed_businesses' => $failedBusinesses,
+                    'special_businesses' => $specialBusinesses,
                 ],
                 400
             );
         }
 
+<<<<<<< HEAD
+=======
+        // Rest of the code remains the same...
+>>>>>>> 9e1eaf0 (minimum order value updated)
         // Apply voucher discount if voucher code is provided
         $voucher = null;
         if ($voucherCode) {
@@ -224,4 +259,8 @@ class OrderManageService
 
         return $order;
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9e1eaf0 (minimum order value updated)
 }

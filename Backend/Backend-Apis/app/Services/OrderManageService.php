@@ -32,10 +32,7 @@ class OrderManageService
 
         $orders = [];
         $failedBusinesses = [];
-<<<<<<< HEAD
-=======
-        $specialBusinesses = []; // For businesses with 1000 minimum
->>>>>>> 9e1eaf0 (minimum order value updated)
+        $specialBusinesses = [];
 
         foreach ($ordersByBusiness as $businessId => $items) {
             // Calculate total price using final_price if available
@@ -44,15 +41,6 @@ class OrderManageService
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
             });
 
-<<<<<<< HEAD
-            if ($totalPrice < 500) {
-                $business = Business::find($businessId);
-                $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
-            }
-        }
-
-        if (count($failedBusinesses) > 0) {
-=======
             $minOrderAmount = ($businessId == 6) ? 1000 : 500;
             $business = Business::find($businessId);
 
@@ -76,7 +64,6 @@ class OrderManageService
                 $message .= 'Minimum order amount is 500 rupees for: ' . implode(', ', $failedBusinesses) . '.';
             }
 
->>>>>>> 9e1eaf0 (minimum order value updated)
             return response()->json(
                 [
                     'message' => trim($message),
@@ -87,10 +74,6 @@ class OrderManageService
             );
         }
 
-<<<<<<< HEAD
-=======
-        // Rest of the code remains the same...
->>>>>>> 9e1eaf0 (minimum order value updated)
         // Apply voucher discount if voucher code is provided
         $voucher = null;
         if ($voucherCode) {
@@ -204,8 +187,8 @@ class OrderManageService
 
         // Fetch orders for the parent and its children
         return Order::whereHas('items.product', function ($query) use ($businessIds) {
-            $query->whereIn('business_id', $businessIds);
-        })
+                $query->whereIn('business_id', $businessIds);
+            })
             ->with('items.product', 'user', 'user.household', 'user.household.town')
             ->orderBy('created_at', 'desc') // Ensure consistent order
             ->paginate(15, ['*'], 'page', $page); // Paginate with 15 orders per page
@@ -245,11 +228,11 @@ class OrderManageService
                 // Points adjustment logic
                 if ($newStatus === 'delivered') {
                     // Add points if the new status is 'delivered'
-                    $pointsToAdd = $totalPrice * 0.01;
+                    $pointsToAdd = $totalPrice * 0;
                     $user->points += $pointsToAdd;
                 } elseif ($previousStatus === 'delivered') {
                     // Subtract points if reverting from 'delivered'
-                    $pointsToSubtract = $totalPrice * 0.01;
+                    $pointsToSubtract = $totalPrice * 0;
                     $user->points -= $pointsToSubtract;
                 }
 
@@ -259,8 +242,5 @@ class OrderManageService
 
         return $order;
     }
-<<<<<<< HEAD
-=======
 
->>>>>>> 9e1eaf0 (minimum order value updated)
 }

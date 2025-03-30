@@ -228,11 +228,11 @@ class OrderManageService
                 // Points adjustment logic
                 if ($newStatus === 'delivered') {
                     // Add points if the new status is 'delivered'
-                    $pointsToAdd = $totalPrice * 0.1;
+                    $pointsToAdd = round($totalPrice * (1/100));
                     $user->points += $pointsToAdd;
                 } elseif ($previousStatus === 'delivered') {
                     // Subtract points if reverting from 'delivered'
-                    $pointsToSubtract = $totalPrice * 0.1;
+                    $pointsToSubtract = round($totalPrice * (1/100));
                     $user->points -= $pointsToSubtract;
                 }
 

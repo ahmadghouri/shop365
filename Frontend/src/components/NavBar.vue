@@ -1,8 +1,22 @@
 <template>
   <div class="relative">
-    <nav
-      class="mobile-spacing sticky top-0 flex justify-between bg-white items-center lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200"
-    >
+    <!-- News Ticker -->
+    <div class="bg-gradient-to-r from-red-600 to-red-500 shadow-md">
+      <div class="overflow-hidden whitespace-nowrap py-2">
+        <div class="animate-ticker flex items-center space-x-8">
+          <!-- Duplicated content for seamless looping -->
+          <div v-for="i in 3" :key="i" class="flex items-center text-white text-sm font-medium shrink-0">
+            <font-awesome-icon :icon="['fas', 'bullhorn']" class="mx-4" />
+            <span class="tracking-wide">
+              🎉 Free Delivery on Orders Above 1000! For SHOP365 Mart Shop Now and Save on Delivery Charges!
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Existing Navigation -->
+    <nav class="mobile-spacing sticky top-0 flex justify-between bg-white items-center lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200">
       <div @click.stop="toggleSidebar" class="cursor-pointer lg:hidden">
         <img src="/public/Menu Icon.png" alt="Menu Icon" />
       </div>
@@ -15,28 +29,16 @@
 
       <!-- Desktop Menu Links -->
       <div class="hidden lg:flex lg:space-x-8 lg:items-center">
-        <router-link
-          to="/home/profile"
-          class="text-lg text-gray-800 hover:text-yellow-500"
-        >
+        <router-link to="/home/profile" class="text-lg text-gray-800 hover:text-yellow-500">
           Profile
         </router-link>
-        <router-link
-          to="/home/vieworders"
-          class="text-lg text-gray-800 hover:text-yellow-500"
-        >
+        <router-link to="/home/vieworders" class="text-lg text-gray-800 hover:text-yellow-500">
           View Orders
         </router-link>
-        <router-link
-          to="/home/services"
-          class="text-lg text-gray-800 hover:text-yellow-500"
-        >
+        <router-link to="/home/services" class="text-lg text-gray-800 hover:text-yellow-500">
           Services
         </router-link>
-        <router-link
-          to="/home/contact"
-          class="text-lg text-gray-800 hover:text-yellow-500"
-        >
+        <router-link to="/home/contact" class="text-lg text-gray-800 hover:text-yellow-500">
           Contact Us
         </router-link>
       </div>
@@ -61,19 +63,11 @@
         </div>
 
         <!-- Cart Icon with Counter -->
-        <div
-          class="relative bg-yellow-500 rounded-full w-16 h-16 lg:w-10 lg:h-10 flex justify-center items-center shadow-lg transition-transform duration-200 transform hover:scale-105 navbar-cart-icon"
-        >
+        <div class="relative bg-yellow-500 rounded-full w-16 h-16 lg:w-10 lg:h-10 flex justify-center items-center shadow-lg transition-transform duration-200 transform hover:scale-105 navbar-cart-icon">
           <router-link to="/home/cart">
-            <font-awesome-icon
-              :icon="['fas', 'shopping-cart']"
-              class="text-white text-3xl lg:text-xl"
-            />
+            <font-awesome-icon :icon="['fas', 'shopping-cart']" class="text-white text-3xl lg:text-xl" />
             <!-- Counter Badge -->
-            <span
-              v-if="cartStore.cartCount > 0"
-              class="absolute -top-1 -right-2 lg:-top-1 lg:-right-2 lg:w-5 lg:h-5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs lg:text-xs font-bold rounded-full px-1.5 lg:px-0.5 py-0.5 lg:py-0 w-7 h-7 flex items-center justify-center border border-white"
-            >
+            <span v-if="cartStore.cartCount > 0" class="absolute -top-1 -right-2 lg:-top-1 lg:-right-2 lg:w-5 lg:h-5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs lg:text-xs font-bold rounded-full px-1.5 lg:px-0.5 py-0.5 lg:py-0 w-7 h-7 flex items-center justify-center border border-white">
               {{ cartStore.cartCount }}
             </span>
           </router-link>
@@ -83,31 +77,12 @@
 
     <!-- Sidebar for mobile screens -->
     <transition name="slide-left">
-      <div
-        v-if="sidebarOpen"
-        ref="sidebarRef"
-        class="fixed inset-0 bg-black/50 z-40 flex lg:hidden"
-        @click="closeSidebar"
-      >
+      <div v-if="sidebarOpen" ref="sidebarRef" class="fixed inset-0 bg-black/50 z-40 flex lg:hidden" @click="closeSidebar">
         <div class="bg-white w-64 h-full p-6 shadow-lg relative" @click.stop>
           <!-- Close Button -->
-          <button
-            @click="toggleSidebar"
-            class="absolute top-4 right-4 focus:outline-none text-black"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              class="w-6 h-6"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
+          <button @click="toggleSidebar" class="absolute top-4 right-4 focus:outline-none text-black">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
@@ -156,13 +131,13 @@ import { ref, onMounted } from "vue";
 import { useCartStore } from "../store/cartStore";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faShoppingCart, faCrown } from "@fortawesome/free-solid-svg-icons";
+import { faShoppingCart, faCrown, faBullhorn } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "vue-router";
 import { watch } from "vue";
 import { useAuthStore } from "../stores/authStore";
 import { storeToRefs } from "pinia";
 
-library.add(faShoppingCart, faCrown);
+library.add(faShoppingCart, faCrown, faBullhorn);
 
 const cartStore = useCartStore();
 const authStore = useAuthStore();
@@ -207,6 +182,38 @@ onMounted(() => {
 .slide-left-enter,
 .slide-left-leave-to {
   transform: translateX(-100%);
+}
+
+/* News Ticker Animation */
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker 40s linear infinite;
+  display: flex;
+  min-width: max-content;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Optional: Add a fading gradient overlay */
+.bg-gradient-to-r::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100px;
+  background: linear-gradient(to right, transparent, rgba(220, 38, 38, 1));
+  pointer-events: none;
 }
 
 /* Desktop Points Badge Styles */

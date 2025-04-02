@@ -173,6 +173,8 @@ Route::middleware(['auth:sanctum', TownAdminMiddleware::class])
 
 
         Route::post('/products/{productId}/apply-discount', [ProductController::class, 'applyDiscountToProduct']);
+
+        Route::patch('/products/{product}/toggle-active', [ProductController::class, 'toggleActive']);
     });
 
 Route::post('/test/channel', function () {

@@ -39,8 +39,16 @@
 
       <!-- Product Information -->
       <div
-        class="bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2 mt-6 lg:mt-0"
+        class="bg-white p-4 lg:p-8 rounded-lg shadow-lg lg:w-1/2 mt-6 lg:mt-0 relative"
       >
+      <!-- Stock Badge -->
+        <div
+          v-if="
+            product.is_active === 0"
+          class="absolute top-2 left-2 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md transform -rotate-6"
+        >
+          Out of Stock
+        </div>
         <div
           class="text-center mt-2 lg:text-left flex justify-between items-center"
         >
@@ -101,10 +109,11 @@
         <!-- Buttons for Order and Add to Cart -->
         <div
           v-if="product.type.toLowerCase() !== 'services'"
+          :disabled="product.is_active === 0"
           class="mt-8 flex flex-col items-center lg:items-start space-y-3"
         >
-          <button class="button" @click="handleOrderNow">Order Now</button>
-          <button class="button-border" @click="addToCart">Add To Cart</button>
+          <button :disabled="product.is_active === 0" :class="{'cursor-not-allowed': product.is_active === 0}" class="button" @click="handleOrderNow">Order Now</button>
+          <button :disabled="product.is_active === 0" :class="{'cursor-not-allowed': product.is_active === 0}" class="button-border" @click="addToCart">Add To Cart</button>
         </div>
 
         <div v-else class="mt-8 flex items-center">

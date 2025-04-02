@@ -293,5 +293,18 @@ export const useProductStore = defineStore("products", {
         throw error;
       }
     },
+
+    //Update the product active or not 
+    async updateProductActive(productId) {
+      try {
+        const response = await axios.patch(
+          `${API_BASE_URL}/api/restaurantAdmin/products/${productId}/toggle-active`
+        );
+        return true;
+      } catch (error) {
+        console.error("Failed to update product active status:", error);
+        throw error;
+      }
+    },
   },
 });

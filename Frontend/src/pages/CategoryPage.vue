@@ -242,6 +242,15 @@
           }}
         </div>
 
+        <!-- Stock Badge -->
+        <div
+          v-if="
+            product.is_active === 0"
+          class="absolute top-2 right-2 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md transform rotate-6"
+        >
+          Out of Stock
+        </div>
+
         <!-- Image Section -->
         <div
           class="w-[120px] h-[120px] overflow-hidden rounded-md flex justify-center items-center mb-4"
@@ -313,8 +322,10 @@
         <!-- Minimal Add to Cart Button with Icon -->
         <button
           v-if="product.title.toLowerCase() !== 'prescription' && product.price !== 0"
+          :disabled="product.is_active === 0"
           @click.prevent="addToCart(product)"
           class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+          :class="{'cursor-not-allowed': product.is_active === 0}"
         >
           <!-- Cart Icon -->
           <svg

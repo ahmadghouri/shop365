@@ -212,7 +212,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         // Start with a query builder instance
-        $query = Product::query()->select('id', 'title', 'image', 'price', 'business_id')->with('business');
+        $query = Product::query()->select('id', 'title', 'image', 'price', 'business_id', 'is_active')->with('business');
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -449,5 +449,23 @@ class ProductController extends Controller
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
         }
+    }
+
+    public function toggleActive(Product $product)
+    {
+        try {
+            if (!$product) {
+                return response()->json(['error' => 'Product not found'], 404);
+            }
+            
+            $product->update(['is_active' => !$product->is_active]);
+            $product->save();
+
+            return $this->successResponse($product, 'Product active status updated!');
+
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+        
     }
 }

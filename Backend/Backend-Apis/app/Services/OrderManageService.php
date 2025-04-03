@@ -58,6 +58,16 @@ class OrderManageService
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
             });
 
+            foreach ($ordersByBusiness as $businessId => $items) {
+                $totalPrescriptionPrice = $prescriptionItems->sum(function ($cartItem) {
+                    $product = $cartItem->product;
+                    return ($product->final_price ?? $product->price) * $cartItem->quantity;
+                });
+
+            // Combine regular and prescription items if both are present
+            $totalPrice = $totalRegularPrice + $totalPrescriptionPrice;
+
+
             $minOrderAmount = ($businessId == 6) ? 1000 : 500;
             $business = Business::find($businessId);
 
@@ -77,7 +87,7 @@ class OrderManageService
                 $message .= 'Minimum order amount is 1000 rupees for: ' . implode(', ', $specialBusinesses) . '. ';
             }
 
-            if (count($failedBusinesses) > 0) {
+            if (count($failedBusinesses) > 0 && !$prescriptionItems) {
                 $message .= 'Minimum order amount is 500 rupees for: ' . implode(', ', $failedBusinesses) . '.';
             }
 
@@ -105,15 +115,6 @@ class OrderManageService
                 return response()->json(['message' => 'Voucher has expired'], 400);
             }
         }
-
-        foreach ($ordersByBusiness as $businessId => $items) {
-            $totalPrescriptionPrice = $prescriptionItems->sum(function ($cartItem) {
-                $product = $cartItem->product;
-                return ($product->final_price ?? $product->price) * $cartItem->quantity;
-            });
-
-            // Combine regular and prescription items if both are present
-            $totalPrice = $totalRegularPrice + $totalPrescriptionPrice;
 
             // Apply user points discount if available
             if ($userPoints && $user->points >= 250) {

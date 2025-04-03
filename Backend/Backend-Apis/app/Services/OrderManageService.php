@@ -40,6 +40,7 @@ class OrderManageService
 
         $orders = [];
         $failedBusinesses = [];
+        $specialBusinesses = [];
 
         foreach ($ordersByBusiness as $businessId => $items) {
             // Separate prescription items from regular items
@@ -57,14 +58,55 @@ class OrderManageService
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
             });
 
-            // Check if regular items meet the minimum order amount
-            if ($totalRegularPrice < 500 && $regularItems->isNotEmpty()) {
-                $business = Business::find($businessId);
-                $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
-                continue; // Skip placing this order
+            $minOrderAmount = ($businessId == 6) ? 1000 : 500;
+            $business = Business::find($businessId);
+
+            if ($totalPrice < $minOrderAmount) {
+                if ($businessId == 6) {
+                    $specialBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
+                } else {
+                    $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
+                }
+            }
+        }
+
+        if (count($failedBusinesses) > 0 || count($specialBusinesses) > 0) {
+            $message = 'Order(s) cannot be placed. ';
+
+            if (count($specialBusinesses) > 0) {
+                $message .= 'Minimum order amount is 1000 rupees for: ' . implode(', ', $specialBusinesses) . '. ';
             }
 
-            // Calculate total price for prescription items
+            if (count($failedBusinesses) > 0) {
+                $message .= 'Minimum order amount is 500 rupees for: ' . implode(', ', $failedBusinesses) . '.';
+            }
+
+            return response()->json(
+                [
+                    'message' => trim($message),
+                    'failed_businesses' => $failedBusinesses,
+                    'special_businesses' => $specialBusinesses,
+                ],
+                400
+            );
+        }
+
+        // Apply voucher discount if voucher code is provided
+        $voucher = null;
+        if ($voucherCode) {
+            $voucher = Voucher::where('code', strtolower($voucherCode))->first();
+
+            if (!$voucher) {
+                return response()->json(['message' => 'Invalid voucher code'], 400);
+            }
+
+            // Check if the voucher has expired
+            if ($voucher->expiry_date && Carbon::parse($voucher->expiry_date)->isBefore(Carbon::now())) {
+                return response()->json(['message' => 'Voucher has expired'], 400);
+            }
+        }
+
+        foreach ($ordersByBusiness as $businessId => $items) {
             $totalPrescriptionPrice = $prescriptionItems->sum(function ($cartItem) {
                 $product = $cartItem->product;
                 return ($product->final_price ?? $product->price) * $cartItem->quantity;
@@ -227,8 +269,8 @@ class OrderManageService
 
         // Fetch orders for the parent and its children
         return Order::whereHas('items.product', function ($query) use ($businessIds) {
-            $query->whereIn('business_id', $businessIds);
-        })
+                $query->whereIn('business_id', $businessIds);
+            })
             ->with('items.product', 'user', 'user.household', 'user.household.town', 'perscription')
             ->orderBy('created_at', 'desc') // Ensure consistent order
             ->paginate(15, ['*'], 'page', $page); // Paginate with 15 orders per page
@@ -268,11 +310,11 @@ class OrderManageService
                 // Points adjustment logic
                 if ($newStatus === 'delivered') {
                     // Add points if the new status is 'delivered'
-                    $pointsToAdd = $totalPrice * 0;
+                    $pointsToAdd = round($totalPrice * (1/100));
                     $user->points += $pointsToAdd;
                 } elseif ($previousStatus === 'delivered') {
                     // Subtract points if reverting from 'delivered'
-                    $pointsToSubtract = $totalPrice * 0;
+                    $pointsToSubtract = round($totalPrice * (1/100));
                     $user->points -= $pointsToSubtract;
                 }
 
@@ -282,4 +324,5 @@ class OrderManageService
 
         return $order;
     }
+
 }

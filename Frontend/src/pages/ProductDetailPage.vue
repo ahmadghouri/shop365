@@ -112,8 +112,8 @@
           :disabled="product.is_active === 0"
           class="mt-8 flex flex-col items-center lg:items-start space-y-3"
         >
-          <button :disabled="product.is_active === 0" :class="{'cursor-not-allowed': product.is_active === 0}" class="button" @click="handleOrderNow">Order Now</button>
-          <button :disabled="product.is_active === 0" :class="{'cursor-not-allowed': product.is_active === 0}" class="button-border" @click="addToCart">Add To Cart</button>
+          <button :disabled="product.is_active === 0 || product.title.toLowerCase() === 'prescription'" :class="{'cursor-not-allowed': product.is_active === 0}" class="button" @click="handleOrderNow">Order Now</button>
+          <button :disabled="product.is_active === 0 || product.title.toLowerCase() === 'prescription'" :class="{'cursor-not-allowed': product.is_active === 0}" class="button-border" @click="addToCart">Add To Cart</button>
         </div>
 
         <div v-else class="mt-8 flex items-center">

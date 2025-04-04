@@ -52,7 +52,7 @@ class DatabaseSeeder extends Seeder
                 'type' => 'health',
                 'opening_time' => '10:00:00',
                 'closing_time' => '23:00:00',
-                'image' => 'https://placehold.co/100x100?text=Burger+king'
+                'image' => 'https://lh3.googleusercontent.com/p/AF1QipNDKvH1Z-wuvp_wEy-OrQpXe-aT4a1xTzmcIfJw=s1360-w1360-h1020'
             ]
         ];
 
@@ -189,7 +189,14 @@ class DatabaseSeeder extends Seeder
                     'description' => 'Upload your doctors prescription',
                     'type' => 'prescription',
                     'price' => '0',
-                    'image' => 'https://placehold.co/100x100?text=Prescription'
+                    'image' => 'https://cdn-icons-png.flaticon.com/512/898/898671.png'
+                ],
+                [
+                    'title' => 'Panadol',
+                    'description' => 'Pain killer tablet',
+                    'type' => 'medicine',
+                    'price' => '500',
+                    'image' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtCFBhGlUNA4Y8Wy8ZatSK7aYzHMrBhFycAQ&s'
                 ]
             ]
         ];

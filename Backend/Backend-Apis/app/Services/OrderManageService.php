@@ -28,9 +28,29 @@ class OrderManageService
             return response()->json(['message' => 'Your cart is empty'], 400);
         }
 
+        // Check if any regular item is inactive
+        $inactiveItems = $cartItems->reject(function ($cartItem) {
+            return strtolower($cartItem->product->title) === 'prescription';
+        })->filter(function ($cartItem) {
+            return $cartItem->product->is_active === 0;
+        });
+
+        if ($inactiveItems->isNotEmpty()) {
+            $productNames = $inactiveItems->map(function ($item) {
+                return $item->product->title;
+            })->unique()->implode(', ');
+
+            return response()->json(
+                [
+                    'message' => 'Some items are currently out of stock: ' . $productNames . '. Please remove them first!'
+                ],
+                400
+            );
+        }
+
         // Check if the cart contains any prescription items
         $hasPrescriptionInCart = $cartItems->contains(function ($cartItem) {
-            return strtolower($cartItem->product->title) === 'prescription';
+            return strtolower($cartItem->product->title || $cartItem->product->type) === 'prescription';
         });
 
         $user = Auth::user();
@@ -66,28 +86,30 @@ class OrderManageService
 
             // Combine regular and prescription items if both are present
             $totalPrice = $totalRegularPrice + $totalPrescriptionPrice;
+            // Skip minimum order amount check if there are prescription items in this business's cart
+            if ($prescriptionItems->isEmpty()) {
+                    $minOrderAmount = ($businessId == 6) ? 1000 : 500;
+                    $business = Business::find($businessId);
 
-
-            $minOrderAmount = ($businessId == 6) ? 1000 : 500;
-            $business = Business::find($businessId);
-
-            if ($totalPrice < $minOrderAmount) {
-                if ($businessId == 6) {
-                    $specialBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
-                } else {
-                    $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
-                }
+                    if ($totalPrice < $minOrderAmount) {
+                        if ($businessId == 6) {
+                            $specialBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
+                        } else {
+                            $failedBusinesses[] = $business ? $business->name : 'Unknown Restaurant';
+                        }
+                    }   
             }
+           
         }
 
-        if (count($failedBusinesses) > 0 || count($specialBusinesses) > 0) {
+        if (!$hasPrescriptionInCart && count($failedBusinesses) > 0 || count($specialBusinesses) > 0) {
             $message = 'Order(s) cannot be placed. ';
 
             if (count($specialBusinesses) > 0) {
                 $message .= 'Minimum order amount is 1000 rupees for: ' . implode(', ', $specialBusinesses) . '. ';
             }
 
-            if (count($failedBusinesses) > 0 && !$prescriptionItems) {
+            if (count($failedBusinesses) > 0) {
                 $message .= 'Minimum order amount is 500 rupees for: ' . implode(', ', $failedBusinesses) . '.';
             }
 

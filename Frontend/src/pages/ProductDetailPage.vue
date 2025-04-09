@@ -361,6 +361,7 @@ const addToCart = async () => {
   };
 
   try {
+      // Close the prescription modal immediately
     if (product.value.type.toLowerCase() === "prescription") {
       closePrescriptionModal();
     }

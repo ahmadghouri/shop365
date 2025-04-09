@@ -992,6 +992,10 @@ const addToCart = async (product) => {
   }
 
   try {
+    // Close the prescription modal immediately
+  if (product.type.toLowerCase() === "prescription") {
+    closePrescriptionModal();
+  }
     await cartStore.addToCart(cartItem);
   } catch (error) {
     toast.error("Failed to add product to cart.");

@@ -83,37 +83,57 @@
           </div>
         </div>
 
-        <div class="mt-6" v-if="product.type.toLowerCase() !== 'services'">
-          <label class="font-semibold text-gray-900">Quantity</label>
-          <div
-            class="flex items-center mt-2 border border-gray-300 rounded-md overflow-hidden w-max mx-auto lg:mx-0"
-          >
-            <button
-              @click="decreaseQuantity"
-              class="px-4 py-2 bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none transition-colors"
-            >
-              -
-            </button>
-            <span class="px-6 py-2 text-gray-800 bg-white">
-              {{ quantity }}
-            </span>
-            <button
-              @click="increaseQuantity"
-              class="px-4 py-2 bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none transition-colors"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
         <!-- Buttons for Order and Add to Cart -->
         <div
-          v-if="product.type.toLowerCase() !== 'services'"
+          v-if="product.type.toLowerCase() === 'prescription'"
+          class="mt-8 flex items-center"
+        >
+        <!-- Prescription Button -->
+        <button
+          @click.prevent="openPrescriptionModal(product)"
+          class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-black text-white font-semibold text-sm rounded-full shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+            />
+          </svg>
+
+          <span class="hidden sm:inline">Upload Prescription</span>
+          <span class="sm:hidden">Prescription</span>
+        </button>
+        </div>
+
+        <div
+          v-else-if="product.type.toLowerCase() !== 'services'"
           :disabled="product.is_active === 0"
           class="mt-8 flex flex-col items-center lg:items-start space-y-3"
         >
-          <button :disabled="product.is_active === 0 || product.title.toLowerCase() === 'prescription'" :class="{'cursor-not-allowed': product.is_active === 0}" class="button" @click="handleOrderNow">Order Now</button>
-          <button :disabled="product.is_active === 0 || product.title.toLowerCase() === 'prescription'" :class="{'cursor-not-allowed': product.is_active === 0}" class="button-border" @click="addToCart">Add To Cart</button>
+          <button
+            :disabled="product.is_active === 0"
+            :class="{'cursor-not-allowed': product.is_active === 0}"
+            class="button"
+            @click="handleOrderNow"
+          >
+            Order Now
+          </button>
+          <button
+            :disabled="product.is_active === 0"
+            :class="{'cursor-not-allowed': product.is_active === 0}"
+            class="button-border"
+            @click="addToCart"
+          >
+            Add To Cart
+          </button>
         </div>
 
         <div v-else class="mt-8 flex items-center">
@@ -124,34 +144,144 @@
       </div>
     </div>
 
-    <!-- Contact Popup -->
+    <!-- Prescription Modal -->
     <div
-      v-if="showContactPopup"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      v-if="showPrescriptionModal"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      @click="closePrescriptionModal"
     >
-      <div class="bg-white p-6 md:p-8 rounded-lg max-w-md w-full">
-        <h2 class="text-2xl font-bold mb-4">{{ selectedProduct.title }}</h2>
-        <div
-          class="text-gray-700 mb-6"
-          v-html="selectedProduct.description"
-        ></div>
-        <div class="flex justify-end">
+      <div
+        class="bg-white prescription-modal w-full max-w-md rounded-lg shadow-xl p-6"
+        @click.stop
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold text-gray-800">Upload Prescription</h2>
           <button
-            @click="closeContactPopup"
-            class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-full hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75"
+            @click="closePrescriptionModal"
+            class="text-gray-600 hover:text-gray-800"
           >
-            Close
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </button>
         </div>
+
+        <form @submit.prevent="addToCart">
+          <!-- Image Upload -->
+          <div class="md:col-span-2">
+            <label class="text-sm font-medium text-gray-600 block mb-2">
+              Prescription Image
+            </label>
+            <div
+              class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-yellow-400 transition-colors duration-200"
+            >
+              <div class="space-y-2 text-center">
+                <div v-if="imagePreview" class="mb-4">
+                  <img
+                    :src="imagePreview"
+                    alt="Preview"
+                    class="mx-auto h-32 w-auto rounded-lg shadow-sm"
+                  />
+                </div>
+                <div class="flex text-sm text-gray-600">
+                  <label
+                    for="image"
+                    class="relative cursor-pointer bg-white rounded-md font-medium text-yellow-600 hover:text-yellow-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-yellow-500"
+                  >
+                    <span>Upload a file</span>
+                    <input
+                      @change="handleFileChange"
+                      id="image"
+                      type="file"
+                      class="sr-only"
+                      accept="image/*"
+                      required
+                    />
+                  </label>
+                  <p class="pl-1">or drag and drop</p>
+                </div>
+                <p class="text-xs text-gray-500">PNG, JPG, GIF</p>
+                <p v-if="imageError" class="text-xs text-red-500 mt-1">
+                  {{ imageError }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-gray-600 font-semibold mb-2">
+              Description (Optional)
+            </label>
+            <textarea
+              v-model="description"
+              class="w-full border rounded p-2"
+              rows="3"
+              placeholder="Enter additional details..."
+            ></textarea>
+          </div>
+
+                  <div class="mb-4">
+          <label class="block text-gray-600 font-semibold mb-2"
+            >Important *</label
+          >
+          <div
+            class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 rounded-md"
+          >
+            <p class="flex items-center font-medium">
+              <svg
+                class="w-5 h-5 mr-2 text-yellow-500"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.257 3.099c.766-1.36 2.72-1.36 3.486 0l6.588 11.7c.75 1.33-.213 3-1.743 3H3.415c-1.53 0-2.493-1.67-1.743-3l6.585-11.7zM11 14a1 1 0 11-2 0 1 1 0 012 0zm-1-2a1 1 0 01-1-1V7a1 1 0 112 0v4a1 1 0 01-1 1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Prescription payment will be confirmed on call.
+            </p>
+          </div>
+        </div>
+        
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
+              </svg>
+              <span class="hidden sm:inline">Add to Cart</span>
+              <span class="sm:hidden">Add</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-  </div>
-
-  <!-- Loading Spinner -->
-  <div v-else class="flex justify-center items-center h-screen bg-gray-100">
-    <div
-      class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"
-    ></div>
   </div>
 </template>
 
@@ -168,17 +298,36 @@ const cartStore = useCartStore();
 const productStore = useProductStore();
 const quantity = ref(1);
 const productImageRef = ref(null);
-const showContactPopup = ref(false);
-const selectedProduct = ref(null);
+const showPrescriptionModal = ref(false);
+const imagePreview = ref(null);
+const imageError = ref(null);
+const description = ref("");
+const form = ref({
+  image: null,
+});
 
-const openContactPopup = (product) => {
-  selectedProduct.value = product;
-  showContactPopup.value = true;
+const openPrescriptionModal = (product) => {
+  showPrescriptionModal.value = true;
 };
 
-const closeContactPopup = () => {
-  showContactPopup.value = false;
-  selectedProduct.value = null;
+const closePrescriptionModal = () => {
+  showPrescriptionModal.value = false;
+};
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0];
+  imageError.value = null;
+  imagePreview.value = null;
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    imageError.value = "Please select a valid image file.";
+    return;
+  }
+
+  form.value.image = file;
+  imagePreview.value = URL.createObjectURL(file);
 };
 
 onMounted(async () => {
@@ -189,7 +338,6 @@ onMounted(async () => {
 });
 
 const product = computed(() => productStore.product);
-const food = computed(() => (product.value ? product.value.title : ""));
 
 const addToCart = async () => {
   const cartItem = {
@@ -202,72 +350,25 @@ const addToCart = async () => {
       final_price: product.value.final_price,
       image_url: product.value.image_url,
       business_id: product.value.business_id,
+      prescription:
+        product.value.type.toLowerCase() === "prescription"
+          ? {
+              prescription_image: form.value.image,
+              prescription_description: description.value,
+            }
+          : null,
     },
   };
 
-  const nav = document.querySelector(".navbar-cart-icon");
-  const productImage = document.querySelector(".image");
-
-  if (nav && productImage) {
-    const start = productImage.getBoundingClientRect();
-    const end = nav.getBoundingClientRect();
-
-    createFlyingElement(productImage.src, start, end);
-  }
-
   try {
+    if (product.value.type.toLowerCase() === "prescription") {
+      closePrescriptionModal();
+    }
     await cartStore.addToCart(cartItem);
-    // toast.success("Product added to cart successfully!");
   } catch (error) {
     toast.error("Failed to add product to cart.");
   }
 };
-
-function createFlyingElement(productImage, start, end) {
-  console.log("Creating flying element");
-
-  const flyingElement = document.createElement("img");
-  flyingElement.src = productImage;
-  flyingElement.style.position = "fixed";
-  flyingElement.style.top = `${start.top}px`;
-  flyingElement.style.left = `${start.left}px`;
-  flyingElement.style.width = `${start.width}px`;
-  flyingElement.style.height = `${start.height}px`;
-  flyingElement.style.objectFit = "contain";
-  flyingElement.style.zIndex = "9999";
-  flyingElement.style.opacity = "0.8";
-  flyingElement.style.pointerEvents = "none";
-
-  document.body.appendChild(flyingElement);
-
-  const isMobile = window.innerWidth <= 768;
-  const mobileAdjustment = isMobile ? 1.1 : 1;
-
-  flyingElement.animate(
-    [
-      {
-        left: `${start.left}px`,
-        top: `${start.top}px`,
-        width: `${start.width}px`,
-        height: `${start.height}px`,
-        opacity: 0.8,
-      },
-      {
-        left: `${end.left * mobileAdjustment}px`,
-        top: `${end.top * mobileAdjustment}px`,
-        width: "20px",
-        height: "20px",
-        opacity: 0.5,
-      },
-    ],
-    {
-      duration: 800,
-      easing: "ease-in-out",
-    }
-  ).onfinish = () => {
-    document.body.removeChild(flyingElement);
-  };
-}
 
 const handleOrderNow = async () => {
   await addToCart();
@@ -284,7 +385,6 @@ const decreaseQuantity = () => {
   }
 };
 
-// Go back to the previous page
 const goBack = () => {
   router.back();
 };
@@ -330,5 +430,22 @@ const goBack = () => {
 /* Maintain spacing */
 .prose > * + * {
   margin-top: 1rem;
+}
+
+/* Responsive modal styles */
+@media (max-width: 768px) {
+  .prescription-modal {
+    width: 90%; /* Adjust width for smaller screens */
+    max-height: 80vh; /* Limit height */
+    overflow-y: auto; /* Enable scrolling inside the modal */
+  }
+}
+
+@media (min-width: 769px) {
+  .prescription-modal {
+    width: 50%; /* Adjust width for larger screens */
+    max-height: 70vh; /* Limit height */
+    overflow-y: auto; /* Enable scrolling inside the modal */
+  }
 }
 </style>

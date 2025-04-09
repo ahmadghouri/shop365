@@ -37,26 +37,27 @@ class PerscriptionController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate nested prescription data
-        $request->validate([
-            'product.prescription.prescription_image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'product.prescription.prescription_description' => 'required'
-        ]);
+        try {
+            $request->validate([
+                'product.prescription.prescription_description' => 'nullable|string',
+                'product.prescription.prescription_image' => 'required|image|mimes:jpeg,png,jpg',
+            ]);
 
-        // Get authenticated user ID (Sanctum/Session example)
-        $userId = auth()->id();
+            $userId = auth()->id();
 
-        // Handle file upload from nested key
-        $imagePath = $this->imageService->uploadImage($request, 'product.prescription.prescription_image');
+            $imagePath = $this->imageService->uploadImage($request, 'product.prescription.prescription_image');
+            
+            $prescription = Perscription::create([
+                'user_id' => $userId,
+                'description' => $request->input('product.prescription.prescription_description'),
+                'image_url' => $imagePath
+            ]);
 
-        // Create prescription with product relationship
-        $prescription = Perscription::create([
-            'user_id' => $userId,
-            'image_url' => $imagePath,
-            'description' => $request->input('product.prescription.prescription_description')
-        ]);
-
-        return response()->json($prescription, 201);
+            return response()->json($prescription, 201);
+        } catch (\Exception $e) {
+            // Return a JSON response with the exception message
+            return $this->errorResponse($e->getMessage(), 400);
+        }
     }
 
     /**

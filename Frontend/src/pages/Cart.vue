@@ -605,7 +605,7 @@ const orderNow = async () => {
   }
   
   const hasNonPrescriptionItems = cartStore.cartItems.some(
-    (item) => item.product.title.toLowerCase() !== "prescription"
+    (item) => item.product.type.toLowerCase() !== "prescription"
   );
   if (total.value <= 0 && hasNonPrescriptionItems) {
     showError("You cannot place an order with a total amount of 0.");

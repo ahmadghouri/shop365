@@ -284,9 +284,9 @@
                 <!-- Product Image -->
                 <div class="flex-shrink-0">
                   <img
-                    :src="selectedOrder.perscription?.image_url || item.product.image_url"
+                    :src="selectedOrder.perscription?.full_image_url || item.product.image_url"
                     alt="No image"
-                     @click="openImageModal( selectedOrder.perscription?.image_url || item.product.image_url)"
+                     @click="openImageModal( selectedOrder.perscription?.full_image_url || item.product.image_url)"
                     class="w-full md:w-[100px] h-[100px] object-contain rounded-lg border border-yellow-400 cursor-pointer"
                   />
                 </div>

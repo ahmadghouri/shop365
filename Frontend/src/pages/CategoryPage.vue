@@ -576,7 +576,7 @@
                 </label>
                 <p class="pl-1">or drag and drop</p>
               </div>
-              <p class="text-xs text-gray-500">PNG, JPG, GIF up to 50KB</p>
+              <p class="text-xs text-gray-500">PNG, JPG, GIF</p>
               <p v-if="imageError" class="text-xs text-red-500 mt-1">
                 {{ imageError }}
               </p>
@@ -943,12 +943,12 @@ const handleFileChange = (event) => {
     return;
   }
 
-  if (file.size > MAX_FILE_SIZE) {
-    imageError.value = `Image size must be less than 50KB. Current size: ${(
-      file.size / 1024
-    ).toFixed(1)}KB`;
-    return;
-  }
+  // if (file.size > MAX_FILE_SIZE) {
+  //   imageError.value = `Image size must be less than 50KB. Current size: ${(
+  //     file.size / 1024
+  //   ).toFixed(1)}KB`;
+  //   return;
+  // }
   form.value.image = file;
   imagePreview.value = URL.createObjectURL(file);
 };

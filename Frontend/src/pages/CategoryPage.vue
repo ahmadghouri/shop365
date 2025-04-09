@@ -321,7 +321,7 @@
 
         <!-- Minimal Add to Cart Button with Icon -->
         <button
-          v-if="product.title.toLowerCase() !== 'prescription' && product.price !== 0"
+          v-if="product.type.toLowerCase() !== 'prescription' && product.price !== 0"
           :disabled="product.is_active === 0"
           @click.prevent="addToCart(product)"
           class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
@@ -518,7 +518,7 @@
     class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
     @click="closePrescriptionModal"
   >
-    <div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6" @click.stop>
+    <div class="bg-white prescription-modal w-full max-w-md rounded-lg shadow-xl p-6" @click.stop>
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-bold text-gray-800">Upload Prescription</h2>
         <button
@@ -971,7 +971,7 @@ const addToCart = async (product) => {
       business_id: product.business_id,
       // Add prescription details if available
       prescription:
-        product.title.toLowerCase() === "prescription"
+        product.type.toLowerCase() === "prescription"
           ? {
               prescription_image: form.value.image,
               prescription_description: description.value,
@@ -1174,6 +1174,22 @@ onUnmounted(() => {
 
   100% {
     transform: translateY(-15px);
+  }
+}
+/* Responsive modal styles */
+@media (max-width: 768px) {
+  .prescription-modal {
+    width: 90%; /* Adjust width for smaller screens */
+    max-height: 80vh; /* Limit height */
+    overflow-y: auto; /* Enable scrolling inside the modal */
+  }
+}
+
+@media (min-width: 769px) {
+  .prescription-modal {
+    width: 50%; /* Adjust width for larger screens */
+    max-height: 70vh; /* Limit height */
+    overflow-y: auto; /* Enable scrolling inside the modal */
   }
 }
 </style>

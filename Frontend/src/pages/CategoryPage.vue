@@ -593,6 +593,7 @@
             class="w-full border rounded p-2"
             rows="3"
             placeholder="Enter additional details..."
+            required
           ></textarea>
         </div>
 

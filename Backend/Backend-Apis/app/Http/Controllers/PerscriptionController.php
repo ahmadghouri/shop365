@@ -39,8 +39,8 @@ class PerscriptionController extends Controller
     {
         try {
             $request->validate([
-                'product.prescription.prescription_description' => 'nullable|string',
-                'product.prescription.prescription_image' => 'required|image|mimes:jpeg,png,jpg',
+                'product.prescription.prescription_description' => 'required',
+                'product.prescription.prescription_image' => 'required|image|mimes:jpeg,jpg,png,gif,heic,heif',
             ]);
 
             $userId = auth()->id();

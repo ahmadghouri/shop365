@@ -930,7 +930,7 @@ const description = ref("");
 const MAX_FILE_SIZE = 50 * 1024; // 50KB in bytes
 
 const form = ref({
-  image: null,
+  image: null, // This will now store base64 instead of a File object
 });
 
 const handleFileChange = (event) => {
@@ -945,15 +945,27 @@ const handleFileChange = (event) => {
     return;
   }
 
+  // Optional: size limit
   // if (file.size > MAX_FILE_SIZE) {
   //   imageError.value = `Image size must be less than 50KB. Current size: ${(
   //     file.size / 1024
   //   ).toFixed(1)}KB`;
   //   return;
   // }
-  form.value.image = file;
-  imagePreview.value = URL.createObjectURL(file);
+
+  // Convert to base64
+  const reader = new FileReader();
+  reader.onload = () => {
+    form.value.image = reader.result; // base64 string
+    imagePreview.value = reader.result; // for preview too
+  };
+  reader.onerror = () => {
+    imageError.value = "Failed to read image file.";
+  };
+
+  reader.readAsDataURL(file); // Triggers base64 encoding
 };
+
 
 const addToCart = async (product) => {
   // if (!authStore.isAuthenticated) {

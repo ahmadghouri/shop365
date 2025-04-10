@@ -571,7 +571,7 @@
                     type="file"
                     class="sr-only"
                     accept="image/*"
-                    capture=environment
+                    capture="environment"
                     required
                   />
                 </label>

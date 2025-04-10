@@ -229,6 +229,7 @@
               rows="3"
               placeholder="Enter additional details..."
               required
+              capture="environment"
             ></textarea>
           </div>
 

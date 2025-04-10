@@ -296,11 +296,11 @@
                   v-if="isImageModalOpen"
                   class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md p-4 md:p-0"
                 >
-                  <div class="relative bg-white rounded-lg overflow-hidden">
+                  <div class="relative bg-white rounded-lg overflow-hidden  max-w-[90vw] max-h-[90vh]">
                     <button @click="closeImageModal" class="absolute top-2 right-2">
                       <img src="/public/close-icon.svg" alt="close" />
                     </button>
-                    <img :src="selectedImageUrl" alt="Product Image" class="max-w-full max-h-full" />
+                    <img :src="selectedImageUrl" alt="Product Image" class="w-auto h-auto max-w-full max-h-full object-contain" />
                   </div>
                 </div>
 

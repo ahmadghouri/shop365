@@ -119,8 +119,8 @@ export const useCartStore = defineStore("cart", {
             }
           );
         } catch (error) {
-          console.error("Failed to add to cart", error);
-          throw error;
+          console.error('Upload error details:', error.response?.data);
+          throw new Error(error.response?.data?.message || "Upload failed");
         }
       }
 

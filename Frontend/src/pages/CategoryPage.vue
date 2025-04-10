@@ -586,7 +586,7 @@
 
         <div class="mb-4">
           <label class="block text-gray-600 font-semibold mb-2"
-            >Description (Optional)</label
+            >Description</label
           >
           <textarea
             v-model="description"

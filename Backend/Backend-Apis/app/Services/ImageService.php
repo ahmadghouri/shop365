@@ -24,7 +24,7 @@ class ImageService
                 $extension = $fileExtension ?: $image->getClientOriginalExtension();
 
                 // Validate the file
-                if (!in_array($extension, ['jpeg', 'jpg', 'png', 'gif'])) {
+                if (!in_array($extension, ['jpeg', 'jpg', 'png', 'gif', 'heic', 'heif'])) {
                     throw new Exception("Invalid file type.");
                 }
 
@@ -50,6 +50,10 @@ class ImageService
                 $extension = $extension ?: 'png'; // Default to PNG if no extension found
 
                 $filePath = $uploadPath . $fileName . '.' . $extension;
+
+                
+                FacadesLog::info('File Extension', ['extension' => $extension]);
+                FacadesLog::info('Base64 Data', ['data' => $requestFileData]);
 
                 // Create directory if it doesn't exist
                 if (!Storage::exists('public/' . $uploadPath)) {

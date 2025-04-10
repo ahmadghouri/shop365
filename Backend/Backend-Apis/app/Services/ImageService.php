@@ -38,6 +38,11 @@ class ImageService
                 $requestFileData = $request->$requestName;
                 FacadesLog::info('Base64 File Data', ['data' => $requestFileData]);
 
+                // Validate base64 format
+                if (!preg_match('#^data:([^;]+);base64,#', $requestFileData)) {
+                    throw new Exception("Invalid base64 format.");
+                }
+
                 // Decode the base64 file
                 $file = base64_decode(preg_replace('#^data:([^;]+);base64,#', '', $requestFileData));
 

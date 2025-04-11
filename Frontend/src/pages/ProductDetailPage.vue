@@ -285,6 +285,12 @@
       </div>
     </div>
   </div>
+
+   <div v-if="isLoading" class="loader loading-overlay">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
 </template>
 
 <script setup>
@@ -301,6 +307,7 @@ const productStore = useProductStore();
 const quantity = ref(1);
 const productImageRef = ref(null);
 const showPrescriptionModal = ref(false);
+const isLoading = ref(false);
 
 
 const imagePreview = ref(null);
@@ -389,10 +396,13 @@ const addToCart = async () => {
     if (product.value.type.toLowerCase() === "prescription") {
       closePrescriptionModal();
     }
+     isLoading.value = true;
     await cartStore.addToCart(cartItem);
   } catch (error) {
     console.log(error);
     toast.error("Failed to add product to cart.");
+  }finally {
+    isLoading.value = false;
   }
 };
 
@@ -417,6 +427,55 @@ const goBack = () => {
 </script>
 
 <style scoped>
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black; /* Light overlay */
+  backdrop-filter: blur(5px); /* Blur effect */
+  opacity: 0.5; /* Adjust opacity as needed */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Ensure it appears above all other elements */
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+}
+
+.loader span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
+  background-color: rgb(234 179 8);
+  /* Change color as needed */
+  border-radius: 50%;
+  animation: bounce 0.6s infinite alternate;
+}
+
+.loader span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loader span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-15px);
+  }
+}
+
 /* Add your styles here */
 .prose {
   max-width: none;

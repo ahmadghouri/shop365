@@ -296,11 +296,29 @@
                   v-if="isImageModalOpen"
                   class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md p-4 md:p-0"
                 >
-                  <div class="relative bg-white rounded-lg overflow-hidden  max-w-[90vw] max-h-[90vh]">
-                    <button @click="closeImageModal" class="absolute top-2 right-2">
-                      <img src="/public/close-icon.svg" alt="close" />
+                  <div
+                    class="relative bg-transparent rounded-lg overflow-hidden max-w-[90vw] max-h-[90vh] flex flex-col"
+                  >
+                    <button
+                      @click="closeImageModal"
+                      class="absolute top-2 right-2 z-10"
+                    >
+                      <img
+                        src="/public/close-icon.svg"
+                        alt="close"
+                        class="w-6 h-6"
+                      />
                     </button>
-                    <img :src="selectedImageUrl" alt="Product Image" class="w-auto h-auto max-w-full max-h-full object-contain" />
+                    <div
+                      class="overflow-auto flex-grow flex items-center justify-center p-4"
+                      style="max-height: calc(90vh - 40px)"
+                    >
+                      <img
+                        :src="selectedImageUrl"
+                        alt="Product Image"
+                        class="w-auto h-auto max-w-full max-h-full object-contain"
+                      />
+                    </div>
                   </div>
                 </div>
 

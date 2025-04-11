@@ -294,10 +294,10 @@
                 <!-- Enlarge image modal  -->
                 <div
                   v-if="isImageModalOpen"
-                  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md p-4 md:p-0"
+                  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md overflow-auto p-4"
                 >
                   <div
-                    class="relative bg-transparent rounded-lg overflow-hidden max-w-[90vw] max-h-[90vh] flex flex-col"
+                    class="relative overflow-hidden w-auto max-w-[95vw] max-h-[95vh] shadow-lg"
                   >
                     <button
                       @click="closeImageModal"
@@ -310,10 +310,11 @@
                       />
                     </button>
                     <div
-                      class="overflow-auto flex-grow flex items-center justify-center p-4"
-                      style="max-height: calc(90vh - 40px)"
+                      class="flex justify-center items-start p-4"
+                      style="max-height: calc(95vh - 40px); overflow: auto"
                     >
                       <img
+                        loading="lazy"
                         :src="selectedImageUrl"
                         alt="Product Image"
                         class="w-auto h-auto max-w-full max-h-full object-contain"
@@ -396,13 +397,30 @@ const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
 
-//Enlarge product image
+// Function to preload an image
+const preloadImage = (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => resolve(url);
+    img.onerror = (err) => reject(err);
+  });
+};
+
+// Enlarge product image
 const isImageModalOpen = ref(false);
 const selectedImageUrl = ref("");
 
-const openImageModal = (imageUrl) => {
-  selectedImageUrl.value = imageUrl;
-  isImageModalOpen.value = true;
+const openImageModal = async (imageUrl) => {
+  try {
+    // Preload the image before opening the modal
+    await preloadImage(imageUrl);
+    selectedImageUrl.value = imageUrl;
+    isImageModalOpen.value = true;
+  } catch (err) {
+    console.error("Failed to preload image:", err);
+    toast.error("Failed to load image");
+  }
 };
 
 const closeImageModal = () => {

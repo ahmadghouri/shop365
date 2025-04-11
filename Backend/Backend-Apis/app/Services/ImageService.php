@@ -17,6 +17,11 @@ class ImageService
         try {
             $image = $request->file($requestName);
             FacadesLog::info('Upload Image Request', ['request' => $request->all()]);
+            
+            // Check if the request is for a prescription image
+            if ($requestName === 'product.prescription.prescription_image') {
+                $uploadPath = 'uploads/prescription_images/';
+            }
 
             if ($image) {
 

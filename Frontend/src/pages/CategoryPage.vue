@@ -377,7 +377,7 @@
       ref="loadMoreTrigger"
       class="h-10 w-full flex justify-center items-center mt-6"
     >
-      <div v-if="isLoading" class="loader">
+      <div v-if="isLoading" class="loader loading-overlay">
         <span></span>
         <span></span>
         <span></span>
@@ -1010,10 +1010,13 @@ const addToCart = async (product) => {
   if (product.type.toLowerCase() === "prescription") {
     closePrescriptionModal();
   }
+    isLoading.value = true;
     await cartStore.addToCart(cartItem);
   } catch (error) {
     console.log(error);
     toast.error("Failed to add product to cart.");
+  }finally {
+    isLoading.value = false;
   }
 };
 
@@ -1160,6 +1163,21 @@ onUnmounted(() => {
   animation: shimmer 2s infinite linear;
   background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
   background-size: 1000px 100%;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black; /* Light overlay */
+  backdrop-filter: blur(5px); /* Blur effect */
+  opacity: 0.5; /* Adjust opacity as needed */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Ensure it appears above all other elements */
 }
 
 .loader {

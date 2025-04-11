@@ -1012,6 +1012,7 @@ const addToCart = async (product) => {
   }
     await cartStore.addToCart(cartItem);
   } catch (error) {
+    console.log(error);
     toast.error("Failed to add product to cart.");
   }
 };

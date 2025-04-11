@@ -206,6 +206,7 @@
                       type="file"
                       class="sr-only"
                       accept="image/*"
+                      capture="environment"
                       required
                     />
                   </label>
@@ -229,7 +230,6 @@
               rows="3"
               placeholder="Enter additional details..."
               required
-              capture="environment"
             ></textarea>
           </div>
 
@@ -391,6 +391,7 @@ const addToCart = async () => {
     }
     await cartStore.addToCart(cartItem);
   } catch (error) {
+    console.log(error);
     toast.error("Failed to add product to cart.");
   }
 };

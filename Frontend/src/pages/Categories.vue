@@ -266,6 +266,83 @@
       @cancel="handleStoreClosedCancel"
     />
   </div>
+
+<!-- Add Wheel Spinner Modal -->
+<div
+  v-if="showWheelModal"
+  class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+  @click="closeWheelModal"
+>
+  <div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 mx-2" @click.stop>
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl font-bold text-gray-800">Spin to Win!</h2>
+      <button
+        @click="closeWheelModal"
+        class="text-gray-600 hover:text-gray-800"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div class="wheel-container">
+      <VueWheelSpinner
+        ref="spinner"
+        :slices="wheelSlices"
+        :winner-index="defaultWinner"
+        :cursor-angle="270"
+        :cursor-distance="20"
+        cursor-position="edge"
+        @spin-start="onSpinStart"
+        @spin-end="onSpinEnd"
+      >
+         <template #cursor>
+          <div class="custom-cursor"></div>
+        </template>
+
+        <template #slice="{ slice, index, sliceAngle }">
+          <div class="slice-content" :style="{ transform: `rotate(${sliceAngle}deg)` }">
+            <span class="slice-text">{{ slice.text }}</span>
+          </div>
+        </template>
+        <template #default>
+          <button
+            class="spin-button"
+            :disabled="isSpinning"
+            @click="handleSpinButtonClick"
+          >
+            SPIN
+          </button>
+        </template>
+      </VueWheelSpinner>
+      
+      <!-- Spin Button Below Wheel -->
+      <button
+        class="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-20 rounded-full shadow-md transition-all duration-300 ease-in-out"
+        :disabled="isSpinning"
+        @click="handleSpinButtonClick"
+      >
+        {{ isSpinning ? 'Spinning...' : 'SPIN THE WHEEL' }}
+      </button>
+      
+      <div v-if="winnerResult" class="result mt-4 text-center">
+        <p class="text-lg font-semibold ">YOU WON: <strong class="text-yellow-600">{{ winnerResult.text }}</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
 
 <script setup>
@@ -280,6 +357,7 @@ import Launchment from "./Launchment.vue";
 import StoreClosedPopUp from "../components/StoreClosedPopUp.vue";
 import { useAuthStore } from "../stores/authStore";
 import Carousel from "../components/Carousel.vue";
+import VueWheelSpinner from "vue-wheel-spinner";
 
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);
@@ -295,6 +373,49 @@ const authStore = useAuthStore();
 const showStoreClosedPopup = ref(false);
 const pendingBusinessId = ref(null);
 const pendingBusinessName = ref(null);
+const showWheelModal = ref(false);
+
+// Wheel spinner state
+const spinner = ref(null);
+const winnerResult = ref(null);
+const isSpinning = ref(false);
+const defaultWinner = ref(0);
+const wheelSlices = ref([
+  { color: '#eab308', text: 'Rs 200' },
+  { color: '#151d2b', text: 'Free Shipping' },
+  { color: '#eab308', text: 'Rs 50' },
+  { color: '#151d2b', text: 'Rs 150' },
+  { color: '#eab308', text: 'Gourmet 500ml' },
+  { color: '#151d2b', text: 'Rs 100' },
+  { color: '#eab308', text: 'Rs 300' },
+  { color: '#151d2b', text: 'Dairy Milk' },
+]);
+
+// Wheel spinner methods
+const handleSpinButtonClick = () => {
+  defaultWinner.value = Math.floor(Math.random() * wheelSlices.value.length);
+  spinner.value.spinWheel(defaultWinner.value);
+};
+
+const onSpinStart = () => {
+  winnerResult.value = null;
+  isSpinning.value = true;
+};
+
+const onSpinEnd = (winnerIndex) => {
+  isSpinning.value = false;
+  winnerResult.value = wheelSlices.value[winnerIndex];
+  // Log the result
+  console.log('Winning Slice:', winnerResult.value.text);
+};
+
+const openWheelModal = () => {
+  showWheelModal.value = true;
+};
+
+const closeWheelModal = () => {
+  showWheelModal.value = false;
+};
 
 const handleBusinessClick = (category) => {
   if (!isOpen(category.opening_time, category.closing_time)) {
@@ -420,10 +541,85 @@ onMounted(async () => {
   } catch (error) {
     console.error("Error loading data:", error);
   }
+  // Check if user is new and show wheel modal
+  checkNewUser();
 });
+const checkNewUser = () => {
+  const isNewUser = localStorage.getItem('isNewUser') === 'true';
+  if (authStore.isAuthenticated && isNewUser) {
+    setTimeout(() => {
+      openWheelModal();
+      localStorage.setItem('isNewUser', 'false');
+    }, 2000);
+  }
+};
+
 </script>
 
 <style scoped>
+/* Add these styles to your existing style section */
+.wheel-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.custom-cursor {
+  width: 30px;
+  height: 30px;
+  background-color: #151d2c;
+  clip-path: polygon(50% 100%, 0 0, 100% 0); 
+  position: absolute;
+  top: -30px; 
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10; 
+}
+
+
+.spin-button {
+  background: #fff;
+  color: #151d2c;
+  border: none;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.slice-content {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+}
+
+.slice-text {   
+  transform: rotate(90deg);
+  white-space: nowrap;
+  padding: 0 20px;
+}
+
+.result {
+  color: #151d2c;
+  padding: 0.5rem 0.5rem;
+  background-color: rgba(234, 179, 8, 0.1);
+  border-radius: 8px;
+}
+
+
 /* Responsive Category Link Styles */
 .category-link {
   height: 100%; /* Change from fixed height to full height */

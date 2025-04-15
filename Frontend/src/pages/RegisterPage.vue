@@ -176,6 +176,9 @@ const register = async () => {
       password: password.value,
     });
 
+    // Set new user flag in localStorage
+    localStorage.setItem('isNewUser', 'true');
+
     const authStore = useAuthStore();
     const cartStore = useCartStore();
 

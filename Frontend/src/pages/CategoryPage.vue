@@ -513,7 +513,7 @@
   </div>
 
   <!-- Upload Prescription Dialog -->
-  <!-- <div
+  <div
     v-show="showPrescriptionModal"
     class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
     @click="closePrescriptionModal"
@@ -543,7 +543,7 @@
       </div>
 
       <form @submit.prevent="addToCart(selectedProduct)">
-    
+        <!-- Image Upload -->
         <div class="md:col-span-2">
           <label class="text-sm font-medium text-gray-600 block mb-2"
             >Prescription Image</label
@@ -624,10 +624,12 @@
         </div>
 
         <div class="flex justify-end">
+          <!-- Minimal Add to Cart Button with Icon -->
           <button
             type="submit"
             class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
           >
+            <!-- Cart Icon -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5"
@@ -648,7 +650,7 @@
         </div>
       </form>
     </div>
-  </div> -->
+  </div>
 </template>
 
 <script setup>
@@ -702,7 +704,7 @@ const modalSearchInput = ref(null);
 
 // State
 const showReviewsModal = ref(false);
-// const showPrescriptionModal = ref(false);
+const showPrescriptionModal = ref(false);
 
 // Computed
 const averageRating = computed(() => {
@@ -734,14 +736,14 @@ const fetchReviews = async () => {
 };
 
 //Open & close prescription modal
-// const openPrescriptionModal = (product) => {
-//   selectedProduct.value = product;
-//   showPrescriptionModal.value = true;
-// };
+const openPrescriptionModal = (product) => {
+  selectedProduct.value = product;
+  showPrescriptionModal.value = true;
+};
 
-// const closePrescriptionModal = () => {
-//   showPrescriptionModal.value = false;
-// };
+const closePrescriptionModal = () => {
+  showPrescriptionModal.value = false;
+};
 
 const calculateFinalPrice = (product) => {
   if (!product.discount) return product.price;
@@ -952,16 +954,16 @@ const handleFileChange = (event) => {
   // }
 
   // Convert to base64
-  // const reader = new FileReader();
-  // reader.onload = () => {
-  //   form.value.image = reader.result; 
-  //   imagePreview.value = reader.result; 
-  // };
-  // reader.onerror = () => {
-  //   imageError.value = "Failed to read image file.";
-  // };
+  const reader = new FileReader();
+  reader.onload = () => {
+    form.value.image = reader.result; // base64 string
+    imagePreview.value = reader.result; // for preview too
+  };
+  reader.onerror = () => {
+    imageError.value = "Failed to read image file.";
+  };
 
-  // reader.readAsDataURL(file); 
+  reader.readAsDataURL(file); // Triggers base64 encoding
 };
 
 
@@ -982,13 +984,13 @@ const addToCart = async (product) => {
       image_url: product.image_url,
       business_id: product.business_id,
       // Add prescription details if available
-      // prescription:
-      //   product.type.toLowerCase() === "prescription"
-      //     ? {
-      //         prescription_image: form.value.image,
-      //         prescription_description: description.value,
-      //       }
-      //     : null,
+      prescription:
+        product.type.toLowerCase() === "prescription"
+          ? {
+              prescription_image: form.value.image,
+              prescription_description: description.value,
+            }
+          : null,
     },
   };
 
@@ -1163,20 +1165,20 @@ onUnmounted(() => {
   background-size: 1000px 100%;
 }
 
-/* .loading-overlay {
+.loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: black; 
-  backdrop-filter: blur(5px);
-  opacity: 0.5; 
+  background-color: black; /* Light overlay */
+  backdrop-filter: blur(5px); /* Blur effect */
+  opacity: 0.5; /* Adjust opacity as needed */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; 
-} */
+  z-index: 9999; /* Ensure it appears above all other elements */
+}
 
 .loader {
   display: flex;
@@ -1189,6 +1191,7 @@ onUnmounted(() => {
   height: 10px;
   margin: 0 5px;
   background-color: rgb(234 179 8);
+  /* Change color as needed */
   border-radius: 50%;
   animation: bounce 0.6s infinite alternate;
 }
@@ -1211,19 +1214,19 @@ onUnmounted(() => {
   }
 }
 /* Responsive modal styles */
-/* @media (max-width: 768px) {
+@media (max-width: 768px) {
   .prescription-modal {
-    width: 90%;
-    max-height: 80vh; 
-    overflow-y: auto; 
+    width: 90%; /* Adjust width for smaller screens */
+    max-height: 80vh; /* Limit height */
+    overflow-y: auto; /* Enable scrolling inside the modal */
   }
 }
 
 @media (min-width: 769px) {
   .prescription-modal {
-    width: 50%;
-    max-height: 70vh;
-    overflow-y: auto; 
+    width: 50%; /* Adjust width for larger screens */
+    max-height: 70vh; /* Limit height */
+    overflow-y: auto; /* Enable scrolling inside the modal */
   }
-} */
+}
 </style>

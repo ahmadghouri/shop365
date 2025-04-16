@@ -19,9 +19,9 @@ class Perscription extends Model
 
     public function getFullImageUrlAttribute()
     {
-        return secure_url('/be' . $this->image_url);
+        // return secure_url('/be' . $this->image_url);
 
-        // return url('' . $this->image_url);
+        return url('' . $this->image_url);
     }
 
     public function product()

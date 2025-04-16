@@ -292,7 +292,7 @@
                 </div>
 
                 <!-- Enlarge image modal  -->
-                <!-- <div
+                <div
                   v-if="isImageModalOpen"
                   class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md overflow-auto p-4"
                 >
@@ -321,7 +321,7 @@
                       />
                     </div>
                   </div>
-                </div> -->
+                </div>
 
                 <!-- Product Details -->
                 <div class="space-y-2 flex-grow">
@@ -408,24 +408,25 @@ const preloadImage = (url) => {
 };
 
 // Enlarge product image
-// const isImageModalOpen = ref(false);
-// const selectedImageUrl = ref("");
+const isImageModalOpen = ref(false);
+const selectedImageUrl = ref("");
 
-// const openImageModal = async (imageUrl) => {
-//   try {
-//     await preloadImage(imageUrl);
-//     selectedImageUrl.value = imageUrl;
-//     isImageModalOpen.value = true;
-//   } catch (err) {
-//     console.error("Failed to preload image:", err);
-//     toast.error("Failed to load image");
-//   }
-// };
+const openImageModal = async (imageUrl) => {
+  try {
+    // Preload the image before opening the modal
+    await preloadImage(imageUrl);
+    selectedImageUrl.value = imageUrl;
+    isImageModalOpen.value = true;
+  } catch (err) {
+    console.error("Failed to preload image:", err);
+    toast.error("Failed to load image");
+  }
+};
 
-// const closeImageModal = () => {
-//   isImageModalOpen.value = false;
-//   selectedImageUrl.value = "";
-// };
+const closeImageModal = () => {
+  isImageModalOpen.value = false;
+  selectedImageUrl.value = "";
+};
 
 // Audio notification setup
 const I = new Audio("/notification.mp3");

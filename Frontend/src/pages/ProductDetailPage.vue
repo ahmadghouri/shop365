@@ -89,7 +89,7 @@
           class="mt-8 flex items-center"
         >
         <!-- Prescription Button -->
-        <!-- <button
+        <button
           @click.prevent="openPrescriptionModal(product)"
           class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-black text-white font-semibold text-sm rounded-full shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
         >
@@ -110,7 +110,7 @@
 
           <span class="hidden sm:inline">Upload Prescription</span>
           <span class="sm:hidden">Prescription</span>
-        </button> -->
+        </button>
         </div>
 
         <div
@@ -145,7 +145,7 @@
     </div>
 
     <!-- Prescription Modal -->
-    <!-- <div
+    <div
       v-if="showPrescriptionModal"
       class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
       @click="closePrescriptionModal"
@@ -178,6 +178,7 @@
         </div>
 
         <form @submit.prevent="addToCart">
+          <!-- Image Upload -->
           <div class="md:col-span-2">
             <label class="text-sm font-medium text-gray-600 block mb-2">
               Prescription Image
@@ -282,7 +283,7 @@
           </div>
         </form>
       </div>
-    </div> -->
+    </div>
   </div>
 
    <div v-if="isLoading" class="loader loading-overlay">
@@ -318,13 +319,13 @@ const form = ref({
   image: null, // This will now store base64 instead of a File object
 });
 
-// const openPrescriptionModal = (product) => {
-//   showPrescriptionModal.value = true;
-// };
+const openPrescriptionModal = (product) => {
+  showPrescriptionModal.value = true;
+};
 
-// const closePrescriptionModal = () => {
-//   showPrescriptionModal.value = false;
-// };
+const closePrescriptionModal = () => {
+  showPrescriptionModal.value = false;
+};
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];
@@ -347,16 +348,16 @@ const handleFileChange = (event) => {
   // }
 
   // Convert to base64
-  // const reader = new FileReader();
-  // reader.onload = () => {
-  //   form.value.image = reader.result; 
-  //   imagePreview.value = reader.result; 
-  // };
-  // reader.onerror = () => {
-  //   imageError.value = "Failed to read image file.";
-  // };
+  const reader = new FileReader();
+  reader.onload = () => {
+    form.value.image = reader.result; // base64 string
+    imagePreview.value = reader.result; // for preview too
+  };
+  reader.onerror = () => {
+    imageError.value = "Failed to read image file.";
+  };
 
-  // reader.readAsDataURL(file); 
+  reader.readAsDataURL(file); // Triggers base64 encoding
 };
 
 
@@ -380,20 +381,21 @@ const addToCart = async () => {
       final_price: product.value.final_price,
       image_url: product.value.image_url,
       business_id: product.value.business_id,
-      // prescription:
-      //   product.value.type.toLowerCase() === "prescription"
-      //     ? {
-      //         prescription_image: form.value.image,
-      //         prescription_description: description.value,
-      //       }
-      //     : null,
+      prescription:
+        product.value.type.toLowerCase() === "prescription"
+          ? {
+              prescription_image: form.value.image,
+              prescription_description: description.value,
+            }
+          : null,
     },
   };
 
   try {
-    // if (product.value.type.toLowerCase() === "prescription") {
-    //   closePrescriptionModal();
-    // }
+      // Close the prescription modal immediately
+    if (product.value.type.toLowerCase() === "prescription") {
+      closePrescriptionModal();
+    }
      isLoading.value = true;
     await cartStore.addToCart(cartItem);
   } catch (error) {
@@ -425,20 +427,20 @@ const goBack = () => {
 </script>
 
 <style scoped>
-/* .loading-overlay {
+.loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: black; 
-  backdrop-filter: blur(5px); 
-  opacity: 0.5; 
+  background-color: black; /* Light overlay */
+  backdrop-filter: blur(5px); /* Blur effect */
+  opacity: 0.5; /* Adjust opacity as needed */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; 
-} */
+  z-index: 9999; /* Ensure it appears above all other elements */
+}
 
 .loader {
   display: flex;
@@ -451,6 +453,7 @@ const goBack = () => {
   height: 10px;
   margin: 0 5px;
   background-color: rgb(234 179 8);
+  /* Change color as needed */
   border-radius: 50%;
   animation: bounce 0.6s infinite alternate;
 }
@@ -515,19 +518,19 @@ const goBack = () => {
 }
 
 /* Responsive modal styles */
-/* @media (max-width: 768px) {
+@media (max-width: 768px) {
   .prescription-modal {
-    width: 90%; 
-    max-height: 80vh; 
-    overflow-y: auto; 
+    width: 90%; /* Adjust width for smaller screens */
+    max-height: 80vh; /* Limit height */
+    overflow-y: auto; /* Enable scrolling inside the modal */
   }
 }
 
 @media (min-width: 769px) {
   .prescription-modal {
-    width: 50%; 
-    max-height: 70vh;
-    overflow-y: auto;
+    width: 50%; /* Adjust width for larger screens */
+    max-height: 70vh; /* Limit height */
+    overflow-y: auto; /* Enable scrolling inside the modal */
   }
-} */
+}
 </style>

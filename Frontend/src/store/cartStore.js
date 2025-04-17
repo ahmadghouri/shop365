@@ -107,22 +107,22 @@ export const useCartStore = defineStore("cart", {
       }
     
       //Create a prescription if the product requires it
-      if(cartItem.product.prescription){
-        try {
-          const response = await axios.post(
-            `${API_BASE_URL}/api/prescription`,
-            cartItem,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-        } catch (error) {
-          console.error('Upload error details:', error.response?.data);
-          throw new Error(error.response?.data?.message || "Upload failed");
-        }
-      }
+      // if(cartItem.product.prescription){
+      //   try {
+      //     const response = await axios.post(
+      //       `${API_BASE_URL}/api/prescription`,
+      //       cartItem,
+      //       {
+      //         headers: {
+      //           "Content-Type": "multipart/form-data",
+      //         },
+      //       }
+      //     );
+      //   } catch (error) {
+      //     console.error('Upload error details:', error.response?.data);
+      //     throw new Error(error.response?.data?.message || "Upload failed");
+      //   }
+      // }
 
       try {
         await axios.post(`${API_BASE_URL}/api/cart`, cartItem);

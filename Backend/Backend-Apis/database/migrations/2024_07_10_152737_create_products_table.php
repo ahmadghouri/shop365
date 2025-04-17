@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('type');
             $table->string('price');
             $table->string('image')->nullable();
-            $table->foreignId('business_id')->constrained('businesses')->cascadeOnDelete()->cascadeOnUpdate();  
+            $table->foreignId('business_id')->constrained('businesses')->restrictOnDelete()->cascadeOnUpdate(); 
             $table->softDeletes();
             $table->timestamps();
         });

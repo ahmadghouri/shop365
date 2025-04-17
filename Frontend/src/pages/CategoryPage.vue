@@ -347,8 +347,8 @@
         </button>
 
         <!-- Prescription Button -->
-        <button
-          v-else
+        <!-- <button
+          v-if="product.type.toLowerCase() === 'prescription' && product.type.toLowerCase() !== 'services'"
           @click.prevent="openPrescriptionModal(product)"
           class="group w-full mt-2 lg:mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-black text-white font-semibold text-sm rounded-full shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
         >
@@ -369,7 +369,7 @@
 
           <span class="hidden sm:inline">Upload Prescription</span>
           <span class="sm:hidden">Prescription</span>
-        </button>
+        </button> -->
       </router-link>
     </div>
 

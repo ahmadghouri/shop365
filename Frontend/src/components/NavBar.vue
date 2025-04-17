@@ -1,11 +1,11 @@
 <template>
   <div class="relative">
     <!-- News Ticker -->
-    <div class="bg-gradient-to-r from-red-600 to-red-500 shadow-md">
+    <!-- <div class="bg-gradient-to-r from-red-600 to-red-500 shadow-md">
       <div class="overflow-hidden whitespace-nowrap py-2">
-        <div class="animate-ticker flex items-center space-x-8">
+        <div class="animate-ticker flex items-center space-x-8"> -->
           <!-- Duplicated content for seamless looping -->
-          <div v-for="i in 3" :key="i" class="flex items-center text-white text-sm font-medium shrink-0">
+          <!-- <div v-for="i in 3" :key="i" class="flex items-center text-white text-sm font-medium shrink-0">
             <font-awesome-icon :icon="['fas', 'bullhorn']" class="mx-4" />
             <span class="tracking-wide">
               🎉 Free Delivery on Orders Above 1000! For SHOP365 Mart Shop Now and Save on Delivery Charges!
@@ -13,7 +13,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Existing Navigation -->
     <nav class="mobile-spacing sticky top-0 flex justify-between bg-white items-center lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200">

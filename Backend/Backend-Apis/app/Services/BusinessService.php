@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Business;
+use App\Models\cart;
 use App\Models\Household;
 use App\Models\Product;
 use App\Models\Town;
@@ -47,7 +48,16 @@ class BusinessService
             $business = Business::findOrFail($id);
 
             $products = Product::withTrashed()->where('business_id', $id)->get();
+
+            // Get product IDs first
+            $productIds = Product::withTrashed()
+                ->where('business_id', $id)
+                ->pluck('id')
+                ->toArray();
+
             if ($products->isNotEmpty()) {
+                // Delete cart items for these products
+                cart::whereIn('product_id', $productIds)->delete();
                 $products->each->forceDelete(); 
             }
 

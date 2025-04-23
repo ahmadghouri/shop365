@@ -130,22 +130,31 @@ class OrderController extends Controller
     }
 
     // return the only users who places order on the grocery
-public function getGroceryOrders($businessId)
-{
-    return User::whereHas('orders.items.product', function ($query) use ($businessId) {
-        $query->where('business_id', $businessId);
-    })
-    ->with(['household:id,address,town_id', 'household.town:id,town_name']) // Include related household and town
-    ->select(['id', 'name', 'phone_no', 'points', 'household_id', 'town_id']) // Select user-specific fields
-    ->addSelect([
-        'order_count' => Order::selectRaw('count(*)')
-            ->whereHas('items.product', function ($query) use ($businessId) {
-                $query->where('business_id', $businessId);
-            })
-            ->whereColumn('orders.user_id', 'users.id')
-    ])
-    ->get();
-}
+    public function getGroceryOrders($businessId)
+    {
+        // Step 1: Get user IDs who placed grocery orders
+        $userIds = DB::table('users')
+            ->join('orders', 'users.id', '=', 'orders.user_id')
+            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->where('products.business_id', $businessId)
+            ->select('users.id')
+            ->distinct()
+            ->pluck('id');
+
+        // Step 2: Load users with their household and town data
+        $users = User::whereIn('id', $userIds)
+            ->with([
+                'household:id,address,town_id',
+                'household.town:id,town_name'
+            ])
+            ->select(['id', 'name', 'phone_no', 'points', 'household_id'])
+            ->get();
+
+        return $users;
+    }
+
+
     public function updateStatus(Request $request, $id)
     {
         $request->validate([

@@ -13,6 +13,8 @@ use App\Models\Voucher;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class OrderManageService
@@ -286,17 +288,31 @@ class OrderManageService
     public function viewRestaurantOrders($businessId, $page)
     {
         // Get the parent business and its immediate children
-        $businessIds = Business::where('id', $businessId)
-            ->orWhere('parent_id', $businessId) // Include child businesses
-            ->pluck('id'); // Get the IDs as a collection
+        $businessIds = Cache::remember("biz_ids_$businessId", 60, function () use ($businessId) {
+            return Business::where('id', $businessId)
+                ->orWhere('parent_id', $businessId)
+                ->pluck('id');
+        });
 
-        // Fetch orders for the parent and its children
-        return Order::whereHas('items.product', function ($query) use ($businessIds) {
-                $query->whereIn('business_id', $businessIds);
-            })
-            ->with('items.product', 'user', 'user.household', 'user.household.town', 'perscription')
-            ->orderBy('created_at', 'desc') // Ensure consistent order
-            ->paginate(15, ['*'], 'page', $page); // Paginate with 15 orders per page
+        // First, get order IDs that match the business criteria through join
+        $orderIds = DB::table('orders')
+            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->whereIn('products.business_id', $businessIds)
+            ->distinct()
+            ->pluck('orders.id');
+
+        // Then retrieve and paginate the actual orders using Eloquent
+        return Order::whereIn('id', $orderIds)
+            ->with([
+                'items.product',
+                'user',
+                'user.household',
+                'user.household.town',
+                'perscription'
+            ])
+            ->orderByDesc('created_at')
+            ->paginate(15, ['*'], 'page', $page);
     }
 
 
@@ -308,7 +324,7 @@ class OrderManageService
             $query->where('business_id', $businessId);
         })
             ->whereDate('created_at', Carbon::today())
-            ->with('items.product', 'user', 'user.household', 'user.household.town')
+            ->with(['items.product', 'user', 'user.household', 'user.household.town'])
             ->get();
     }
 

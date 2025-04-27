@@ -13,6 +13,7 @@
           Hi {{ name || "Loading..." }}
         </span>
         <h1 class="text-yellow-500 text-3xl font-bold">Welcome To SHOP365</h1>
+        <button @click="showFormModal" class="my-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out">Apply Now</button>
       </div>
     </section>
 
@@ -43,6 +44,7 @@
             >
               Discover More
             </button>
+             <button @click="showFormModal" class="mt-6  ml-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out">Apply Now</button>
           </div>
         </div>
         <div class="w-full">
@@ -266,6 +268,282 @@
       @cancel="handleStoreClosedCancel"
     />
   </div>
+
+  <!-- Internship Form Modal -->
+  <div
+    v-show="showformmodal"
+    class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+    @click=""
+  >
+    <div class="bg-white internship-modal w-full max-w-md rounded-lg shadow-xl p-6" @click.stop>
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-gray-800">📢 Internship Opportunity</h2>
+        <button
+          @click="closeformmodal"
+          class="text-gray-600 hover:text-gray-800"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- View Details Button -->
+      <div class="mb-4">
+        <button
+          @click="showinfoModal"
+          class="text-yellow-500 hover:text-yellow-700 font-semibold"
+        >
+          View details
+        </button>
+      </div>
+
+      <!-- Internship Form -->
+      <form @submit.prevent="submitInternshipApplication">
+        <!-- Full Name -->
+        <div class="mb-4">
+          <label class="block text-gray-600 font-semibold mb-2">Full Name</label>
+          <input
+            v-model="formData.full_name"
+            type="text"
+            class="w-full border rounded p-2"
+            placeholder="Enter your full name"
+            required
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="mb-4">
+          <label class="block text-gray-600 font-semibold mb-2">Email Address</label>
+          <input
+            v-model="formData.email"
+            type="email"
+            class="w-full border rounded p-2"
+            placeholder="Enter your email"
+            required
+          />
+        </div>
+        
+        <!-- Phone Number -->
+        <div class="mb-4">
+          <label class="block text-gray-600 font-semibold mb-2">Phone Number</label>
+          <input
+            v-model="formData.phone"
+            type="tel"
+            class="w-full border rounded p-2"
+            placeholder="Enter your phone number"
+            required
+          />
+        </div>
+
+        <!-- Portfolio Website / GitHub (optional, URL) -->
+        <div class="mb-4">
+          <label class="block text-gray-600 font-semibold mb-2">Portfolio Website / GitHub</label>
+          <input
+            v-model="formData.portfolio_url"
+            type="url"
+            class="w-full border rounded p-2"
+            placeholder="Enter your portfolio or GitHub URL (optional)"
+          />
+        </div>
+
+        <!-- Academic Information(optional) -->
+         <div class="mb-4">
+          <label class="block text-gray-600 font-semibold mb-2">Academic Information</label>
+          <input
+            v-model="formData.academic_info"
+            type="text"
+            class="w-full border rounded p-2"
+            placeholder="Enter your Academic Information (optional)"
+          />
+        </div>
+
+        <!-- Important Note -->
+        <div class="mb-4">
+          <div
+            class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 rounded-md"
+          >
+            <p class="flex items-center font-medium">
+              <svg
+                class="w-5 h-5 mr-2 text-yellow-500"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.257 3.099c.766-1.36 2.72-1.36 3.486 0l6.588 11.7c.75 1.33-.213 3-1.743 3H3.415c-1.53 0-2.493-1.67-1.743-3l6.585-11.7zM11 14a1 1 0 11-2 0 1 1 0 012 0zm-1-2a1 1 0 01-1-1V7a1 1 0 112 0v4a1 1 0 01-1 1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              We will contact shortlisted candidates via email/phone.
+            </p>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            class="group w-full mt-2 flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500 text-white font-semibold text-sm rounded-full shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            <span class="hidden sm:inline">Submit Application</span>
+            <span class="sm:hidden">Apply</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Internship Details Modal -->
+  <div
+    v-show="showInternshipDetails"
+    class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+  >
+    <div
+      class="bg-white internship-modal w-full max-w-lg rounded-lg shadow-xl p-6"
+      @click.stop
+    >
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-gray-800">
+          📋 Internship Opportunity (Details)
+        </h2>
+        <button
+          @click="closeinfomodal"
+          class="text-gray-600 hover:text-gray-800"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Language Toggle -->
+      <div class="flex justify-center mb-4">
+        <button
+          @click="currentLanguage = 'en'"
+          :class="[
+            'px-4 py-2 font-semibold rounded-full',
+            currentLanguage === 'en'
+              ? 'bg-yellow-500 text-white'
+              : 'bg-gray-200 text-gray-800 hover:bg-gray-300',
+          ]"
+        >
+          English
+        </button>
+        <button
+          @click="currentLanguage = 'ur'"
+          :class="[
+            'px-4 py-2 font-semibold rounded-full ml-2',
+            currentLanguage === 'ur'
+              ? 'bg-yellow-500 text-white'
+              : 'bg-gray-200 text-gray-800 hover:bg-gray-300',
+          ]"
+        >
+          اردو
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div v-if="currentLanguage === 'en'" class="text-gray-700 space-y-4">
+        <p>
+          We have <strong>3 to 5 internship slots</strong> available for
+          developers. The complete process and criteria are as follows:
+        </p>
+
+        <h3 class="text-lg font-semibold text-gray-800">Internship Process (Step-by-Step)</h3>
+        <ol class="list-decimal list-inside space-y-2">
+          <li><strong>Step 1: Application</strong> - Submit your application through the provided form or email.</li>
+          <li><strong>Step 2: Initial Review</strong> - We will review your resume/CV and qualification details.</li>
+          <li><strong>Step 3: Contact</strong> - Shortlisted candidates will be contacted via phone call or email.</li>
+          <li><strong>Step 4: Interview</strong> - You will be invited for an online or on-site interview.</li>
+          <li><strong>Step 5: Final Selection</strong> - Selected candidates will receive an official internship offer.</li>
+          <li><strong>Step 6: Training Program</strong> - Selected interns will undergo training to enhance their skills.</li>
+        </ol>
+
+        <h3 class="text-lg font-semibold text-gray-800">Internship Criteria</h3>
+        <ul class="list-disc list-inside space-y-2">
+          <li>Fresh graduates or final year students are encouraged to apply.</li>
+          <li>Good communication skills are a plus.</li>
+          <li>Eagerness to learn and grow professionally.</li>
+          <li>Available for the internship period (duration will be informed during the process).</li>
+        </ul>
+      </div>
+
+      <div dir="rtl"v-if="currentLanguage === 'ur'" class="text-gray-700 space-y-4 text-right">
+        <p>
+          ہمارے پاس <strong>3 سے 5</strong> ڈویلپرز کے لیے انٹرن شپ کی جگہیں دستیاب ہیں۔ مکمل عمل اور معیار درج ذیل ہے:
+        </p>
+
+    <h3 class="text-lg font-semibold text-gray-800">انٹرن شپ کا عمل</h3>
+    <ul class="list-disc list-inside space-y-2">
+      <li><strong>درخواست دینا</strong> - فارم یا ای میل کے ذریعے اپنی درخواست جمع کروائیں۔</li>
+      <li><strong>ابتدائی جانچ پڑتال</strong> - آپ کے ریزیومے/سی وی اور تعلیمی قابلیت کا جائزہ لیا جائے گا۔</li>
+      <li><strong>رابطہ کرنا</strong> - شارٹ لسٹ ہونے والے امیدواروں سے فون کال یا ای میل کے ذریعے رابطہ کیا جائے گا۔</li>
+      <li><strong>انٹرویو</strong> - آن لائن یا آفس میں انٹرویو کے لیے بلایا جائے گا۔</li>
+      <li><strong>حتمی انتخاب</strong> - منتخب امیدواروں کو انٹرن شپ آفر دی جائے گی۔</li>
+      <li><strong>تربیتی پروگرام</strong> - منتخب انٹرنز کو مہارت بڑھانے کے لیے تربیت دی جائے گی۔</li>
+    </ul>
+
+    <h3 class="text-lg font-semibold text-gray-800 mt-6">انٹرن شپ کا معیار</h3>
+    <ul class="list-disc list-inside space-y-2">
+      <li>تازہ گریجویٹس یا آخری سال کے طلبہ درخواست دے سکتے ہیں۔</li>
+      <li>اچھی کمیونیکیشن اسکلز ہونا اضافی خوبی ہے۔</li>
+      <li>سیکھنے اور پروفیشنل گروتھ کا جذبہ ہونا چاہیے۔</li>
+      <li>انٹرن شپ کے دورانیے کے لیے دستیاب ہونا ضروری ہے (مدت انٹرویو کے دوران بتائی جائے گی)۔</li>
+    </ul>
+      </div>
+
+      <!-- Close Button -->
+      <div class="flex justify-end mt-6">
+        <button
+          @click="closeinfomodal"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script setup>
@@ -280,6 +558,7 @@ import Launchment from "./Launchment.vue";
 import StoreClosedPopUp from "../components/StoreClosedPopUp.vue";
 import { useAuthStore } from "../stores/authStore";
 import Carousel from "../components/Carousel.vue";
+import { toast } from "vue3-toastify";
 
 const businessStore = useBusinessStore();
 const filters = ref(["All", "opened", "closed"]);
@@ -295,6 +574,66 @@ const authStore = useAuthStore();
 const showStoreClosedPopup = ref(false);
 const pendingBusinessId = ref(null);
 const pendingBusinessName = ref(null);
+const showformmodal = ref(false);
+const showInternshipDetails = ref(false);
+const currentLanguage = ref('en'); 
+
+const showFormModal = () => {
+    showformmodal.value = true;
+};
+
+const closeformmodal = () => {
+    showformmodal.value = false;
+};
+
+const showinfoModal = () => {
+    showInternshipDetails.value = true;
+};
+
+const closeinfomodal = () => {
+    showInternshipDetails.value = false;
+};
+
+const formData = ref({
+  full_name: '',
+  email: '',
+  phone: '',
+  portfolio_url: '',
+  academic_info: '',
+});
+
+const submitInternshipApplication = async () => {
+  //check if user is authenticated
+  if (!authStore.isAuthenticated) {
+    toast.error('Please log in to apply for the internship.');
+    setTimeout(() => {
+      router.push('/userlogin');
+    }, 2000);
+    return;
+  }
+    try {
+        const response = await axios.post(`${API_BASE_URL}/api/internship/apply`, {
+            full_name: formData.value.full_name,
+            email: formData.value.email,
+            phone: formData.value.phone,
+            portfolio_url: formData.value.portfolio_url,
+            academic_info: formData.value.academic_info,
+        });
+        toast.success(response.data.message);
+        // Reset form data after submission
+        formData.value = {
+          full_name: '',
+          email: '',
+          phone: '',
+          portfolio_url: '',
+          academic_info: '',
+        };
+        closeformmodal();
+    } catch (error) {
+        console.error(error);
+        toast.error('Failed to submit application. Please try again.');
+    }
+};
 
 const handleBusinessClick = (category) => {
   if (!isOpen(category.opening_time, category.closing_time)) {
@@ -424,6 +763,23 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Responsive modal styles */
+@media (max-width: 768px) {
+  .internship-modal {
+    width: 90%;
+    max-height: 80vh; 
+    overflow-y: auto; 
+  }
+}
+
+@media (min-width: 769px) {
+  .internship-modal {
+    width: 50%;
+    max-height: 70vh;
+    overflow-y: auto; 
+  }
+}
+
 /* Responsive Category Link Styles */
 .category-link {
   height: 100%; /* Change from fixed height to full height */

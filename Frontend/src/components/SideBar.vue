@@ -76,6 +76,14 @@
         </li>
         <li class="px-4 py-2">
           <router-link
+          to="/admin/internship-applications"
+          class="block text-gray-700 hover:text-gray-900"
+        >
+          Intern Applications
+        </router-link>
+      </li>
+        <li class="px-4 py-2">
+          <router-link
             to="/admin/carousel"
             class="block text-gray-700 hover:text-gray-900"
           >

@@ -41,7 +41,7 @@ class InternshipApplicationController extends Controller
     public function index(Request $request)
     {
         try {
-            $applications = InternshipApplication::all()->paginate(20);
+            $applications = InternshipApplication::get();
 
             return response()->json($applications);
         } catch (\Exception $e) {

@@ -9,6 +9,7 @@ use App\Http\Controllers\ComplainController;
 use App\Http\Controllers\GroceryProductController;
 use App\Http\Controllers\HeaderImageController;
 use App\Http\Controllers\HouseholdController;
+use App\Http\Controllers\InternshipApplicationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PerscriptionController;
 use App\Http\Controllers\ProductController;
@@ -95,6 +96,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('update/{id}', [CartController::class, 'updateQuantity']); // Add this line
     });
 
+    //Internship Application
+    Route::post('internship/apply', [InternshipApplicationController::class, 'store']);
+
     // Prescription
     // routes/api.php
     Route::prefix('prescription')->group(function () {
@@ -135,6 +139,9 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])
 
         // Admins management
         Route::post('/createAdmins', [AdminController::class, 'createTownAdmin']);
+
+        // Get all intern applications  
+        Route::get('/internship-applications', [InternshipApplicationController::class, 'index']);
 
         // Users management
 

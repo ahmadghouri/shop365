@@ -47,6 +47,7 @@ import Voucher from "../pages/Admin/Voucher.vue";
 import ViewVoucher from "../pages/Admin/ViewVoucher.vue";
 import SubBusiness from "../pages/RestaurantAdmin/SubBusiness.vue";
 import SubProducts from "../pages/RestaurantAdmin/SubProducts.vue";
+import InternshipApplications from "../pages/Admin/InternshipApplications.vue";
 
 const routes = [
   {
@@ -231,6 +232,14 @@ const routes = [
         path: "products/:id",
         name: "Products",
         component: Product,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "internship-applications",
+        name: "Internship Applications",
+        component: InternshipApplications,
         meta: {
           requiresAdminAuth: true,
         },

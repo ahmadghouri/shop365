@@ -140,12 +140,22 @@ class OrderManageService
             }
         }
 
+            $allFromSpecificBusiness = $cartItems->every(function ($item) {
+                return $item->product->business_id == 1;
+            });
+
             // Apply user points discount if available
             if ($userPoints && $user->points >= 250) {
-                $pointsToUse = min($user->points, $totalPrice);
-                $totalPrice -= $pointsToUse;
-                $user->points -= $pointsToUse;
-                $user->save();
+
+                if ($allFromSpecificBusiness) {
+                    $pointsToUse = min($user->points, $totalPrice);
+                    $totalPrice -= $pointsToUse;
+                    $user->points -= $pointsToUse;
+                    $user->save();
+                }else {
+                    return response()->json(['message' => 'Loyalty Points are only applicable to Shop365 Mart'], 400);
+                } 
+
             }
 
             // Apply voucher discount if available
@@ -232,7 +242,7 @@ class OrderManageService
             if ($hasPrescriptionInCart) {
                 // If the cart contains prescription items, show a warning
                 $response = [
-                    'message' => 'Prescription Order placed. But the other business  order(s) could not be placed. Reason: Minimum order amount is 500 rupees for each business.',
+                    'message' => 'Prescription Order placed. But the other business order(s) could not be placed. Reason: Minimum order amount is 500 rupees for each business.',
                     'failed_businesses' => $failedBusinesses,
                 ];
             } else {

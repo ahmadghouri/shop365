@@ -141,7 +141,7 @@ class OrderManageService
         }
 
             $allFromSpecificBusiness = $cartItems->every(function ($item) {
-                return $item->product->business_id == 1;
+                return $item->product->business_id == 6;
             });
 
             // Apply user points discount if available

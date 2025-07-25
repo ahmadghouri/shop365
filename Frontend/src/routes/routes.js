@@ -48,6 +48,7 @@ import ViewVoucher from "../pages/Admin/ViewVoucher.vue";
 import SubBusiness from "../pages/RestaurantAdmin/SubBusiness.vue";
 import SubProducts from "../pages/RestaurantAdmin/SubProducts.vue";
 import InternshipApplications from "../pages/Admin/InternshipApplications.vue";
+import EasyBuyPage from "../pages/EasyBuyPage.vue";
 
 const routes = [
   {
@@ -94,6 +95,11 @@ const routes = [
     path: "/compregister",
     name: "compRegister",
     component: RegisterComplete,
+  },
+  {
+    path: "/easybuy",
+    name: "EasyBuy",
+    component: EasyBuyPage,
   },
 
   // User Routes

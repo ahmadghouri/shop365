@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('easy_buys', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->foreignId('business_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->string('price');
-            $table->enum('quantity', ['250', '500', '1000'])->default('250');
+            $table->string('title');
+            $table->foreignId('business_id')->constrained('businesses')->restrictOnDelete()->cascadeOnUpdate();
+            $table->string('image')->nullable();
+            $table->text('payload');
             $table->timestamps();
         });
     }

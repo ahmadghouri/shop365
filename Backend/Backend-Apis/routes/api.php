@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\ForgotPassword;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ComplainController;
+use App\Http\Controllers\EasyBuyController;
 use App\Http\Controllers\GroceryProductController;
 use App\Http\Controllers\HeaderImageController;
 use App\Http\Controllers\HouseholdController;
@@ -23,7 +24,9 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
-
+//Easy Buy management
+Route::post('/easy-buy', [EasyBuyController::class, 'store']);
+Route::get('/easy-buy', [EasyBuyController::class, 'index']);
 
 Route::apiResource('header-images', HeaderImageController::class);
 Route::post('header-images/reorder', [HeaderImageController::class, 'reorder']);

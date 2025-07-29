@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\EasyBuy;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class EasyBuyController extends Controller
 {
@@ -27,45 +29,60 @@ class EasyBuyController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-public function store(Request $request)
-{
-    try {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'image' => 'nullable|string|max:255',
-            'payload' => 'required',
-        ]);
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'image' => 'nullable|string|max:255',
+                'payload' => 'required',
+            ]);
 
-        // For SQLite, we need to manually ensure proper JSON encoding
-        $payload = $validated['payload'];
-        if (!is_string($payload)) {
-            $payload = json_encode($payload, JSON_UNESCAPED_UNICODE);
+            // For SQLite, we need to manually ensure proper JSON encoding
+            $payload = $validated['payload'];
+            if (!is_string($payload)) {
+                $payload = json_encode($payload, JSON_UNESCAPED_UNICODE);
+            }
+
+            $easyBuy = EasyBuy::firstOrCreate([
+                'title' => $validated['title'],
+                'business_id' => 4,
+                'image' => $validated['image'],
+                'payload' => $payload
+            ]);
+
+            foreach ($easyBuy->payload as $brand => $sizes) {
+                foreach ($sizes as $size => $price) {
+                    $product = Product::create([
+                        'title' => "{$brand} {$size}",
+                        'type' => 'easy_buy',
+                        'business_id' => 4,
+                        'description' => "Easy Buy: {$easyBuy->title} - {$brand} - {$size}",
+                        'price' => $price,
+                        'image' => $easyBuy->image,
+                    ]);
+                    Log::info('Product Created: ', ['product' => $product]);
+                }
+            }
+
+
+            return response()->json([   
+                'message' => 'Product created successfully',
+                'data' => $easyBuy
+            ], 201);
+
+        } catch (\JsonException $e) {
+            return response()->json([
+                'message' => 'Invalid JSON payload',
+                'error' => $e->getMessage()
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $easyBuy = EasyBuy::create([
-            'title' => $validated['title'],
-            'business_id' => 2,
-            'image' => $validated['image'],
-            'payload' => $payload
-        ]);
-
-        return response()->json([
-            'message' => 'Product created successfully',
-            'data' => $easyBuy
-        ], 201);
-
-    } catch (\JsonException $e) {
-        return response()->json([
-            'message' => 'Invalid JSON payload',
-            'error' => $e->getMessage()
-        ], 400);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Server Error',
-            'error' => $e->getMessage(),
-        ], 500);
     }
-}
     /**
      * Display the specified resource.
      */
@@ -96,5 +113,41 @@ public function store(Request $request)
     public function destroy(EasyBuy $easyBuy)
     {
         //
+    }
+
+    // Resolve product method
+    public function resolveProduct(Request $request)
+    {
+        $items = $request->validate([
+            '*.easyBuyId' => 'required|exists:easy_buys,id',
+            '*.brand' => 'required|string',
+            '*.size' => 'required|string',
+            '*.quantity' => 'required|integer|min:1',
+        ]);
+
+        foreach ($items as $item) {
+            $easyBuy = EasyBuy::findOrFail($item['easyBuyId']);
+            $payload = $easyBuy->payload;
+
+            if (!isset($payload[$item['brand']][$item['size']])) {
+                return response()->json(['error' => 'Invalid selection'], 422);
+            }
+
+            $price = $payload[$item['brand']][$item['size']];
+            Log::info("Resolving EasyBuy item: {$item['brand']} - {$item['size']} with price {$price}");
+            $title = "{$easyBuy->title} - {$item['brand']} - {$item['size']}";
+
+            // Reuse or create shadow product
+            $product = Product::firstOrCreate([
+                    'title' => $title,
+                    'type' => 'easy_buy',
+                    'business_id' => $easyBuy->business_id,
+                    'description' => "Easy Buy: {$title}",
+                    'price' => $price,
+                    'image' => $easyBuy->image,
+                ]);
+        }
+
+        return response()->json(['message' => 'EasyBuy items added to cart', 'product_id' => $product->id], 200);
     }
 }

@@ -96,11 +96,6 @@ const routes = [
     name: "compRegister",
     component: RegisterComplete,
   },
-  {
-    path: "/easybuy",
-    name: "EasyBuy",
-    component: EasyBuyPage,
-  },
 
   // User Routes
   {
@@ -126,6 +121,11 @@ const routes = [
         // meta: {
         //   requiresAuth: true,
         // },
+      },
+      {
+        path: "easybuy",
+        name: "EasyBuy",
+        component: EasyBuyPage,
       },
       {
         path: "category/:id",

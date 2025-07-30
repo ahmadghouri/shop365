@@ -301,6 +301,7 @@ class ProductController extends Controller
         $perPage = $request->input('per_page', 10);
 
         $products = Product::where('business_id', $businessId)
+        ->where('type', '!=', 'easy_buy')
             ->when($search, function ($query, $search) {
                 return $query->where('title', 'like', '%' . $search . '%');
             })

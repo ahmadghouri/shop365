@@ -49,6 +49,8 @@ import SubBusiness from "../pages/RestaurantAdmin/SubBusiness.vue";
 import SubProducts from "../pages/RestaurantAdmin/SubProducts.vue";
 import InternshipApplications from "../pages/Admin/InternshipApplications.vue";
 import EasyBuyPage from "../pages/EasyBuyPage.vue";
+import EasyBuyAdminDashboard from "../pages/RestaurantAdmin/EasyBuyAdminDashboard.vue";
+import StoreEasyBuyProduct from "../components/Vendor/StoreEasyBuyProduct.vue";
 
 const routes = [
   {
@@ -347,6 +349,14 @@ const routes = [
         },
       },
       {
+        path: "easybuyAdminDashboard",
+        name: "EasyBuyAdminDashboard",
+        component: EasyBuyAdminDashboard,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
         path: "business-reviews",
         name: "Business-Reviews",
         component: BusinessReviews,
@@ -374,6 +384,14 @@ const routes = [
         path: "store-product",
         name: "Store-Product",
         component: StoreProduct,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "store-easybuy-product",
+        name: "Store-EasyBuy-Product",
+        component: StoreEasyBuyProduct,
         meta: {
           requiresAdminAuth: true,
         },

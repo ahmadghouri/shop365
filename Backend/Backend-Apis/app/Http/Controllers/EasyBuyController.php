@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\EasyBuy;
 use App\Models\Product;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class EasyBuyController extends Controller
 {
+    protected $imageService;
+
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -50,6 +58,12 @@ class EasyBuyController extends Controller
                 'image' => $validated['image'],
                 'payload' => $payload
             ]);
+
+            if ($request->has('image')) {
+                $imagePath = $this->imageService->uploadImage($request, 'image');
+                $easyBuy->image = $imagePath;
+                $easyBuy->save();
+            }
 
             foreach ($easyBuy->payload as $brand => $sizes) {
                 foreach ($sizes as $size => $price) {

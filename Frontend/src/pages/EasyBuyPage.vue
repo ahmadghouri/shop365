@@ -408,6 +408,18 @@ const getTotalCartQuantity = () => {
         .reduce((total, itemId) => total + getTotalItemQuantity(itemId), 0)
 }
 
+const resetSelections = () => {
+    Object.keys(itemSelections).forEach(itemId => {
+        itemSelections[itemId] = {
+            0: { brand: null, weight: null, quantity: 0 }
+        };
+    });
+    Object.keys(additionalSections).forEach(itemId => {
+        additionalSections[itemId] = 0;
+    });
+};
+
+
 // Add all selected items to cart
 const addAllToCart = async () => {
     const cartItems = []
@@ -468,11 +480,13 @@ const addAllToCart = async () => {
             };
 
             await cartStore.addToCart(cartItem);
+
+            resetSelections();
+            toast.success("Items added to Cart")
         };
         
     } catch (error) {
         console.error("Failed to add EasyBuy items:", error);
-        toast.error("Failed to add EasyBuy items to cart.");
     } finally {
         isLoading.value = false;
     }

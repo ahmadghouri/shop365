@@ -139,6 +139,26 @@ const removeVariant = (brandIndex, varIndex) => {
     brands.value[brandIndex].variants.splice(varIndex, 1);
 };
 
+const resetForm = () => {
+    title.value = '';
+    image.value = null;
+    imageError.value = '';
+    brands.value = [
+        {
+            name: '',
+            variants: [
+                { weight: '', price: null }
+            ]
+        }
+    ];
+
+    // Reset file input manually
+    const fileInput = document.getElementById("image");
+    if (fileInput) {
+        fileInput.value = '';
+    }
+};
+
 const submitProduct = async () => {
 
     if (!image.value) {
@@ -185,6 +205,7 @@ const submitProduct = async () => {
         );
 
         toast.success("Product added successfully");
+        resetForm();
         // router.push("/admin/restaurantAdminDashboard");
         
     } catch (error) {

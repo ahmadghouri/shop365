@@ -42,7 +42,7 @@ class EasyBuyController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'image' => 'nullable|string|max:255',
+                'image' => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
                 'payload' => 'required',
             ]);
 
@@ -101,7 +101,7 @@ class EasyBuyController extends Controller
      */
     public function show(EasyBuy $easyBuy)
     {
-        //
+        return $this->successResponse($easyBuy, 'EasyBuy Product details');
     }
 
     /**
@@ -117,7 +117,18 @@ class EasyBuyController extends Controller
      */
     public function update(Request $request, EasyBuy $easyBuy)
     {
-        //
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'image' => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
+                'payload' => 'required',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -155,7 +166,7 @@ class EasyBuyController extends Controller
 
         if ($allProducts->isEmpty()) {
             return response()->json([
-                'message' => 'No easy buy product found for the given items',
+                'message' => 'No related product found for the given items',
             ], 404);
         } else {
             return response()->json([

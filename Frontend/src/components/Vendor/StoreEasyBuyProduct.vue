@@ -186,7 +186,7 @@ const submitProduct = async () => {
     const finalProduct = {
         title: title.value,
         image: image.value,
-        business_id: 4, // Replace with actual business ID in production
+        business_id: 6, // Replace with actual business ID in production
         payload
     };
 

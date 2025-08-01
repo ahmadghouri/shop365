@@ -124,7 +124,7 @@
             Products
           </router-link>
         </li>
-        <li v-if="authStore.user.id === 10" class="px-4 py-2">
+        <li v-if="authStore.user.id === 6" class="px-4 py-2">
           <router-link
             to="/admin/easyBuyAdminDashboard"
             class="block text-gray-700 hover:text-gray-900"

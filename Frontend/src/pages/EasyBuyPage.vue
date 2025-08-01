@@ -1,6 +1,6 @@
 <template>
 
-    <div class="px-5 lg:mt-4 lg:px-32">
+    <div class="px-5 py-16 lg:mt-4 lg:px-32">
 
         <!-- Category Title -->
         <div class="relative mb-6">

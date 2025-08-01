@@ -17,6 +17,14 @@ class EasyBuy extends Model
         'payload' => 'array'
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        return secure_url('/be' . $this->image);
+        // return url('' . $this->image);
+    }
+
     // SQLite-specific JSON handling
     public function setPayloadAttribute($value)
     {

@@ -54,7 +54,7 @@ class EasyBuyController extends Controller
 
             $easyBuy = EasyBuy::firstOrCreate([
                 'title' => $validated['title'],
-                'business_id' => 4,
+                'business_id' => 6,
                 'image' => $validated['image'],
                 'payload' => $payload
             ]);
@@ -70,7 +70,7 @@ class EasyBuyController extends Controller
                     $product = Product::create([
                         'title' => "{$easyBuy->title} {$brand} {$size}",
                         'type' => 'easy_buy',
-                        'business_id' => 4,
+                        'business_id' => 6,
                         'description' => "Easy Buy: {$easyBuy->title} - {$brand} - {$size}",
                         'price' => $price,
                         'image' => $easyBuy->image,

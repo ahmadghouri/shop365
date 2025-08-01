@@ -1,6 +1,6 @@
 <template>
 
-    <div class="px-5 lg:mt-4 lg:px-32">
+    <div class="px-5 py-16 lg:mt-4 lg:px-32">
 
         <!-- Category Title -->
         <div class="relative mb-6">
@@ -37,7 +37,7 @@
 
                 <!-- Product Header -->
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="max-w-10 max-h-10 md:max-w-16 md:max-h-16 rounded-lg flex items-center justify-center">
+                    <div class="max-w-16 max-h-16 rounded-lg flex items-center justify-center">
                         <img :src="item.image_url" alt="product image" class="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div class="flex justify-between items-center w-full">

@@ -124,6 +124,14 @@
             Products
           </router-link>
         </li>
+        <li v-if="authStore.user.id === 10" class="px-4 py-2">
+          <router-link
+            to="/admin/easyBuyAdminDashboard"
+            class="block text-gray-700 hover:text-gray-900"
+          >
+            EasyBuy Products
+          </router-link>
+        </li>
         <li class="px-4 py-2">
           <router-link
             to="/admin/discount"
@@ -171,6 +179,8 @@ const emitCloseSidebar = () => {
 const authStore = useAuthStore();
 const { logout } = authStore;
 const { role } = storeToRefs(authStore);
+
+console.log(authStore.user)
 
 onMounted(() => {});
 </script>

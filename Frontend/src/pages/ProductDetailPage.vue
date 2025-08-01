@@ -113,8 +113,7 @@
         </button> -->
         </div>
 
-        <div
-          v-else-if="product.type.toLowerCase() !== 'services'"
+        <div v-else-if="product.type.toLowerCase() !== 'services'"
           :disabled="product.is_active === 0"
           class="mt-8 flex flex-col items-center lg:items-start space-y-3"
         >

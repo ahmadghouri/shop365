@@ -138,7 +138,9 @@ class ProductController extends Controller
     {
         $searchTerm = $request->input('search');
 
-        $query = Product::where('business_id', $businessId);
+        $query = Product::where('business_id', $businessId)
+                        ->where('type', '!=', 'easy_buy');
+                        
         $user = User::where('business_id', $businessId)->first();
         $number = $user ? $user->phone_no : null;
 
@@ -151,7 +153,9 @@ class ProductController extends Controller
         }
 
         $products = $query->orderBy('discount', 'desc')->paginate(20); // Limit to 10 products per page (adjust as needed)
-        $types = Product::where('business_id', $businessId)->select('type')->distinct()->orderBy('type', 'asc')->get();
+        $types = Product::where('business_id', $businessId)->select('type')
+                        ->where('type', '!=', 'easy_buy')
+                        ->distinct()->orderBy('type', 'asc')->get();
 
         $responseData = [
             'number' => $number,
@@ -297,6 +301,7 @@ class ProductController extends Controller
         $perPage = $request->input('per_page', 10);
 
         $products = Product::where('business_id', $businessId)
+        ->where('type', '!=', 'easy_buy')
             ->when($search, function ($query, $search) {
                 return $query->where('title', 'like', '%' . $search . '%');
             })

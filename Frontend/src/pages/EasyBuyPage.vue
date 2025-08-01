@@ -1,6 +1,6 @@
 <template>
 
-    <div :class="{ 'blur-sm': isLoading }" class="px-5 lg:mt-4 lg:px-32">
+    <div class="px-5 lg:mt-4 lg:px-32">
 
         <!-- Category Title -->
         <div class="relative mb-6">
@@ -30,15 +30,15 @@
         </div>
 
         <!-- Easy Buy Items -->
-        <div class="flex flex-col gap-3 md:flex-row md:gap-6 relative">
+        <div class="flex flex-col gap-3 md:gap-6 relative">
 
             <div v-for="item in groceryItems" :key="item.id"
-                class="w-full mb-4 bg-white rounded-xl md:rounded-2xl p-4 shadow-lg mx-auto">
+                class="w-full md:w-2/3 mb-4 bg-white rounded-xl md:rounded-2xl p-4 shadow-lg mx-auto">
 
                 <!-- Product Header -->
                 <div class="flex items-center gap-4 mb-6">
                     <div class="max-w-10 max-h-10 md:max-w-16 md:max-h-16 rounded-lg flex items-center justify-center">
-                        <img src="/Groccery1.png" alt="product image" class="w-full h-full object-cover rounded-lg" />
+                        <img :src="item.image_url" alt="product image" class="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div class="flex justify-between items-center w-full">
                         <h2 class="text-base font-semibold md:text-2xl md:font-bold text-[#1E293B]">{{ item.title }}
@@ -138,13 +138,13 @@
 
                     <!-- Quantity Controls for Additional Section -->
                     <div class="flex items-center justify-end mb-4">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2">
                             <button @click="decrementQuantity(item.id, index + 1)"
                                 class="w-10 h-10 rounded flex items-center justify-center bg-[#ECEDEF] hover:bg-gray-300 transition-colors">
                                 <span class="text-xl font-semibold">−</span>
                             </button>
 
-                            <span class="text-xl font-semibold text-[#1E293B] text-center min-w-[3ch]">
+                            <span class="text-xl font-semibold text-[#1E293B] text-center">
                                 {{ getQuantity(item.id, index + 1) }}
                             </span>
 
@@ -431,16 +431,18 @@ const addAllToCart = async () => {
         Object.keys(itemSelections[itemId]).forEach(sectionIndex => {
             const section = itemSelections[itemId][sectionIndex]
             if (section.brand && section.weight && section.quantity > 0) {
-                cartItems.push({
-                    id: `${itemId}-${sectionIndex}`,
-                    itemId: itemId,
-                    title: item.title,
-                    name: `${section.brand} ${section.weight}`,
-                    weight: section.weight,
-                    quantity: section.quantity,
-                    price: item.payload[section.brand][section.weight],
-                    totalPrice: item.payload[section.brand][section.weight] * section.quantity
-                })
+                for (let i = 0; i < section.quantity; i++)  {
+            cartItems.push({
+                id: `${itemId}-${sectionIndex}`,
+                itemId: itemId,
+                title: item.title,
+                name: `${section.brand} ${section.weight}`,
+                weight: section.weight,
+                quantity: section.quantity,
+                price: item.payload[section.brand][section.weight],
+                totalPrice: item.payload[section.brand][section.weight] * section.quantity
+            })
+                }
             }
         })
     })
@@ -482,7 +484,6 @@ const addAllToCart = async () => {
             await cartStore.addToCart(cartItem);
 
             resetSelections();
-            toast.success("Items added to Cart")
         };
         
     } catch (error) {

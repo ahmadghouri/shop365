@@ -204,7 +204,7 @@ const submitProduct = async () => {
             }
         );
 
-        toast.success("Product added successfully");
+        toast.success(response.data.message);
         resetForm();
         // router.push("/admin/restaurantAdminDashboard");
         

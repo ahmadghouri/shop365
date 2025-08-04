@@ -19,7 +19,7 @@
                 <!-- Title -->
                 <div class="w-full">
                     <label for="title" class="text-sm font-medium text-gray-700">Title</label>
-                    <input type="text" id="title" v-model="selectedProduct.title" placeholder="Enter title"
+                    <input type="text" id="title" v-model="form.title" placeholder="Enter title"
                         class="block w-full border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500 text-sm"
                         required />
                 </div>
@@ -27,7 +27,7 @@
                 <!-- Image Upload -->
                 <div>
                     <label for="image" class="text-sm font-medium text-gray-700">Image (Max 15KB)</label>
-                    <input type="file" id="image" @change="handleFileUpload" 
+                    <input type="file" id="image" @change="handleFileUpload"
                         class="block text-sm border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500"
                         required />
                     <p v-if="imageError" class="text-red-500 text-xs mt-1">
@@ -36,15 +36,12 @@
                 </div>
             </div>
 
-            <!-- Brands Section -->
-            <div v-for="(brand, brandIndex) in brands" :key="brandIndex" class="mb-6 border p-4 rounded-lg">
+            <div v-for="(brand, brandIndex) in form.payload" :key="brandIndex" class="mb-6 border p-4 rounded-lg">
                 <!-- Brand Name -->
                 <div class="mb-3">
-                    <label :for="`brand-name-${brandIndex}`" class="text-sm font-medium text-gray-700">Brand
-                        Name</label>
+                    <label class="text-sm font-medium text-gray-700">Brand Name</label>
                     <div class="flex items-center space-x-2 mt-1">
-                        <input :id="`brand-name-${brandIndex}`" v-model="brand.name" placeholder="Brand Name"
-                            class="flex-1 border rounded px-2 py-1" />
+                        <input v-model="brand.name" placeholder="Brand Name" class="flex-1 border rounded px-2 py-1" />
                         <button @click="removeBrand(brandIndex)" class="text-red-500">Delete</button>
                     </div>
                 </div>
@@ -52,29 +49,25 @@
                 <!-- Variants -->
                 <div v-for="(variant, varIndex) in brand.variants" :key="varIndex" class="mb-2">
                     <div class="grid grid-cols-2 gap-2 items-center">
-                        <!-- Weight -->
                         <div>
-                            <label :for="`weight-${brandIndex}-${varIndex}`"
-                                class="text-sm font-medium text-gray-700">Weight</label>
-                            <input :id="`weight-${brandIndex}-${varIndex}`" v-model="variant.weight"
-                                placeholder="e.g. 1-Kg" class="w-full border rounded px-2 py-1 mt-1" />
+                            <label class="text-sm font-medium text-gray-700">Weight</label>
+                            <input v-model="variant.weight" placeholder="e.g. 1-Kg"
+                                class="w-full border rounded px-2 py-1 mt-1" />
                         </div>
-                        <!-- Price -->
                         <div>
-                            <label :for="`price-${brandIndex}-${varIndex}`"
-                                class="text-sm font-medium text-gray-700">Price</label>
+                            <label class="text-sm font-medium text-gray-700">Price</label>
                             <div class="flex items-center space-x-2 mt-1">
-                                <input :id="`price-${brandIndex}-${varIndex}`" v-model.number="variant.price"
-                                    type="number" placeholder="e.g. 500" class="w-full border rounded px-2 py-1" />
+                                <input v-model.number="variant.price" type="number" placeholder="e.g. 500"
+                                    class="w-full border rounded px-2 py-1" />
                                 <button @click="removeVariant(brandIndex, varIndex)" class="text-red-500">X</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Add Variant Button -->
                 <button @click="addVariant(brandIndex)" class="text-blue-500 text-sm mt-2">+ Add Variant</button>
             </div>
+
 
             <!-- Add Brand Button -->
             <div class="mb-4">
@@ -146,8 +139,15 @@ import { toast } from 'vue3-toastify';
 const isLoading = ref(false);
 const easyBuyProducts = ref({})
 const selectedProduct = ref(null);
+const imageError = ref("");
+const form = ref({
+    title: "",
+    business_id: "",
+    image: "",
+    payload: {}
+
+})
 const newImage = ref(null);
-const brandList = ref([]);
 
 onMounted(async () => {
     await fetchProducts();
@@ -172,9 +172,15 @@ const openFormForUpdate = async (product) => {
 
         const response = await axios.get(`${API_BASE_URL}/api/easy-buy/${product.id}`);
 
-        selectedProduct.value = product;
-        brandList.value = response.data.payload;
-        console.log(brandList.value)
+        selectedProduct.value = product
+
+        form.value = {
+            title: selectedProduct.value.title,
+            business_id: selectedProduct.value.business_id,
+            image: null,
+            payload: transformPayloadForEdit(selectedProduct.value.payload)
+        };
+
     } catch (error) {
         console.error("Error loading easybuy product", error);
         toast.error("Failed to load easybuy product");
@@ -183,4 +189,15 @@ const openFormForUpdate = async (product) => {
     }
 
 };
+
+const transformPayloadForEdit = (payloadObj) => {
+    return Object.entries(payloadObj).map(([brand, weights]) => ({
+        name: brand,
+        variants: Object.entries(weights).map(([weight, price]) => ({
+            weight,
+            price
+        }))
+    }));
+};
+
 </script>

@@ -32,4 +32,8 @@ class EasyBuy extends Model
             ? json_encode($value, JSON_UNESCAPED_UNICODE)
             : $value;
     }
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

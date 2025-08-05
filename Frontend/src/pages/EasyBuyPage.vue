@@ -458,7 +458,7 @@ const addAllToCart = async () => {
         isLoading.value = true;
 
         // API call to search matching regular products
-        const response = await axios.post(`${API_BASE_URL}/api/search-regular-products`, {
+        const response = await axios.post(`${API_BASE_URL}/api/resolve-product`, {
             items: cartItems
         });
 

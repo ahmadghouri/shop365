@@ -4,18 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\EasyBuy;
 use App\Models\Product;
+use App\Services\EasyBuyService;
 use App\Services\ImageService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PhpParser\Node\Stmt\TryCatch;
 
 class EasyBuyController extends Controller
 {
     protected $imageService;
+    protected $easyBuyService;
 
-
-    public function __construct(ImageService $imageService)
+    public function __construct(ImageService $imageService, EasyBuyService $easyBuyService)
     {
         $this->imageService = $imageService;
+        $this->easyBuyService = $easyBuyService;
     }
     /**
      * Display a listing of the resource.
@@ -46,44 +51,15 @@ class EasyBuyController extends Controller
                 'payload' => 'required',
             ]);
 
-            // For SQLite, we need to manually ensure proper JSON encoding
-            $payload = $validated['payload'];
-            if (!is_string($payload)) {
-                $payload = json_encode($payload, JSON_UNESCAPED_UNICODE);
+            $easyBuy = $this->easyBuyService->storeEasyBuy($validated, $request);
+            
+            if ($easyBuy->products()){
+                return response()->json([
+                    'message' => 'EasyBuy and products created successfully',
+                    'data' => $easyBuy
+                ], 201);
             }
 
-            $easyBuy = EasyBuy::firstOrCreate([
-                'title' => $validated['title'],
-                'business_id' => 6,
-                'image' => $validated['image'],
-                'payload' => $payload
-            ]);
-
-            if ($request->has('image')) {
-                $imagePath = $this->imageService->uploadImage($request, 'image');
-                $easyBuy->image = $imagePath;
-                $easyBuy->save();
-            }
-
-            foreach ($easyBuy->payload as $brand => $sizes) {
-                foreach ($sizes as $size => $price) {
-                    $product = Product::create([
-                        'title' => "{$easyBuy->title} {$brand} {$size}",
-                        'type' => 'easy_buy',
-                        'business_id' => 6,
-                        'description' => "Easy Buy: {$easyBuy->title} - {$brand} - {$size}",
-                        'price' => $price,
-                        'image' => $easyBuy->image,
-                    ]);
-                    Log::info('Product Created: ', ['product' => $product]);
-                }
-            }
-
-
-            return response()->json([
-                'message' => 'Product created successfully',
-                'data' => $easyBuy
-            ], 201);
         } catch (\JsonException $e) {
             return response()->json([
                 'message' => 'Invalid JSON payload',
@@ -91,7 +67,7 @@ class EasyBuyController extends Controller
             ], 400);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Server Error',
+                'message' => 'Server Error in EasyBuy',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -109,23 +85,47 @@ class EasyBuyController extends Controller
      */
     public function edit(EasyBuy $easyBuy)
     {
-        //
+        return $this->successResponse($easyBuy, 'EasyBuy Product details');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EasyBuy $easyBuy)
+    public function update(Request $request, $id)
     {
         try {
+            $easybuy = EasyBuy::with('products')->findOrFail($id);
+
+            DB::transaction(function () use ($easybuy) {
+                $easybuy->products()->delete();
+                $easybuy->delete();
+            });
+
+            // Now Store New Easybuy and related products also
+
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'image' => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
                 'payload' => 'required',
             ]);
+
+            $easyBuy = $this->easyBuyService->storeEasyBuy($validated, $request);
+
+            if ($easyBuy->products()) {
+                return response()->json([
+                    'message' => 'EasyBuy and products created successfully',
+                    'data' => $easyBuy
+                ], 201);
+            }
+
+        } catch (\JsonException $e) {
+            return response()->json([
+                'message' => 'Invalid JSON payload',
+                'error' => $e->getMessage()
+            ], 400);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Server Error',
+                'message' => 'Server Error in EasyBuy update',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -134,9 +134,26 @@ class EasyBuyController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EasyBuy $easyBuy)
+    public function destroy(EasyBuy $easyBuy, $id)
     {
-        //
+        try {
+            $easybuy = EasyBuy::with('products')->findOrFail($id);
+
+            DB::transaction(function () use ($easybuy) {
+                $easybuy->products()->delete();
+                $easybuy->delete();
+            });
+
+            return $this->successResponse('Easybuy & Product deleted successfully');
+
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Easybuy product not found', 404);
+         } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Server Error in EasyBuy delete',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     // Resolve product method

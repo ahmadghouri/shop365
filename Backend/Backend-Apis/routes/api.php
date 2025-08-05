@@ -28,7 +28,9 @@ use Illuminate\Support\Facades\Route;
 Route::post('/easy-buy', [EasyBuyController::class, 'store']);
 Route::get('/easy-buy', [EasyBuyController::class, 'index']);
 Route::get('/easy-buy/{id}', [EasyBuyController::class, 'show']);
-Route::post('/search-regular-products', [EasyBuyController::class, 'resolveProduct']);
+Route::put('/easy-buy/{id}', [EasyBuyController::class, 'update']);
+Route::delete('/easy-buy/{id}', [EasyBuyController::class, 'destroy']);
+Route::post('/resolve-product', [EasyBuyController::class, 'resolveProduct']);
 
 Route::apiResource('header-images', HeaderImageController::class);
 Route::post('header-images/reorder', [HeaderImageController::class, 'reorder']);

@@ -35,7 +35,7 @@
                 <!-- Product Header -->
                 <div class="flex items-center gap-2.5 mb-2.5">
                     <div class="max-w-8 max-h-8 rounded-lg flex items-center justify-center">
-                        <img src="/Groccery1.png" alt="product image" class="w-full h-full object-cover rounded-lg" />
+                        <img :src="item.image_url" alt="product image" class="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div class="flex justify-between items-center w-full">
                         <h2 class="text-base font-semibold md:text-2xl md:font-bold text-[#1E293B]">{{ item.title }}

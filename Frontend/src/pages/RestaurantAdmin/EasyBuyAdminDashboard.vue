@@ -31,17 +31,12 @@
 
                 <!-- Image Upload -->
                 <div>
-                    <label for="image" class="text-sm font-medium text-gray-700">Image (Max 2MB)</label>
-                    <input type="file" id="image" @change="handleFileUpload"
+                    <label for="image" class="text-sm font-medium text-gray-700">Image (Max 15KB)</label>
+                    <input required type="file" id="image" @change="handleFileUpload"
                         class="block text-sm border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500" />
                     <p v-if="imageError" class="text-red-500 text-xs mt-1">
                         {{ imageError }}
                     </p>
-                    <!-- Show current image -->
-                    <div v-if="selectedProduct.image && !image" class="mt-2">
-                        <img :src="selectedProduct.image" alt="Current Image" class="h-16 w-16 object-cover rounded" />
-                        <p class="text-xs text-gray-500">Current Image</p>
-                    </div>
                 </div>
             </div>
 
@@ -136,10 +131,14 @@
                         </div>
                     </div>
 
-                    <div class="p-4">
+                    <div class="p-4 flex justify-between items-center gap-4">
                         <button @click="openFormForUpdate(product)"
                             class="bg-yellow-500 text-white w-full font-bold rounded-lg px-4 py-2 hover:bg-yellow-600 transition duration-150 ease-in-out">
                             Update
+                        </button>
+                        <button @click="handleDelete(product)"
+                            class="border border-yellow-500 text-yellow-500 w-full font-bold rounded-lg px-4 py-2 hover:bg-yellow-600 hover:text-white transition duration-150 ease-in-out">
+                            Delete
                         </button>
                     </div>
                 </div>
@@ -162,8 +161,6 @@ const isLoading = ref(false);
 const isSubmitting = ref(false);
 const easyBuyProducts = ref([]);
 const selectedProduct = ref(null);
-
-// Using the same structure as your store component
 const title = ref('');
 let image = ref(null);
 const imageError = ref("");
@@ -195,8 +192,8 @@ const fetchProducts = async () => {
 
 const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) { // 2MB limit as per backend validation
-        imageError.value = "Image size must be less than 2MB.";
+    if (file && file.size > 15 * 1024) {
+        imageError.value = "Image size must be less than 15KB.";
         image.value = null;
     } else {
         imageError.value = "";
@@ -283,8 +280,8 @@ const resetForm = () => {
 
 const submitProduct = async () => {
     // Validation (same as your store component)
-    if (!title.value.trim()) {
-        toast.error("Title is required");
+    if (!image.value) {
+        toast.error("Image is required");
         return;
     }
 
@@ -314,13 +311,9 @@ const submitProduct = async () => {
     const finalProduct = {
         title: title.value,
         business_id: selectedProduct.value.business_id,
+        image: image.value,
         payload
     };
-
-    // Add image only if uploaded
-    if (image.value) {
-        finalProduct.image = image.value;
-    }
 
     console.log('Update payload:', finalProduct);
 
@@ -370,4 +363,23 @@ const cancelUpdate = () => {
     selectedProduct.value = null;
     resetForm();
 };
-</script>
+
+const handleDelete = async (product) => {
+   try {
+    isLoading.value = true;
+
+       const response = await axios.delete(`${API_BASE_URL}/api/easy-buy/${product.id}`);
+
+           toast.success(response.data.data)
+           // Refresh the products list
+           await fetchProducts();
+
+   } catch (error) {
+       console.error('Delete error:', error);
+   } finally {
+    isLoading.value = false;
+   }
+
+
+}
+</script> 

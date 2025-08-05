@@ -6,6 +6,7 @@ use App\Models\EasyBuy;
 use App\Models\Product;
 use App\Services\EasyBuyService;
 use App\Services\ImageService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -143,11 +144,11 @@ class EasyBuyController extends Controller
                 $easybuy->delete();
             });
 
-            return response()->json([
-                'message' => 'EasyBuy and products deleted successfully'
-            ], 201);
+            return $this->successResponse('Easybuy & Product deleted successfully');
 
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse('Easybuy product not found', 404);
+         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Server Error in EasyBuy delete',
                 'error' => $e->getMessage(),

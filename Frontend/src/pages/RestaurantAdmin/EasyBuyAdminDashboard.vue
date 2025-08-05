@@ -113,7 +113,7 @@
                         <div class="flex items-start justify-between">
                             <div>
                                 <h2 class="text-xl font-semibold">{{ product.title }}</h2>
-                                <img :src="product.image" alt="Product Image"
+                                <img :src="product.image_url" alt="Product Image"
                                     class="mt-2 h-20 w-20 object-cover rounded" />
                             </div>
                         </div>

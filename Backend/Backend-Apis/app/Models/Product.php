@@ -10,7 +10,7 @@ class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['title', 'description', 'image', 'price', 'business_id', 'type', 'status', 'is_active'];
+    protected $fillable = ['title', 'description', 'image', 'price', 'business_id', 'type', 'status', 'is_active', 'easy_buy_id'];
 
     protected $appends = ['image_url', 'final_price'];
 
@@ -30,6 +30,10 @@ class Product extends Model
         return $this->hasMany(Perscription::class, 'product_id');
     }
 
+    public function easyBuy()
+    {
+        return $this->belongsTo(EasyBuy::class);
+    }
 
     // Product.php
     public function getFinalPriceAttribute()

@@ -24,7 +24,7 @@ class EasyBuyService
 
         $easyBuy = EasyBuy::firstOrCreate([
             'title' => $validated['title'],
-            'business_id' => 4,         // 🔁 Replace with 6 in ptoduction
+            'business_id' => 6,         // 🔁 Replace with 6 in ptoduction
         ], [
             'image' => null,
             'payload' => $payload
@@ -52,7 +52,7 @@ class EasyBuyService
                 $product = Product::create([
                     'title' => "{$easyBuy->title} {$brand} {$size}",
                     'type' => 'easy_buy',
-                    'business_id' => 4,          // 🔁 Replace with 6 in ptoduction
+                    'business_id' => 6,          // 🔁 Replace with 6 in ptoduction
                     'description' => "Easy Buy: {$easyBuy->title} - {$brand} - {$size}",
                     'price' => $price,
                     'image' => $easyBuy->image,

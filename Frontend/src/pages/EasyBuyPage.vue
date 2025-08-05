@@ -361,7 +361,6 @@ const addToCart = async (itemId) => {
 
         // Clear the item list after successful addition to cart
         itemLists[itemId] = []
-        router.push('/home/cart')
 
     } catch (error) {
         console.error("Failed to add EasyBuy items:", error)

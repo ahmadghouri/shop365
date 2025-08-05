@@ -325,9 +325,6 @@ class OrderManageService
             ->paginate(15, ['*'], 'page', $page);
     }
 
-
-
-
     public function viewRestaurantOrdersAdmin($businessId)
     {
         return Order::whereHas('items.product', function ($query) use ($businessId) {
@@ -359,8 +356,8 @@ class OrderManageService
                 // Points adjustment logic
                 if ($newStatus === 'delivered') {
                     // Add points if the new status is 'delivered'
-                    $pointsToAdd = round($totalPrice * (1/100));
-                    $user->points += $pointsToAdd;
+                    // $pointsToAdd = round($totalPrice * (1/100));
+                    // $user->points += $pointsToAdd;
                 } elseif ($previousStatus === 'delivered') {
                     // Subtract points if reverting from 'delivered'
                     $pointsToSubtract = round($totalPrice * (1/100));

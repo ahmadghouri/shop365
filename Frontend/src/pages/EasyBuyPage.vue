@@ -294,7 +294,6 @@ const addItemToList = (itemId) => {
 
 const removeItemFromList = (itemId, index) => {
     itemLists[itemId].splice(index, 1)
-    toast.success('Item removed from list')
 }
 
 const getTotalItemPrice = (itemId) => {

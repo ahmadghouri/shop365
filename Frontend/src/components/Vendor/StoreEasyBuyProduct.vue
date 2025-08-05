@@ -36,7 +36,10 @@
                     <div class="flex items-center space-x-2 mt-1">
                         <input :id="`brand-name-${brandIndex}`" v-model="brand.name" placeholder="Brand Name"
                             class="flex-1 border rounded px-2 py-1" />
-                        <button @click="removeBrand(brandIndex)" class="text-red-500">Delete</button>
+                        <button @click="removeBrand(brandIndex)"
+                            class="text-red-500 hover:text-red-700 px-2 py-1 border border-red-300 rounded">
+                            Delete
+                        </button>
                     </div>
                 </div>
 
@@ -76,8 +79,7 @@
 
             <!-- Submit Button -->
             <div class="text-right">
-                <button @click="submitProduct"
-                    class="w-full bg-blue-500 text-white text-sm font-medium py-2 rounded focus:outline-none 
+                <button @click="submitProduct" class="w-full bg-blue-500 text-white text-sm font-medium py-2 rounded focus:outline-none 
                     focus:ring-2 focus:ring-blue-300 hover:bg-blue-600 transition">
                     Add EasyBuy Product
                 </button>
@@ -206,7 +208,7 @@ const submitProduct = async () => {
 
         toast.success(response.data.message);
         resetForm();
-        // router.push("/admin/restaurantAdminDashboard");
+        router.push("/admin/easybuyAdminDashboard");
         
     } catch (error) {
         console.error(error);

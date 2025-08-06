@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Route;
 
 //Easy Buy management
 Route::post('/easy-buy', [EasyBuyController::class, 'store']);
+Route::post('/easy-buy/filters', [EasyBuyController::class, 'filters']);
 Route::get('/easy-buy', [EasyBuyController::class, 'index']);
 Route::get('/easy-buy/{id}', [EasyBuyController::class, 'show']);
 Route::put('/easy-buy/{id}', [EasyBuyController::class, 'update']);

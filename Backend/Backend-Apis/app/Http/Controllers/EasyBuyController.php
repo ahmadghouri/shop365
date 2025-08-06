@@ -96,7 +96,7 @@ class EasyBuyController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'image' => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
+                'image' => 'nullable|string|max:2048',
                 'payload' => 'required',
             ]);
 
@@ -109,6 +109,12 @@ class EasyBuyController extends Controller
 
             // Now Store New Easybuy and related products also
             $easyBuy = $this->easyBuyService->storeEasyBuy($validated, $request);
+
+            if ($request->has('image_url')) {
+                $imagePath = $this->imageService->uploadImage($request, 'image');
+                $easyBuy->image = $imagePath;
+                $easyBuy->save();
+            }
 
             if ($easyBuy->products()) {
                 return response()->json([
@@ -188,6 +194,31 @@ class EasyBuyController extends Controller
             return response()->json([
                 'message' => 'Product found',
                 'regularProducts' => $allProducts
+            ], 200);
+        }
+    }
+
+    // Filters method
+    public function filters(Request $request)
+    {
+        $filter = $request->input('filter', 'null');
+
+        Log::info('Filter applied', ['filter' => $filter]);
+
+        if ($filter === 'null' || $filter === 'All') {
+            $products = EasyBuy::all();
+        } else {
+            $products = EasyBuy::where('title', 'like', '%' . $filter . '%')->get();
+        }
+
+        if ($products->isEmpty()) {
+            return response()->json([
+                'message' => 'No products found for the given filter',
+            ], 404);
+        } else {
+            return response()->json([
+                'message' => 'Products found',
+                'products' => $products
             ], 200);
         }
     }

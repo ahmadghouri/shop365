@@ -29,8 +29,8 @@
 
         <!-- Easy Buy Items -->
         <div class="flex flex-col gap-3 md:gap-6 relative">
-            <div v-for="item in groceryItems" :key="item.id" class="w-full md:w-2/3 lg:w-1/2 mb-4 bg-white rounded-xl md:rounded-2xl p-4 
-                shadow-[0px_0px_10px_0px_rgba(0,0,0,0.25)] mx-auto">
+            <div v-for="item in groceryItems" :key="item.id" class="w-full md:w-2/3 lg:w-1/2 mb-4 bg-white 
+            rounded-xl md:rounded-2xl p-4 shadow-[0px_0px_10px_0px_rgba(0,0,0,0.25)] mx-auto">
 
                 <!-- Product Header -->
                 <div class="flex items-center gap-2.5 mb-2.5">
@@ -148,7 +148,8 @@
                 <!-- Add to Cart Button -->
                 <div class="flex justify-center items-center mx-auto mt-6">
                     <button @click="addToCart(item.id)"
-                        :disabled="!itemLists[item.id] || itemLists[item.id].length === 0" class="bg-[#1E293B] text-white text-sm md:text-lg font-medium rounded-[20px] px-4 py-1.5 
+                        :disabled="!itemLists[item.id] || itemLists[item.id].length === 0" class="bg-[#1E293B] text-white 
+                        text-sm md:text-lg font-medium rounded-[20px] px-4 py-1.5 
                         disabled:opacity-50 disabled:cursor-not-allowed">
                         Add to Cart
                     </button>
@@ -319,7 +320,7 @@ const addToCart = async (itemId) => {
     try {
         isLoading.value = true
 
-        // Prepare the payload - each item in the list represents one item to add
+        // Prepare the payload
         const cartItems = items.map((item, index) => ({
             id: `${itemId}-${index}`,
             itemId: itemId,
@@ -341,8 +342,8 @@ const addToCart = async (itemId) => {
         const matchedProducts = response.data?.regularProducts || []
         console.log("✅ Matched Products:", matchedProducts)
 
-        // Add matched products to cart
-        for (const product of matchedProducts) {
+        // Batch add all products to cart using Promise.all
+        const cartPromises = matchedProducts.map(product => {
             const cartItem = {
                 product_id: product.id,
                 quantity: 1,
@@ -355,11 +356,14 @@ const addToCart = async (itemId) => {
                     business_id: product.business_id,
                 },
             }
-            await cartStore.addToCart(cartItem)
-        }
+            return cartStore.addToCart(cartItem)
+        })
+
+        // Execute all cart additions in parallel
+        await Promise.all(cartPromises)
 
         // Clear the item list after successful addition to cart
-        itemLists[itemId] = []
+        // itemLists[itemId] = []
 
     } catch (error) {
         console.error("Failed to add EasyBuy items:", error)

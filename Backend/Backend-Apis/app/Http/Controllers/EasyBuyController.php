@@ -94,6 +94,12 @@ class EasyBuyController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'image' => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
+                'payload' => 'required',
+            ]);
+
             $easybuy = EasyBuy::with('products')->findOrFail($id);
 
             DB::transaction(function () use ($easybuy) {
@@ -102,13 +108,6 @@ class EasyBuyController extends Controller
             });
 
             // Now Store New Easybuy and related products also
-
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'image' => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
-                'payload' => 'required',
-            ]);
-
             $easyBuy = $this->easyBuyService->storeEasyBuy($validated, $request);
 
             if ($easyBuy->products()) {

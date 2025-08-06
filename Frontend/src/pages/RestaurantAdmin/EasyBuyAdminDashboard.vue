@@ -279,9 +279,14 @@ const resetForm = () => {
 };
 
 const submitProduct = async () => {
-    // Validation (same as your store component)
+
+    if (!title.value.trim()) {
+        toast.error("Title is required");
+        return;
+    }
+
     if (!image.value) {
-        toast.error("Image is required");
+        imageError.value = "Please upload a valid image.";
         return;
     }
 
@@ -324,7 +329,7 @@ const submitProduct = async () => {
             `${API_BASE_URL}/api/easy-buy/${selectedProduct.value.id}`,
             {
                 ...finalProduct,
-                _method: 'PUT' // Laravel method spoofing
+                _method: 'PUT' 
             },
             {
                 headers: {
@@ -333,7 +338,7 @@ const submitProduct = async () => {
             }
         );
 
-        toast.success( "EasyBuy product updated successfully!");
+        toast.success("EasyBuy product updated successfully!");
 
         // Refresh the products list
         await fetchProducts();

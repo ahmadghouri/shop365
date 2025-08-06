@@ -38,7 +38,7 @@
                         <img :src="item.image_url" alt="product image" class="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div class="flex justify-between items-center w-full">
-                        <h2 class="text-base font-semibold md:text-2xl md:font-bold text-[#1E293B]">{{ item.title }}
+                        <h2 class="text-base font-semibold md:text-xl md:font-bold text-[#1E293B]">{{ item.title }}
                         </h2>
                         <span class="text-base md:text-lg font-semibold">
                             Total: <span class="text-[#F50100]">{{ getTotalItemPrice(item.id) }}RS</span>

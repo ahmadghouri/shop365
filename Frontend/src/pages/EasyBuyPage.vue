@@ -27,6 +27,17 @@
             </a>
         </div>
 
+        <!-- Horizontal Scrollable Filter Section -->
+        <div class="overflow-x-auto whitespace-nowrap mb-8">
+            <button v-for="item in filters" :key="item.id" @click="filterProducts(item)" :class="[
+                item === selectedFilter
+                    ? 'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer bg-yellow-500 text-white hover:bg-yellow-700'
+                    : 'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer bg-gray-200 text-gray-700 hover:bg-gray-300',
+            ]">
+                {{ item }}
+            </button>
+        </div>
+
         <!-- Easy Buy Items -->
         <div class="flex flex-col gap-3 md:gap-6 relative">
             <div v-for="item in groceryItems" :key="item.id" class="w-full md:w-2/3 lg:w-1/2 mb-4 bg-white 
@@ -170,7 +181,7 @@
 
 <script setup>
 import axios from 'axios'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { API_BASE_URL } from '../config/api'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../store/cartStore'
@@ -181,7 +192,10 @@ const cartStore = useCartStore()
 
 const isLoading = ref(false)
 const groceryItems = ref([])
-
+const filters = computed(() => {
+    return ['All', ...groceryItems.value.map(item => item.title)]
+})
+const selectedFilter = ref('All')
 // Store current selections for each item (for the dropdowns and quantity controls)
 const currentSelections = reactive({})
 
@@ -208,6 +222,10 @@ const fetchGroceryItems = async () => {
     } finally {
         isLoading.value = false
     }
+}
+
+const filterProducts = (filter) => {
+    selectedFilter.value = filter === 'All' ? 'null' : filter
 }
 
 const initializeItemSelections = (itemId) => {

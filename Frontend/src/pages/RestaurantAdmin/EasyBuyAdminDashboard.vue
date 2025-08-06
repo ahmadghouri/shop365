@@ -32,7 +32,7 @@
                 <!-- Image Upload -->
                 <div>
                     <label for="image" class="text-sm font-medium text-gray-700">Image (Max 15KB)</label>
-                    <input required type="file" id="image" @change="handleFileUpload"
+                    <input type="file" id="image" @change="handleFileUpload"
                         class="block text-sm border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500" />
                     <p v-if="imageError" class="text-red-500 text-xs mt-1">
                         {{ imageError }}
@@ -285,11 +285,6 @@ const submitProduct = async () => {
         return;
     }
 
-    if (!image.value) {
-        imageError.value = "Please upload a valid image.";
-        return;
-    }
-
     // Build payload exactly like your store component
     const payload = {};
 
@@ -316,6 +311,7 @@ const submitProduct = async () => {
     const finalProduct = {
         title: title.value,
         business_id: selectedProduct.value.business_id,
+        image_url: selectedProduct.value.image_url,
         image: image.value,
         payload
     };

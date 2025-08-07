@@ -110,12 +110,6 @@ class EasyBuyController extends Controller
             // Now Store New Easybuy and related products also
             $easyBuy = $this->easyBuyService->storeEasyBuy($validated, $request);
 
-            if ($request->has('image')) {
-                $imagePath = $this->imageService->uploadImage($request, 'image');
-                $easyBuy->image = $imagePath;
-                $easyBuy->save();
-            }
-
             if ($easyBuy->products()) {
                 return response()->json([
                     'message' => 'EasyBuy and products created successfully',

@@ -285,7 +285,7 @@ const submitProduct = async () => {
         return;
     }
 
-    if (imageError.value) {
+    if (!image.value) {
         toast.error("Please upload image");
         return;
     }
@@ -330,7 +330,7 @@ const submitProduct = async () => {
             `${API_BASE_URL}/api/easy-buy/${selectedProduct.value.id}`,
             {
                 ...finalProduct,
-                _method: 'PUT' 
+                _method: 'PUT'
             },
             {
                 headers: {
@@ -349,17 +349,7 @@ const submitProduct = async () => {
 
     } catch (error) {
         console.error('Update error:', error);
-
-        if (error.response?.data?.errors) {
-            // Handle validation errors
-            Object.values(error.response.data.errors).flat().forEach(err => {
-                toast.error(err);
-            });
-        } else if (error.response?.data?.message) {
-            toast.error(error.response.data.message);
-        } else {
-            toast.error("Failed to update easy buy product.");
-        }
+        toast.error("Failed to update EasyBuy product");
     } finally {
         isSubmitting.value = false;
     }
@@ -371,21 +361,21 @@ const cancelUpdate = () => {
 };
 
 const handleDelete = async (product) => {
-   try {
-    isLoading.value = true;
+    try {
+        isLoading.value = true;
 
-       const response = await axios.delete(`${API_BASE_URL}/api/easy-buy/${product.id}`);
+        const response = await axios.delete(`${API_BASE_URL}/api/easy-buy/${product.id}`);
 
-           toast.success(response.data.data)
-           // Refresh the products list
-           await fetchProducts();
+        toast.success(response.data.data)
+        // Refresh the products list
+        await fetchProducts();
 
-   } catch (error) {
-       console.error('Delete error:', error);
-   } finally {
-    isLoading.value = false;
-   }
+    } catch (error) {
+        console.error('Delete error:', error);
+    } finally {
+        isLoading.value = false;
+    }
 
 
 }
-</script> 
+</script>

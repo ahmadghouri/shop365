@@ -285,7 +285,7 @@ const submitProduct = async () => {
         return;
     }
 
-    if (imageError.value) {
+    if (!image.value) {
         toast.error("Please upload image");
         return;
     }
@@ -330,7 +330,7 @@ const submitProduct = async () => {
             `${API_BASE_URL}/api/easy-buy/${selectedProduct.value.id}`,
             {
                 ...finalProduct,
-                _method: 'PUT' 
+                _method: 'PUT'
             },
             {
                 headers: {
@@ -371,21 +371,21 @@ const cancelUpdate = () => {
 };
 
 const handleDelete = async (product) => {
-   try {
-    isLoading.value = true;
+    try {
+        isLoading.value = true;
 
-       const response = await axios.delete(`${API_BASE_URL}/api/easy-buy/${product.id}`);
+        const response = await axios.delete(`${API_BASE_URL}/api/easy-buy/${product.id}`);
 
-           toast.success(response.data.data)
-           // Refresh the products list
-           await fetchProducts();
+        toast.success(response.data.data)
+        // Refresh the products list
+        await fetchProducts();
 
-   } catch (error) {
-       console.error('Delete error:', error);
-   } finally {
-    isLoading.value = false;
-   }
+    } catch (error) {
+        console.error('Delete error:', error);
+    } finally {
+        isLoading.value = false;
+    }
 
 
 }
-</script> 
+</script>

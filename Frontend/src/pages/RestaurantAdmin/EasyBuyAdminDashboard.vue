@@ -285,6 +285,11 @@ const submitProduct = async () => {
         return;
     }
 
+    if (imageError.value) {
+        toast.error("Please upload image");
+        return;
+    }
+
     // Build payload exactly like your store component
     const payload = {};
 

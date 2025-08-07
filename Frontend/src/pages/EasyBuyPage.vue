@@ -27,9 +27,23 @@
             </a>
         </div>
 
+        <div class="mb-6" ref="searchContainer">
+            <div class="relative max-w-md mx-auto">
+                <input v-model="searchQuery" type="text" placeholder="Search products..."
+                    class="w-full px-4 py-2 pl-10 pr-4 text-gray-700 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent" />
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
         <!-- Horizontal Scrollable Filter Section -->
         <div class="overflow-x-auto whitespace-nowrap mb-8 md:flex justify-center items-center">
-            <button v-for="item in filters" :key="item.id" @click="filterProducts(item)" :class="[
+            <button v-for="item in filters" :key="item.id" @click="onFilterClick(item)" :class="[
                 item === selectedFilter
                     ? 'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer bg-yellow-500 text-white hover:bg-yellow-700'
                     : 'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer bg-gray-200 text-gray-700 hover:bg-gray-300',
@@ -178,7 +192,7 @@
 
 <script setup>
 import axios from "axios";
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { API_BASE_URL } from "../config/api";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../store/cartStore";
@@ -188,11 +202,15 @@ const router = useRouter();
 const cartStore = useCartStore();
 
 const isLoading = ref(false);
+const allGroceryItems = ref([]);
 const groceryItems = ref([]);
 const filters = computed(() => {
-    return ["All", ...groceryItems.value.map((item) => item.title)];
+    return ["All", ...new Set(allGroceryItems.value.map((item) => item.title))];
 });
 const selectedFilter = ref("All");
+const searchQuery = ref("");
+const debouncedSearch = ref("");
+let searchTimeout = null;
 // Store current selections for each item (for the dropdowns and quantity controls)
 const currentSelections = reactive({});
 
@@ -208,6 +226,7 @@ const fetchGroceryItems = async () => {
         isLoading.value = true;
         const response = await axios.get(`${API_BASE_URL}/api/easy-buy`);
         if (response.data) {
+            allGroceryItems.value = response.data;
             groceryItems.value = response.data;
             // Initialize selections for each item
             groceryItems.value.forEach((item) => {
@@ -221,8 +240,27 @@ const fetchGroceryItems = async () => {
     }
 };
 
-const filterProducts = (filter) => {
-    selectedFilter.value = filter === "All" ? "null" : filter;
+const onFilterClick = (filter) => {
+    selectedFilter.value = filter;
+};
+
+const filterProducts = () => {
+    let filtered = allGroceryItems.value;
+
+    // Apply filter
+    if (selectedFilter.value !== "All") {
+        filtered = filtered.filter((item) => item.title === selectedFilter.value);
+    }
+
+    // Apply search
+    if (debouncedSearch.value.trim() !== "") {
+        const searchLower = debouncedSearch.value.toLowerCase();
+        filtered = filtered.filter(
+            (item) => item.title.toLowerCase().includes(searchLower) || item.description?.toLowerCase().includes(searchLower)
+        );
+    }
+
+    groceryItems.value = filtered;
 };
 
 const initializeItemSelections = (itemId) => {
@@ -386,6 +424,17 @@ const addToCart = async (itemId) => {
         isLoading.value = false;
     }
 };
+
+watch(searchQuery, (newVal) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        debouncedSearch.value = newVal;
+    }, 300); // 300ms debounce delay
+});
+
+watch([debouncedSearch, selectedFilter], () => {
+    filterProducts();
+});
 
 // Initialize on component mount
 onMounted(() => {

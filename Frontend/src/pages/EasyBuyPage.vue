@@ -262,6 +262,7 @@ const filterProducts = () => {
     // Apply search
     if (debouncedSearch.value.trim() !== "") {
         isLoading.value = true;
+        selectedFilter.value = "All"; // Reset filter when searching
         const searchLower = debouncedSearch.value.toLowerCase();
         filtered = filtered.filter(
             (item) => item.title.toLowerCase().includes(searchLower) || item.description?.toLowerCase().includes(searchLower)

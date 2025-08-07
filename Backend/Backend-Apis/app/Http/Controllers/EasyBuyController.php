@@ -96,7 +96,7 @@ class EasyBuyController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'image' => 'nullable|string|max:2048',
+                'image' => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
                 'payload' => 'required',
             ]);
 
@@ -110,7 +110,7 @@ class EasyBuyController extends Controller
             // Now Store New Easybuy and related products also
             $easyBuy = $this->easyBuyService->storeEasyBuy($validated, $request);
 
-            if ($request->has('image_url')) {
+            if ($request->has('image')) {
                 $imagePath = $this->imageService->uploadImage($request, 'image');
                 $easyBuy->image = $imagePath;
                 $easyBuy->save();

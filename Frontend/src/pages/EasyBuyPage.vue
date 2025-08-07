@@ -28,7 +28,7 @@
         </div>
 
         <!-- Horizontal Scrollable Filter Section -->
-        <div class="overflow-x-auto whitespace-nowrap mb-8">
+        <div class="overflow-x-auto whitespace-nowrap mb-8 md:flex justify-center items-center">
             <button v-for="item in filters" :key="item.id" @click="filterProducts(item)" :class="[
                 item === selectedFilter
                     ? 'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer bg-yellow-500 text-white hover:bg-yellow-700'
@@ -40,17 +40,15 @@
 
         <!-- Easy Buy Items -->
         <div class="flex flex-col gap-3 md:gap-6 relative">
-            <div v-for="item in groceryItems" :key="item.id" class="w-full md:w-2/3 lg:w-1/2 mb-4 bg-white 
-            rounded-xl md:rounded-2xl p-4 shadow-[0px_0px_10px_0px_rgba(0,0,0,0.25)] mx-auto">
-
+            <div v-for="item in groceryItems" :key="item.id"
+                class="w-full md:w-2/3 xl:w-1/2 mb-4 bg-white rounded-xl md:rounded-2xl p-4 shadow-[0px_0px_10px_0px_rgba(0,0,0,0.25)] mx-auto">
                 <!-- Product Header -->
                 <div class="flex items-center gap-2.5 mb-2.5">
-                    <div class="max-w-8 max-h-8 rounded-lg flex items-center justify-center">
-                        <img :src="item.image_url" alt="product image" class="w-full h-full object-cover rounded-lg" />
+                    <div class="max-w-8 md:max-w-16 max-h-8 md:max-h-16 rounded-lg flex items-center justify-center">
+                        <img src="/Groccery1.png" alt="product image" class="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div class="flex justify-between items-center w-full">
-                        <h2 class="text-base font-semibold md:text-xl md:font-bold text-[#1E293B]">{{ item.title }}
-                        </h2>
+                        <h2 class="text-base font-semibold md:text-xl md:font-bold text-[#1E293B]">{{ item.title }}</h2>
                         <span class="text-base md:text-lg font-semibold">
                             Total: <span class="text-[#F50100]">{{ getTotalItemPrice(item.id) }}RS</span>
                         </span>
@@ -103,7 +101,7 @@
                             </button>
 
                             <span class="text-xs md:text-lg font-medium text-[#1E293B] text-center min-w-[20px]">
-                                {{ String(currentSelections[item.id].quantity).padStart(2, '0') }}
+                                {{ String(currentSelections[item.id].quantity).padStart(2, "0") }}
                             </span>
 
                             <button @click="incrementCurrentQuantity(item.id)">
@@ -159,9 +157,8 @@
                 <!-- Add to Cart Button -->
                 <div class="flex justify-center items-center mx-auto mt-6">
                     <button @click="addToCart(item.id)"
-                        :disabled="!itemLists[item.id] || itemLists[item.id].length === 0" class="bg-[#1E293B] text-white 
-                        text-sm md:text-lg font-medium rounded-[20px] px-4 py-1.5 
-                        disabled:opacity-50 disabled:cursor-not-allowed">
+                        :disabled="!itemLists[item.id] || itemLists[item.id].length === 0"
+                        class="bg-[#1E293B] text-white text-sm md:text-lg font-medium rounded-[20px] px-4 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                         Add to Cart
                     </button>
                 </div>
@@ -180,114 +177,114 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-import { ref, reactive, onMounted, computed } from 'vue'
-import { API_BASE_URL } from '../config/api'
-import { useRouter } from 'vue-router'
-import { useCartStore } from '../store/cartStore'
-import { toast } from 'vue3-toastify'
+import axios from "axios";
+import { ref, reactive, onMounted, computed } from "vue";
+import { API_BASE_URL } from "../config/api";
+import { useRouter } from "vue-router";
+import { useCartStore } from "../store/cartStore";
+import { toast } from "vue3-toastify";
 
-const router = useRouter()
-const cartStore = useCartStore()
+const router = useRouter();
+const cartStore = useCartStore();
 
-const isLoading = ref(false)
-const groceryItems = ref([])
+const isLoading = ref(false);
+const groceryItems = ref([]);
 const filters = computed(() => {
-    return ['All', ...groceryItems.value.map(item => item.title)]
-})
-const selectedFilter = ref('All')
+    return ["All", ...groceryItems.value.map((item) => item.title)];
+});
+const selectedFilter = ref("All");
 // Store current selections for each item (for the dropdowns and quantity controls)
-const currentSelections = reactive({})
+const currentSelections = reactive({});
 
 // Store the list of added items for each product
-const itemLists = reactive({})
+const itemLists = reactive({});
 
 const goBack = () => {
-    router.back()
-}
+    router.back();
+};
 
 const fetchGroceryItems = async () => {
     try {
-        isLoading.value = true
-        const response = await axios.get(`${API_BASE_URL}/api/easy-buy`)
+        isLoading.value = true;
+        const response = await axios.get(`${API_BASE_URL}/api/easy-buy`);
         if (response.data) {
-            groceryItems.value = response.data
+            groceryItems.value = response.data;
             // Initialize selections for each item
-            groceryItems.value.forEach(item => {
-                initializeItemSelections(item.id)
-            })
+            groceryItems.value.forEach((item) => {
+                initializeItemSelections(item.id);
+            });
         }
     } catch (error) {
-        console.error('Failed to fetch grocery items:', error)
+        console.error("Failed to fetch grocery items:", error);
     } finally {
-        isLoading.value = false
+        isLoading.value = false;
     }
-}
+};
 
 const filterProducts = (filter) => {
-    selectedFilter.value = filter === 'All' ? 'null' : filter
-}
+    selectedFilter.value = filter === "All" ? "null" : filter;
+};
 
 const initializeItemSelections = (itemId) => {
     if (!currentSelections[itemId]) {
         currentSelections[itemId] = {
-            selectedBrand: '',
-            selectedQuantity: '',
-            quantity: 1
-        }
+            selectedBrand: "",
+            selectedQuantity: "",
+            quantity: 1,
+        };
     }
     if (!itemLists[itemId]) {
-        itemLists[itemId] = []
+        itemLists[itemId] = [];
     }
-}
+};
 
 const onBrandChange = (itemId) => {
     // Reset quantity selection when brand changes
-    currentSelections[itemId].selectedQuantity = ''
-    currentSelections[itemId].quantity = 1
-}
+    currentSelections[itemId].selectedQuantity = "";
+    currentSelections[itemId].quantity = 1;
+};
 
 const getAvailableQuantities = (itemId) => {
-    const selectedBrand = currentSelections[itemId]?.selectedBrand
-    if (!selectedBrand) return []
+    const selectedBrand = currentSelections[itemId]?.selectedBrand;
+    if (!selectedBrand) return [];
 
-    const item = groceryItems.value.find(item => item.id === itemId)
-    if (!item || !item.payload[selectedBrand]) return []
+    const item = groceryItems.value.find((item) => item.id === itemId);
+    if (!item || !item.payload[selectedBrand]) return [];
 
-    return Object.keys(item.payload[selectedBrand])
-}
+    return Object.keys(item.payload[selectedBrand]);
+};
 
 const incrementCurrentQuantity = (itemId) => {
-    currentSelections[itemId].quantity++
-}
+    currentSelections[itemId].quantity++;
+};
 
 const decrementCurrentQuantity = (itemId) => {
     if (currentSelections[itemId].quantity > 1) {
-        currentSelections[itemId].quantity--
+        currentSelections[itemId].quantity--;
     }
-}
+};
 
 const canAddItem = (itemId) => {
-    const selection = currentSelections[itemId]
-    return selection.selectedBrand && selection.selectedQuantity && selection.quantity > 0
-}
+    const selection = currentSelections[itemId];
+    return selection.selectedBrand && selection.selectedQuantity && selection.quantity > 0;
+};
 
 const addItemToList = (itemId) => {
-    if (!canAddItem(itemId)) return
+    if (!canAddItem(itemId)) return;
 
-    const selection = currentSelections[itemId]
-    const item = groceryItems.value.find(item => item.id === itemId)
+    const selection = currentSelections[itemId];
+    const item = groceryItems.value.find((item) => item.id === itemId);
 
-    if (!item) return
+    if (!item) return;
 
-    const unitPrice = parseFloat(item.payload[selection.selectedBrand][selection.selectedQuantity]) || 0
+    const unitPrice = parseFloat(item.payload[selection.selectedBrand][selection.selectedQuantity]) || 0;
 
-    console.log('Adding item:', {
+    console.log("Adding item:", {
         brand: selection.selectedBrand,
         quantity_type: selection.selectedQuantity,
         unitPrice: unitPrice,
-        rawPrice: item.payload[selection.selectedBrand][selection.selectedQuantity]
-    })
+        rawPrice: item.payload[selection.selectedBrand][selection.selectedQuantity],
+    });
 
     // Add each quantity as separate items (as requested)
     for (let i = 0; i < selection.quantity; i++) {
@@ -298,45 +295,45 @@ const addItemToList = (itemId) => {
             unitPrice: unitPrice,
             totalPrice: unitPrice, // Since quantity is 1, totalPrice = unitPrice
             itemId: itemId,
-            title: item.title
-        }
-        itemLists[itemId].push(listItem)
+            title: item.title,
+        };
+        itemLists[itemId].push(listItem);
     }
 
     // Reset current selections
     currentSelections[itemId] = {
-        selectedBrand: '',
-        selectedQuantity: '',
-        quantity: 1
-    }
-}
+        selectedBrand: "",
+        selectedQuantity: "",
+        quantity: 1,
+    };
+};
 
 const removeItemFromList = (itemId, index) => {
-    itemLists[itemId].splice(index, 1)
-}
+    itemLists[itemId].splice(index, 1);
+};
 
 const getTotalItemPrice = (itemId) => {
-    if (!itemLists[itemId] || itemLists[itemId].length === 0) return 0
+    if (!itemLists[itemId] || itemLists[itemId].length === 0) return 0;
 
-    let total = 0
-    itemLists[itemId].forEach(item => {
-        const price = parseFloat(item.totalPrice) || 0
-        total += price
-    })
+    let total = 0;
+    itemLists[itemId].forEach((item) => {
+        const price = parseFloat(item.totalPrice) || 0;
+        total += price;
+    });
 
-    console.log(`Total for item ${itemId}:`, total, 'Items:', itemLists[itemId])
-    return total
-}
+    console.log(`Total for item ${itemId}:`, total, "Items:", itemLists[itemId]);
+    return total;
+};
 
 const addToCart = async (itemId) => {
-    const items = itemLists[itemId]
+    const items = itemLists[itemId];
     if (!items || items.length === 0) {
-        toast.error("No items to add to cart")
-        return
+        toast.error("No items to add to cart");
+        return;
     }
 
     try {
-        isLoading.value = true
+        isLoading.value = true;
 
         // Prepare the payload
         const cartItems = items.map((item, index) => ({
@@ -347,21 +344,21 @@ const addToCart = async (itemId) => {
             weight: item.quantity_type,
             quantity: item.quantity,
             price: item.unitPrice,
-            totalPrice: item.totalPrice
-        }))
+            totalPrice: item.totalPrice,
+        }));
 
-        console.log('Adding to cart:', cartItems)
+        console.log("Adding to cart:", cartItems);
 
         // API call to search matching regular products
         const response = await axios.post(`${API_BASE_URL}/api/resolve-product`, {
-            items: cartItems
-        })
+            items: cartItems,
+        });
 
-        const matchedProducts = response.data?.regularProducts || []
-        console.log("✅ Matched Products:", matchedProducts)
+        const matchedProducts = response.data?.regularProducts || [];
+        console.log("✅ Matched Products:", matchedProducts);
 
         // Batch add all products to cart using Promise.all
-        const cartPromises = matchedProducts.map(product => {
+        const cartPromises = matchedProducts.map((product) => {
             const cartItem = {
                 product_id: product.id,
                 quantity: 1,
@@ -373,28 +370,27 @@ const addToCart = async (itemId) => {
                     image_url: product.image_url,
                     business_id: product.business_id,
                 },
-            }
-            return cartStore.addToCart(cartItem)
-        })
+            };
+            return cartStore.addToCart(cartItem);
+        });
 
         // Execute all cart additions in parallel
-        await Promise.all(cartPromises)
+        await Promise.all(cartPromises);
 
         // Clear the item list after successful addition to cart
         // itemLists[itemId] = []
-
     } catch (error) {
-        console.error("Failed to add EasyBuy items:", error)
-        toast.error('Failed to add items to cart')
+        console.error("Failed to add EasyBuy items:", error);
+        toast.error("Failed to add items to cart");
     } finally {
-        isLoading.value = false
+        isLoading.value = false;
     }
-}
+};
 
 // Initialize on component mount
 onMounted(() => {
-    fetchGroceryItems()
-})
+    fetchGroceryItems();
+});
 </script>
 
 <style scoped>

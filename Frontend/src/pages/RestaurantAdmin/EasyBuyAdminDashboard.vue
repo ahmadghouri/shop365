@@ -286,7 +286,7 @@ const submitProduct = async () => {
     }
 
     if (!image.value) {
-        toast.error("Please upload image");
+        imageError.value = "Please upload a valid image.";
         return;
     }
 
@@ -316,7 +316,6 @@ const submitProduct = async () => {
     const finalProduct = {
         title: title.value,
         business_id: selectedProduct.value.business_id,
-        image_url: selectedProduct.value.image_url,
         image: image.value,
         payload
     };

@@ -180,6 +180,11 @@
         </div>
     </div>
 
+    <!-- No Products Found Message -->
+    <div v-if="groceryItems.length === 0 && !isLoading" class="text-center py-10">
+        <p class="text-xl text-gray-600">No products found.</p>
+    </div>
+
     <!-- Loading Overlay -->
     <div v-if="isLoading" class="fixed inset-0 z-50 flex justify-center items-center">
         <div class="loader">
@@ -249,15 +254,19 @@ const filterProducts = () => {
 
     // Apply filter
     if (selectedFilter.value !== "All") {
+        isLoading.value = true;
         filtered = filtered.filter((item) => item.title === selectedFilter.value);
+        isLoading.value = false;
     }
 
     // Apply search
     if (debouncedSearch.value.trim() !== "") {
+        isLoading.value = true;
         const searchLower = debouncedSearch.value.toLowerCase();
         filtered = filtered.filter(
             (item) => item.title.toLowerCase().includes(searchLower) || item.description?.toLowerCase().includes(searchLower)
         );
+        isLoading.value = false;
     }
 
     groceryItems.value = filtered;

@@ -349,17 +349,7 @@ const submitProduct = async () => {
 
     } catch (error) {
         console.error('Update error:', error);
-
-        if (error.response?.data?.errors) {
-            // Handle validation errors
-            Object.values(error.response.data.errors).flat().forEach(err => {
-                toast.error(err);
-            });
-        } else if (error.response?.data?.message) {
-            toast.error(error.response.data.message);
-        } else {
-            toast.error("Failed to update easy buy product.");
-        }
+        toast.error("Failed to update EasyBuy product");
     } finally {
         isSubmitting.value = false;
     }

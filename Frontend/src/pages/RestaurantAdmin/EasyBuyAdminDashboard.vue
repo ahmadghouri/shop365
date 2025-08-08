@@ -7,7 +7,7 @@
             </router-link>
         </div>
 
-        <!-- Update Form -->
+        <!-- Update form -->
         <div v-if="selectedProduct" class="bg-white shadow rounded-lg p-5 w-full max-w-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-medium text-gray-900">Update Easy Buy Product</h2>
@@ -129,9 +129,9 @@
                         rounded-lg px-4 py-2 hover:bg-yellow-600 transition duration-150 ease-in-out">
                             Update
                         </button>
-                        <button @click="handleDelete(product)"
-                            class="border border-yellow-500 text-yellow-500 w-full 
-                        font-bold rounded-lg px-4 py-2 hover:bg-yellow-600 hover:text-white transition duration-150 ease-in-out">
+                        <button @click="handleDelete(product)" class="border border-yellow-500 text-yellow-500 w-full 
+                        font-bold rounded-lg px-4 py-2 
+                            hover:bg-yellow-600 hover:text-white transition duration-150 ease-in-out">
                             Delete
                         </button>
                     </div>

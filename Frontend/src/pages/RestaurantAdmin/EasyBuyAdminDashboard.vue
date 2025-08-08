@@ -1,6 +1,5 @@
 <template>
     <div class="container mx-auto mobile-spacing">
-
         <div class="flex justify-between items-center">
             <h1 class="text-xl font-semibold mb-4">EasyBuy Product List</h1>
             <router-link class="bg-blue-500 px-5 py-1 mb-4 text-white rounded-md" to="/admin/store-easybuy-product">
@@ -8,15 +7,11 @@
             </router-link>
         </div>
 
-        <!-- Update Form -->
+        <!-- Update form -->
         <div v-if="selectedProduct" class="bg-white shadow rounded-lg p-5 w-full max-w-2xl">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-medium text-gray-900">
-                    Update Easy Buy Product
-                </h2>
-                <button @click="cancelUpdate" class="text-red-500 hover:text-red-700">
-                    ✕ Cancel
-                </button>
+                <h2 class="text-xl font-medium text-gray-900">Update Easy Buy Product</h2>
+                <button @click="cancelUpdate" class="text-red-500 hover:text-red-700">✕ Cancel</button>
             </div>
 
             <!-- Product Title & Image -->
@@ -96,9 +91,9 @@
 
             <!-- Submit Button -->
             <div class="text-right">
-                <button @click="submitProduct" :disabled="isSubmitting" class="w-full bg-blue-500 text-white text-sm font-medium py-2 rounded focus:outline-none 
-                        focus:ring-2 focus:ring-blue-300 hover:bg-blue-600 transition disabled:opacity-50">
-                    {{ isSubmitting ? 'Updating...' : 'Update EasyBuy Product' }}
+                <button @click="submitProduct" :disabled="isSubmitting"
+                    class="w-full bg-blue-500 text-white text-sm font-medium py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 hover:bg-blue-600 transition disabled:opacity-50">
+                    {{ isSubmitting ? "Updating..." : "Update EasyBuy Product" }}
                 </button>
             </div>
         </div>
@@ -108,7 +103,6 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 <div v-for="product in easyBuyProducts" :key="product.id"
                     class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col justify-between">
-
                     <div class="p-4 flex-grow">
                         <div class="flex items-start justify-between">
                             <div>
@@ -123,8 +117,7 @@
                             <div v-for="(weights, brand) in product.payload" :key="brand" class="mb-2">
                                 <div class="font-semibold">{{ brand }}:</div>
                                 <ul class="pl-4 list-disc text-sm text-gray-600">
-                                    <li v-for="(price, weight) in weights" :key="weight">
-                                        {{ weight }} – Rs. {{ price }}
+                                    <li v-for="(price, weight) in weights" :key="weight">{{ weight }} – Rs. {{ price }}
                                     </li>
                                 </ul>
                             </div>
@@ -132,12 +125,13 @@
                     </div>
 
                     <div class="p-4 flex justify-between items-center gap-4">
-                        <button @click="openFormForUpdate(product)"
-                            class="bg-yellow-500 text-white w-full font-bold rounded-lg px-4 py-2 hover:bg-yellow-600 transition duration-150 ease-in-out">
+                        <button @click="openFormForUpdate(product)" class="bg-yellow-500 text-white w-full font-bold 
+                        rounded-lg px-4 py-2 hover:bg-yellow-600 transition duration-150 ease-in-out">
                             Update
                         </button>
-                        <button @click="handleDelete(product)"
-                            class="border border-yellow-500 text-yellow-500 w-full font-bold rounded-lg px-4 py-2 hover:bg-yellow-600 hover:text-white transition duration-150 ease-in-out">
+                        <button @click="handleDelete(product)" class="border border-yellow-500 text-yellow-500 w-full 
+                        font-bold rounded-lg px-4 py-2 
+                            hover:bg-yellow-600 hover:text-white transition duration-150 ease-in-out">
                             Delete
                         </button>
                     </div>
@@ -152,25 +146,23 @@
 </template>
 
 <script setup>
-import axios from 'axios';
-import { onMounted, ref } from 'vue'
-import { API_BASE_URL } from '../../config/api';
-import { toast } from 'vue3-toastify';
+import axios from "axios";
+import { onMounted, ref } from "vue";
+import { API_BASE_URL } from "../../config/api";
+import { toast } from "vue3-toastify";
 
 const isLoading = ref(false);
 const isSubmitting = ref(false);
 const easyBuyProducts = ref([]);
 const selectedProduct = ref(null);
-const title = ref('');
+const title = ref("");
 let image = ref(null);
 const imageError = ref("");
 const brands = ref([
     {
-        name: '',
-        variants: [
-            { weight: '', price: null }
-        ]
-    }
+        name: "",
+        variants: [{ weight: "", price: null }],
+    },
 ]);
 
 onMounted(async () => {
@@ -203,8 +195,8 @@ const handleFileUpload = (event) => {
 
 const addBrand = () => {
     brands.value.push({
-        name: '',
-        variants: [{ weight: '', price: null }]
+        name: "",
+        variants: [{ weight: "", price: null }],
     });
 };
 
@@ -215,7 +207,7 @@ const removeBrand = (index) => {
 };
 
 const addVariant = (brandIndex) => {
-    brands.value[brandIndex].variants.push({ weight: '', price: null });
+    brands.value[brandIndex].variants.push({ weight: "", price: null });
 };
 
 const removeVariant = (brandIndex, varIndex) => {
@@ -239,7 +231,6 @@ const openFormForUpdate = async (product) => {
 
         // Transform payload to brands array (same as your store component structure)
         brands.value = transformPayloadForEdit(product.payload);
-
     } catch (error) {
         console.error("Error setting up update form:", error);
         toast.error("Failed to setup update form");
@@ -253,33 +244,30 @@ const transformPayloadForEdit = (payloadObj) => {
         name: brand,
         variants: Object.entries(weights).map(([weight, price]) => ({
             weight,
-            price: parseFloat(price)
-        }))
+            price: parseFloat(price),
+        })),
     }));
 };
 
 const resetForm = () => {
-    title.value = '';
+    title.value = "";
     image.value = null;
-    imageError.value = '';
+    imageError.value = "";
     brands.value = [
         {
-            name: '',
-            variants: [
-                { weight: '', price: null }
-            ]
-        }
+            name: "",
+            variants: [{ weight: "", price: null }],
+        },
     ];
 
     // Reset file input manually
     const fileInput = document.getElementById("image");
     if (fileInput) {
-        fileInput.value = '';
+        fileInput.value = "";
     }
 };
 
 const submitProduct = async () => {
-
     if (!title.value.trim()) {
         toast.error("Title is required");
         return;
@@ -287,6 +275,7 @@ const submitProduct = async () => {
 
     if (!image.value) {
         imageError.value = "Please upload a valid image.";
+        toast.error("Image is required.");
         return;
     }
 
@@ -317,10 +306,10 @@ const submitProduct = async () => {
         title: title.value,
         business_id: selectedProduct.value.business_id,
         image: image.value,
-        payload
+        payload,
     };
 
-    console.log('Update payload:', finalProduct);
+    console.log("Update payload:", finalProduct);
 
     try {
         isSubmitting.value = true;
@@ -329,7 +318,7 @@ const submitProduct = async () => {
             `${API_BASE_URL}/api/easy-buy/${selectedProduct.value.id}`,
             {
                 ...finalProduct,
-                _method: 'PUT'
+                _method: "PUT",
             },
             {
                 headers: {
@@ -345,10 +334,21 @@ const submitProduct = async () => {
 
         // Close the form
         cancelUpdate();
-
     } catch (error) {
-        console.error('Update error:', error);
-        toast.error("Failed to update EasyBuy product");
+        console.error("Update error:", error);
+
+        if (error.response?.data?.errors) {
+            // Handle validation errors
+            Object.values(error.response.data.errors)
+                .flat()
+                .forEach((err) => {
+                    toast.error(err);
+                });
+        } else if (error.response?.data?.message) {
+            toast.error(error.response.data.message);
+        } else {
+            toast.error("Failed to update easy buy product.");
+        }
     } finally {
         isSubmitting.value = false;
     }
@@ -365,16 +365,13 @@ const handleDelete = async (product) => {
 
         const response = await axios.delete(`${API_BASE_URL}/api/easy-buy/${product.id}`);
 
-        toast.success(response.data.data)
+        toast.success(response.data.data);
         // Refresh the products list
         await fetchProducts();
-
     } catch (error) {
-        console.error('Delete error:', error);
+        console.error("Delete error:", error);
     } finally {
         isLoading.value = false;
     }
-
-
-}
+};
 </script>

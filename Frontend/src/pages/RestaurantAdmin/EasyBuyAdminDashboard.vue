@@ -273,12 +273,6 @@ const submitProduct = async () => {
         return;
     }
 
-    if (!image.value) {
-        imageError.value = "Please upload a valid image.";
-        toast.error("Image is required.");
-        return;
-    }
-
     // Build payload exactly like your store component
     const payload = {};
 
@@ -305,7 +299,8 @@ const submitProduct = async () => {
     const finalProduct = {
         title: title.value,
         business_id: selectedProduct.value.business_id,
-        image: image.value,
+        image: image.value || null,
+        existing_image: selectedProduct.value.image || null,
         payload,
     };
 

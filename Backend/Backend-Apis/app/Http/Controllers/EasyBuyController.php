@@ -97,8 +97,11 @@ class EasyBuyController extends Controller
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'image' => 'nullable|image|max:2048|mimes:png,jpg,jpeg,svg,gif',
+                'existing_image' => 'nullable|string|max:255',
                 'payload' => 'required',
             ]);
+
+            Log::info('Updating EasyBuy with ID: ' . $id, ['validated' => $validated]);
 
             $easybuy = EasyBuy::with('products')->findOrFail($id);
 

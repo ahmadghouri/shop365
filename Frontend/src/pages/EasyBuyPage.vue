@@ -42,7 +42,7 @@
         </div>
 
         <!-- Horizontal Scrollable Filter Section -->
-        <div class="overflow-x-auto whitespace-nowrap mb-8 md:flex justify-center items-center">
+        <div class="overflow-x-auto whitespace-nowrap mb-8">
             <button v-for="item in filters" :key="item.id" @click="onFilterClick(item)" :class="[
                 item === selectedFilter
                     ? 'inline-block px-4 py-2 mx-2 text-sm font-medium rounded-full cursor-pointer bg-yellow-500 text-white hover:bg-yellow-700'
@@ -55,7 +55,8 @@
         <!-- Easy Buy Items -->
         <div class="flex flex-col gap-3 md:gap-6 relative">
             <div v-for="item in groceryItems" :key="item.id"
-                class="w-full md:w-2/3 xl:w-1/2 mb-4 bg-white rounded-xl md:rounded-2xl p-4 shadow-[0px_0px_10px_0px_rgba(0,0,0,0.25)] mx-auto">
+                class="w-full md:w-2/3 xl:w-1/2 mb-4 bg-white rounded-xl md:rounded-2xl p-4 
+                shadow-[0px_0px_10px_0px_rgba(0,0,0,0.25)] mx-auto">
                 <!-- Product Header -->
                 <div class="flex items-center gap-2.5 mb-2.5">
                     <div class="max-w-8 md:max-w-16 max-h-8 md:max-h-16 rounded-lg flex items-center justify-center">
@@ -64,19 +65,22 @@
                     <div class="flex justify-between items-center w-full">
                         <h2 class="text-base font-semibold md:text-xl md:font-bold text-[#1E293B]">{{ item.title }}</h2>
                         <span class="text-base md:text-lg font-semibold">
-                            Total: <span class="text-[#F50100]">{{ getTotalItemPrice(item.id) }}RS</span>
+                            Total: <span class="text-[#F50100]">{{ getTotalItemPrice(item.id) + getCurrentPrice(item.id)
+                                }}RS</span>
                         </span>
                     </div>
                 </div>
 
                 <!-- Main Selection -->
-                <div class="selection-section flex justify-between gap-5 md:gap-10 items-center mb-2.5 md:mb-4">
+                <div class="selection-section flex flex-row justify-between gap-2 sm:gap-4 md:gap-6 items-center 
+                    mb-2.5 md:mb-4 max-w-full">
                     <!-- Brand Selection -->
-                    <div class="w-full max-w-36 sm:max-w-none flex flex-col gap-1.5">
-                        <label for="brand" class="text-sm md:text-lg font-semibold">Brand</label>
+                    <div class="flex flex-col gap-1.5 flex-1 min-w-0">
+                        <label :for="`brand-${item.id}`" class="text-sm md:text-lg font-semibold">Brand</label>
                         <select :id="`brand-${item.id}`" v-model="currentSelections[item.id].selectedBrand"
                             @change="onBrandChange(item.id)"
-                            class="border border-[#0000001A] rounded px-3 py-1 md:py-2 text-xs md:text-base leading-4 cursor-pointer">
+                            class="w-full border border-[#0000001A] rounded px-2 sm:px-3 py-1 md:py-2 
+                            text-xs md:text-base leading-4 cursor-pointer">
                             <option value="" disabled>Choose Brand</option>
                             <option v-for="brand in Object.keys(item.payload)" :key="brand" :value="brand">
                                 {{ brand }}
@@ -85,11 +89,12 @@
                     </div>
 
                     <!-- Quantity Selection -->
-                    <div class="w-full max-w-36 sm:max-w-none flex flex-col gap-1.5">
-                        <label for="quantity" class="text-sm md:text-lg font-semibold">Quantity</label>
+                    <div class="flex flex-col gap-1.5 flex-1 min-w-0">
+                        <label :for="`quantity-${item.id}`" class="text-sm md:text-lg font-semibold">Quantity</label>
                         <select :id="`quantity-${item.id}`" v-model="currentSelections[item.id].selectedQuantity"
                             :disabled="!currentSelections[item.id].selectedBrand"
-                            class="border border-[#0000001A] rounded px-3 py-1 md:py-2 text-xs md:text-base leading-4 cursor-pointer disabled:bg-gray-100">
+                            class="w-full border border-[#0000001A] rounded px-2 sm:px-3 py-1 md:py-2 
+                            text-xs md:text-base leading-4 cursor-pointer disabled:bg-gray-100">
                             <option value="" disabled>Choose quantity</option>
                             <option v-for="quantity in getAvailableQuantities(item.id)" :key="quantity"
                                 :value="quantity">
@@ -287,9 +292,29 @@ const initializeItemSelections = (itemId) => {
 };
 
 const onBrandChange = (itemId) => {
-    // Reset quantity selection when brand changes
-    currentSelections[itemId].selectedQuantity = "";
+    // Get available quantities for the selected brand
+    const availableQuantities = getAvailableQuantities(itemId);
+
+    // Auto-select the first quantity if available
+    if (availableQuantities.length > 0) {
+        currentSelections[itemId].selectedQuantity = availableQuantities[0];
+    } else {
+        currentSelections[itemId].selectedQuantity = "";
+    }
+
+    // Reset quantity to 1
     currentSelections[itemId].quantity = 1;
+};
+
+const getCurrentPrice = (itemId) => {
+    const selection = currentSelections[itemId];
+    if (!selection?.selectedBrand || !selection?.selectedQuantity) return 0;
+
+    const item = groceryItems.value.find((item) => item.id === itemId);
+    if (!item || !item.payload[selection.selectedBrand]) return 0;
+
+    const unitPrice = parseFloat(item.payload[selection.selectedBrand][selection.selectedQuantity]) || 0;
+    return unitPrice * selection.quantity;
 };
 
 const getAvailableQuantities = (itemId) => {

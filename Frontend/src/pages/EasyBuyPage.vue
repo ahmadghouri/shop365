@@ -65,7 +65,8 @@
                     <div class="flex justify-between items-center w-full">
                         <h2 class="text-base font-semibold md:text-xl md:font-bold text-[#1E293B]">{{ item.title }}</h2>
                         <span class="text-base md:text-lg font-semibold">
-                            Total: <span class="text-[#F50100]">{{ getTotalItemPrice(item.id) }}RS</span>
+                            Total: <span class="text-[#F50100]">{{ getTotalItemPrice(item.id) + getCurrentPrice(item.id)
+                                }}RS</span>
                         </span>
                     </div>
                 </div>
@@ -291,9 +292,29 @@ const initializeItemSelections = (itemId) => {
 };
 
 const onBrandChange = (itemId) => {
-    // Reset quantity selection when brand changes
-    currentSelections[itemId].selectedQuantity = "";
+    // Get available quantities for the selected brand
+    const availableQuantities = getAvailableQuantities(itemId);
+
+    // Auto-select the first quantity if available
+    if (availableQuantities.length > 0) {
+        currentSelections[itemId].selectedQuantity = availableQuantities[0];
+    } else {
+        currentSelections[itemId].selectedQuantity = "";
+    }
+
+    // Reset quantity to 1
     currentSelections[itemId].quantity = 1;
+};
+
+const getCurrentPrice = (itemId) => {
+    const selection = currentSelections[itemId];
+    if (!selection?.selectedBrand || !selection?.selectedQuantity) return 0;
+
+    const item = groceryItems.value.find((item) => item.id === itemId);
+    if (!item || !item.payload[selection.selectedBrand]) return 0;
+
+    const unitPrice = parseFloat(item.payload[selection.selectedBrand][selection.selectedQuantity]) || 0;
+    return unitPrice * selection.quantity;
 };
 
 const getAvailableQuantities = (itemId) => {

@@ -30,6 +30,11 @@ class EasyBuyService
             'payload' => $payload
         ]);
 
+        if ($request->has('existing_image')) {
+            $easyBuy->image = $request->input('existing_image');
+            $easyBuy->save();
+        }
+
         if ($request->hasFile('image')) {
             $imagePath = $this->imageService->uploadImage($request, 'image');
             $easyBuy->image = $imagePath;

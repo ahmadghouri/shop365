@@ -13,8 +13,10 @@
           Hi {{ name || "Loading..." }}
         </span>
         <h1 class="text-yellow-500 text-3xl font-bold">Welcome To SHOP365</h1>
-        <button @click="showFormModal" class="my-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out">Apply Now</button>
-      </div>
+        <router-link to='/home/easybuy'>
+            <button class="animate-pulse-glow my-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out">Easybuy</button>
+        </router-link>
+        </div>
     </section>
 
     <div class="lg:hidden">
@@ -44,7 +46,9 @@
             >
               Discover More
             </button>
-             <button @click="showFormModal" class="mt-6  ml-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out">Apply Now</button>
+            <router-link to='/home/easybuy'>
+                <button class="animate-pulse-glow mt-6  ml-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all duration-300 ease-in-out">EasyBuy</button>
+            </router-link>
           </div>
         </div>
         <div class="w-full">
@@ -778,6 +782,24 @@ onMounted(async () => {
     max-height: 70vh;
     overflow-y: auto; 
   }
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 10px 5px rgba(255, 215, 0, 0.6);
+        transform: scale(1.05);
+    }
 }
 
 /* Responsive Category Link Styles */

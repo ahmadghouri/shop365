@@ -29,6 +29,7 @@
     "canvas-confetti": "^1.9.3",
     "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
+    "lodash.debounce": "^4.0.8",
     "lucide-vue-next": "^0.469.0",
     "moment-timezone": "^0.5.46",
     "pinia": "^2.2.4",

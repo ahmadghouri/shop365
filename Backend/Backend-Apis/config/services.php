@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'pos_products' => [
+        'url' => env('POS_PRODUCTS_API_URL', "https://webapi.cyberneticonline.com/api/product/getProductList"),
+    ],
+
 ];

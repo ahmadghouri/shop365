@@ -13,6 +13,7 @@ use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\InternshipApplicationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PerscriptionController;
+use App\Http\Controllers\PosProductController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TownController;
@@ -78,6 +79,9 @@ Route::put('/update/{id}', [UserController::class, 'update'])->name('admin.users
 Route::put('/update/household', [HouseholdController::class, 'update']);
 
 Route::get('/getNumber/{businessId}', [BusinessController::class, 'getNumber']);
+
+Route::get('/pos-products', [PosProductController::class, 'index']);
+Route::post('/pos-products/import', [PosProductController::class, 'import']);
 // Routes requiring authentication
 
 Route::middleware('auth:sanctum')->group(function () {

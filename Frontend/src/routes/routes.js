@@ -51,6 +51,7 @@ import InternshipApplications from "../pages/Admin/InternshipApplications.vue";
 import EasyBuyPage from "../pages/EasyBuyPage.vue";
 import EasyBuyAdminDashboard from "../pages/RestaurantAdmin/EasyBuyAdminDashboard.vue";
 import StoreEasyBuyProduct from "../components/Vendor/StoreEasyBuyProduct.vue";
+import PosProducts from "../pages/Admin/PosProducts.vue";
 
 const routes = [
   {
@@ -256,6 +257,14 @@ const routes = [
         path: "carousel",
         name: "AdminCarousel",
         component: CarouselImages,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "pos-products",
+        name: "PosProducts",
+        component: PosProducts,
         meta: {
           requiresAdminAuth: true,
         },

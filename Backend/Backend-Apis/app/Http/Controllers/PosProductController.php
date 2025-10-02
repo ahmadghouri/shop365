@@ -16,6 +16,11 @@ class PosProductController extends Controller
             $query->where('locno', $request->locno);
         }
 
+        if ($request->search) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
         if ($request->sort === 'price_asc') {
             $query->orderBy('price', 'asc');
         } elseif ($request->sort === 'price_desc') {

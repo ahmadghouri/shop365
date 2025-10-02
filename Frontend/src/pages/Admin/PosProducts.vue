@@ -1,33 +1,45 @@
 <template>
   <div class="p-6 space-y-6">
     <!-- Filters -->
-    <div class="flex flex-wrap gap-4 items-center">
-      <!-- Shop / Warehouse -->
-      <select v-model="filters.locno" @change="loadProducts"
-              class="border rounded-md px-3 py-2">
-        <option value="0">Shop</option>
-        <option value="1">Warehouse</option>
-      </select>
+    <div class="flex flex-wrap justify-between items-center gap-4">
+      <!-- Left side filters -->
+      <div class="flex flex-wrap gap-4 items-center">
+        <!-- Shop / Warehouse -->
+        <select v-model="filters.locno" @change="loadProducts"
+                class="border rounded-md px-3 py-2">
+          <option value="0">Shop</option>
+          <option value="1">Warehouse</option>
+        </select>
 
-      <!-- Sort -->
-      <select v-model="filters.sort" @change="loadProducts"
-              class="border rounded-md px-3 py-2">
-        <option value="">Default</option>
-        <option value="price_asc">Price Low → High</option>
-        <option value="price_desc">Price High → Low</option>
-      </select>
+        <!-- Sort -->
+        <select v-model="filters.sort" @change="loadProducts"
+                class="border rounded-md px-3 py-2">
+          <option value="">Default</option>
+          <option value="price_asc">Price Low → High</option>
+          <option value="price_desc">Price High → Low</option>
+        </select>
 
-      <!-- Quantity -->
-      <input type="number" v-model="filters.max_quantity"
-             @input="debouncedLoad"
-             placeholder="Min Qty"
-             class="border rounded-md px-3 py-2 w-40" />
+        <!-- Quantity -->
+        <input type="number" v-model="filters.max_quantity"
+               @input="debouncedLoad"
+               placeholder="Min Qty"
+               class="border rounded-md px-3 py-2 w-40" />
 
-      <!-- Import Button -->
-      <button @click="handleImport"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
-        Import Products
-      </button>
+        <!-- Import Button -->
+        <button @click="handleImport"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
+          Import Products
+        </button>
+      </div>
+
+      <!-- Right side search -->
+      <div>
+        <input type="text"
+               v-model="filters.search"
+               @input="debouncedLoad"
+               placeholder="Search products..."
+               class="border rounded-md px-3 py-2 w-64" />
+      </div>
     </div>
 
     <!-- Products Grid -->
@@ -99,6 +111,7 @@ const filters = ref({
   locno: 0,
   sort: '',
   max_quantity: null,
+  search: '',
   page: 1
 })
 

@@ -64,7 +64,7 @@ class ImportPosProductsJob implements ShouldQueue
             foreach ($response as $item) {
                 $rows[] = [
                     'item_code' => $item['ITEM_CODE'],
-                    'bar_code' => $item['BAR_CODE'],
+                    'bar_code' => $item['BAR_CODE'] ?? '',
                     'name' => $item['ITEM_DESC'],
                     'description' => $item['ITEM_DESC_LONG'],
                     'department' => $item['DEPT_NAME'],

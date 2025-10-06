@@ -89,9 +89,9 @@ class ImportPosProductsJob implements ShouldQueue
             // Bulk upsert
             PosProduct::upsert(
                 $rows,
-                ['item_code', 'bar_code', 'locno'], // unique keys
+                ['item_code', 'locno'], // unique keys
                 [
-                    'name','description','department','group','supplier',
+                    'bar_code','name','description','department','group','supplier',
                     'brand','price','discount_price','cost','quantity',
                     'is_available','uom','pack_desc','image_path','thumbnail_path',
                     'updated_at'

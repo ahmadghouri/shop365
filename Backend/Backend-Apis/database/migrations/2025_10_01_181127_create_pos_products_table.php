@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('pos_products', function (Blueprint $table) {
             $table->id();
             $table->string('item_code');        // from ITEM_CODE
-            $table->string('bar_code')->nullable();
+            $table->string('bar_code')->default('');
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('department')->nullable();
@@ -32,6 +32,9 @@ return new class extends Migration
             $table->string('thumbnail_path')->nullable();
             $table->tinyInteger('locno')->default(0); // 0=shop, 1=warehouse
             $table->timestamps();
+
+            // Add composite unique index
+            $table->unique(['item_code', 'locno'], 'pos_products_unique_key');
         });
     }
 

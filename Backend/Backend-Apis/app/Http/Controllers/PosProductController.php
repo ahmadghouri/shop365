@@ -31,7 +31,7 @@ class PosProductController extends Controller
             $query->where('quantity', '=', $request->max_quantity);
         }
 
-        return $query->paginate(20);
+        return $query->paginate(50);
     }
 
     public function import(Request $request)

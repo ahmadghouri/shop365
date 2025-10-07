@@ -30,6 +30,18 @@
                 class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
           Import Products
         </button>
+
+        <!-- View toggle buttons -->
+        <div class="flex items-center border rounded-md overflow-hidden">
+          <button @click="isTableView = true"
+                  :class="['px-3 py-2 flex items-center gap-1', isTableView ? 'bg-gray-100 text-blue-600' : 'text-gray-500 hover:bg-gray-50']">
+            <Icon icon="mdi:table" class="w-5 h-5" />
+          </button>
+          <button @click="isTableView = false"
+                  :class="['px-3 py-2 flex items-center gap-1', !isTableView ? 'bg-gray-100 text-blue-600' : 'text-gray-500 hover:bg-gray-50']">
+            <Icon icon="mdi:view-grid" class="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <!-- Right side search -->
@@ -42,11 +54,57 @@
       </div>
     </div>
 
-    <!-- Products Grid -->
+    
     <div v-if="loading" class="text-center py-10 text-gray-500">
       Loading products...
     </div>
 
+    <!-- Table View -->
+    <div v-else-if="isTableView" class="overflow-x-auto bg-white rounded-lg shadow-sm">
+      <table class="min-w-full border-collapse">
+        <thead class="bg-gray-100 text-gray-700 text-left sticky top-0 z-10">
+          <tr>
+            <!-- <th class="p-3 border-b">Image</th> -->
+            <th class="p-3 border-b">#</th>
+            <th class="p-3 border-b">Name</th>
+            <th class="p-3 border-b">Barcode</th>
+            <th class="p-3 border-b">Department / Group</th>
+            <th class="p-3 border-b">Price</th>
+            <th class="p-3 border-b">Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(product, index) in products" :key="product.id"
+              class="hover:bg-gray-50">
+            <!-- <td class="p-3 border-b">
+              <img v-if="product.image_path"
+                   :src="product.image_path"
+                   alt="product"
+                   class="h-12 w-12 object-contain rounded" />
+              <span v-else class="text-gray-400 text-sm">No Image</span>
+            </td> -->
+            <td class="p-3 border-b text-sm text-gray-500">
+              {{ (pagination.current_page - 1) * pagination.per_page + index + 1 }}
+            </td>
+            <td class="p-3 border-b font-medium">{{ product.name }}</td>
+            <td class="p-3 border-b text-sm text-gray-600">{{ product.bar_code }}</td>
+            <td class="p-3 border-b text-sm text-gray-600">
+              {{ product.department }} / {{ product.group }}
+            </td>
+            <td class="p-3 border-b text-sm text-gray-700">
+              Rs. {{ product.price }}
+              <span v-if="product.discount_price && product.discount_price < product.price"
+                    class="text-red-500 line-through ml-1 text-xs">
+                Rs. {{ product.discount_price }}
+              </span>
+            </td>
+            <td class="p-3 border-b">{{ product.quantity }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Grid View -->
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div v-for="product in products" :key="product.id"
            class="border rounded-lg shadow-sm hover:shadow-md transition p-4 bg-white">
@@ -97,7 +155,9 @@
 import { ref, onMounted } from 'vue'
 import { fetchProducts, importProducts } from '../../services/posProductApi'
 import debounce from 'lodash.debounce'
+import { Icon } from '@iconify/vue'
 
+const isTableView = ref(true)
 const products = ref<any[]>([])
 const loading = ref(false)
 const pagination = ref({

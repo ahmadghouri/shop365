@@ -141,6 +141,15 @@
             EasyBuy Products
           </router-link>
         </li>
+        <!-- Shop365 Mart restaurant admin user id -->
+        <li v-if="authStore.user.id === 6" class="px-4 py-2">
+          <router-link
+            to="/admin/pos-products"
+            class="block text-gray-700 hover:text-gray-900"
+          >
+            POS Products
+          </router-link>
+        </li>
         <li class="px-4 py-2">
           <router-link
             to="/admin/discount"

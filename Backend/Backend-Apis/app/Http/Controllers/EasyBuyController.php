@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\cart;
 use App\Models\EasyBuy;
 use App\Models\Product;
 use App\Services\EasyBuyService;
@@ -106,6 +107,11 @@ class EasyBuyController extends Controller
             $easybuy = EasyBuy::with('products')->findOrFail($id);
 
             DB::transaction(function () use ($easybuy) {
+
+                $productIds = $easybuy->products->pluck('id');
+
+                cart::whereIn('product_id', $productIds)->delete();
+
                 $easybuy->products()->delete();
                 $easybuy->delete();
             });

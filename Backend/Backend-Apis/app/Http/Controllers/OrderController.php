@@ -69,6 +69,8 @@ class OrderController extends Controller
             'Items.product'
         ])->findOrFail($id);
 
+        $order = $this->orderService->attachDeliveryMeta($order);
+
         return response()->json($order);
     }
 

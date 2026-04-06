@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrderManageService
 {
+    private const DELIVERY_CHARGE = 50;
     protected $imageService;
 
     public function placeOrder($userPoints = false, $voucherCode = null)
@@ -176,6 +177,11 @@ class OrderManageService
                 $totalPrice -= $discountAmount;
             }
 
+            // Add a fixed delivery charge to every order total.
+            if ($businessId == 6) {
+                $totalPrice += self::DELIVERY_CHARGE;
+            }
+
             // Create the order
             $order = Order::create([
                 'user_id' => auth()->id(),
@@ -183,6 +189,8 @@ class OrderManageService
                 'status' => 'pending',
                 'voucher_id' => $voucher ? $voucher->id : null,
             ]);
+
+            $this->attachDeliveryMeta($order);
 
             // Add regular items to the order
             foreach ($regularItems as $cartItem) {
@@ -367,6 +375,14 @@ class OrderManageService
                 $user->save();
             }
         }
+
+        return $order;
+    }
+
+    public function attachDeliveryMeta($order)
+    {
+        $order->delivery_charge = self::DELIVERY_CHARGE;
+        $order->total_amount = (float) $order->total_price;
 
         return $order;
     }

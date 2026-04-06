@@ -423,7 +423,7 @@
               -{{ cartStore.voucherDiscount.toFixed(2) }}
             </p>
           </div>
-            <div v-if="orderStore.businessId == 6" class="flex gap-4 items-center text-nowrap">
+            <div v-if="hasBusinessSixProducts" class="flex gap-4 items-center text-nowrap">
                 <h2 class="text-lg font-medium">Delivery Charges:</h2>
                 <p class="text-gray-600 font-bold">
                 {{ deliveryCharge.toFixed(2) }}
@@ -448,10 +448,11 @@
     >
       <div class="flex items-center justify-between p-4 space-x-4">
         <div class="flex flex-col">
-        <p v-if="orderStore.businessId == 6"
+        <p
+          v-if="hasBusinessSixProducts"
           class="animate-bounce focus:animate-none hover:animate-none bg-white text-yellow-600 rounded-full px-2 font-semibold text-xs hover:shadow-yellow-500/50 mb-2"
         >
-          Due to Fuel Price 😔
+          Due to Fuel Price
         </p>
           <!-- Sub Total and Total Container -->
           <div class="flex items-center space-x-2">
@@ -472,7 +473,7 @@
             </span>
           </div>
 
-          <div v-if="orderStore.businessId == 6" class="flex items-center space-x-2">
+          <div v-if="hasBusinessSixProducts" class="flex items-center space-x-2">
             <span class="text-white text-sm font-medium">Delivery:</span>
             <span class="text-white text-base font-bold">
               {{ deliveryCharge.toFixed(2) }}
@@ -613,12 +614,22 @@ const originalTotal = computed(() => {
   }, 0);
 });
 
+const hasBusinessSixProducts = computed(() => {
+  return cartStore.cartItems.some(
+    (item) => Number(item?.product?.business_id) === 6
+  );
+});
+
+const discountedSubtotal = computed(() => {
+  return Math.max(originalTotal.value - cartStore.voucherDiscount, 0);
+});
+
 const total = computed(() => {
-  return Math.max(originalTotal.value - cartStore.voucherDiscount, 0) + deliveryCharge.value;
+  return discountedSubtotal.value + deliveryCharge.value;
 });
 
 const deliveryCharge = computed(() => {
-  return cartStore.cartItems.length > 0 ? DELIVERY_CHARGE : 0;
+  return hasBusinessSixProducts.value ? DELIVERY_CHARGE : 0;
 });
 
 const orderNow = async () => {
@@ -634,7 +645,7 @@ const orderNow = async () => {
   const hasNonPrescriptionItems = cartStore.cartItems.some(
     (item) => item.product.type.toLowerCase() !== "prescription"
   );
-  if (total.value <= 0 && hasNonPrescriptionItems) {
+  if (discountedSubtotal.value <= 0 && hasNonPrescriptionItems) {
     showError("You cannot place an order with a total amount of 0.");
     return;
   }

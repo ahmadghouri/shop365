@@ -1,112 +1,49 @@
 <template>
   <div class="container mx-auto px-4 py-6">
-    <div class="flex flex-row items-center justify-between mb-6">
-      <div class="flex items-center">
-        <h1 class="text-2xl sm:text-3xl font-bold">All Restaurants</h1>
-      </div>
-      <button
-        @click="showForm = true"
-        class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center min-w-[40px] min-h-[40px]"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="2"
-          stroke="currentColor"
-          class="w-5 h-5"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M12 4.5v15m7.5-7.5h-15"
-          />
-        </svg>
-      </button>
+    <PageHeader title="Restaurants" description="Manage your restaurants">
+      <template #actions>
+        <Button @click="showForm = true">
+          <Plus class="w-4 h-4 mr-2" />
+          Add Restaurant
+        </Button>
+      </template>
+    </PageHeader>
+
+    <div class="mb-6">
+      <StatCard
+        title="Total Restaurants"
+        :value="businessStore.businesses.length"
+        :icon="Store"
+        description="All registered restaurants"
+        :loading="businessStore.loading"
+      />
     </div>
 
-    <!-- Modals -->
-    <Teleport to="body">
-      <!-- Add Restaurant Modal -->
-      <div
-        v-if="showForm"
-        class="fixed inset-0 z-50 overflow-y-auto"
-        aria-labelledby="modal-title"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div class="flex items-center justify-center min-h-screen px-4">
-          <div
-            class="fixed inset-0 bg-gray-900 bg-opacity-50"
-            @click="showForm = false"
-          ></div>
-          <div class="relative bg-white rounded-lg w-full max-w-2xl mx-auto">
-            <AddRestaurantForm @close="showForm = false" />
-          </div>
-        </div>
-      </div>
+    <div v-if="businessStore.loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <Card v-for="i in 4" :key="i" class="overflow-hidden">
+        <CardHeader>
+          <Skeleton class="h-6 w-3/4" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton class="h-4 w-1/2 mb-2" />
+          <Skeleton class="h-4 w-1/3" />
+        </CardContent>
+        <CardFooter>
+          <Skeleton class="h-9 w-full" />
+        </CardFooter>
+      </Card>
+    </div>
 
-      <!-- Edit Restaurant Modal -->
-      <div
-        v-if="showEditForm"
-        class="fixed inset-0 z-50 overflow-y-auto"
-        aria-labelledby="modal-title"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div class="flex items-center justify-center min-h-screen px-4">
-          <div
-            class="fixed inset-0 bg-gray-900 bg-opacity-50"
-            @click="showEditForm = false"
-          ></div>
-          <div class="relative bg-white rounded-lg w-full max-w-2xl mx-auto">
-            <EditRestaurantForm
-              :restaurant="selectedRestaurant"
-              @close="showEditForm = false"
-            />
-          </div>
-        </div>
-      </div>
+    <EmptyState
+      v-else-if="businessStore.businesses.length === 0"
+      title="No Restaurants"
+      description="Get started by adding your first restaurant."
+      :icon="Store"
+      actionLabel="Add Restaurant"
+      @action="showForm = true"
+    />
 
-      <!-- Delete Confirmation Modal -->
-      <div
-        v-if="showDeleteConfirm"
-        class="fixed inset-0 z-50 overflow-y-auto"
-        aria-labelledby="modal-title"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div class="flex items-center justify-center min-h-screen px-4">
-          <div
-            class="fixed inset-0 bg-gray-900 bg-opacity-50"
-            @click="cancelDelete"
-          ></div>
-          <div class="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
-            <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
-            <p class="mb-6">Are you sure you want to delete this restaurant?</p>
-            <div class="flex flex-col sm:flex-row justify-end gap-3">
-              <button
-                @click="cancelDelete"
-                class="w-full sm:w-auto px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                @click="confirmDelete"
-                class="w-full sm:w-auto px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-
-    <!-- Restaurant Grid -->
-    <div
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-    >
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <router-link
         v-for="restaurant in businessStore.businesses"
         :key="restaurant.id"
@@ -115,50 +52,102 @@
           params: { id: restaurant.id },
           query: { title: restaurant.name },
         }"
-        class="bg-white shadow-lg rounded-xl overflow-hidden flex flex-col"
       >
-        <div class="p-6 flex flex-col h-full">
-          <h2 class="text-xl font-semibold mb-3 truncate">
-            {{ restaurant.name }}
-          </h2>
-          <div class="prose prose-sm max-w-none mb-4 flex-grow">
-            <p class="text-gray-600">{{ restaurant.type }}</p>
-            <div class="flex flex-col mt-2">
-              <p class="text-sm text-gray-600">
-                Opening Time: {{ restaurant.opening_time }}
+        <Card class="h-full transition-shadow hover:shadow-md cursor-pointer">
+          <CardHeader>
+            <CardTitle class="truncate">{{ restaurant.name }}</CardTitle>
+            <CardDescription>{{ restaurant.type }}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div class="space-y-1 text-sm text-muted-foreground">
+              <p class="flex items-center gap-2">
+                <Clock class="w-4 h-4" />
+                Opens: {{ restaurant.opening_time }}
               </p>
-              <p class="text-sm text-gray-600">
-                Closing Time: {{ restaurant.closing_time }}
+              <p class="flex items-center gap-2">
+                <Clock class="w-4 h-4" />
+                Closes: {{ restaurant.closing_time }}
               </p>
             </div>
-          </div>
-          <div class="mt-auto">
-            <div class="flex flex-col sm:flex-row gap-3">
-              <button
-                @click.prevent="editRestaurant(restaurant)"
-                class="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                Edit
-              </button>
-              <button
-                @click.prevent="showDeleteConfirmation(restaurant.id)"
-                class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+          <CardFooter class="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              class="flex-1"
+              @click.prevent="editRestaurant(restaurant)"
+            >
+              <Pencil class="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              class="flex-1"
+              @click.prevent="showDeleteConfirmation(restaurant.id)"
+            >
+              <Trash2 class="w-4 h-4 mr-1" />
+              Delete
+            </Button>
+          </CardFooter>
+        </Card>
       </router-link>
     </div>
+
+    <Dialog v-model:open="showForm">
+      <DialogContent class="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Add Restaurant</DialogTitle>
+          <DialogDescription>Create a new restaurant entry.</DialogDescription>
+        </DialogHeader>
+        <AddRestaurantForm @close="showForm = false" />
+      </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="showEditForm">
+      <DialogContent class="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit Restaurant</DialogTitle>
+          <DialogDescription>Update restaurant details.</DialogDescription>
+        </DialogHeader>
+        <EditRestaurantForm
+          :restaurant="selectedRestaurant"
+          @close="showEditForm = false"
+        />
+      </DialogContent>
+    </Dialog>
+
+    <AlertDialog v-model:open="showDeleteConfirm">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this restaurant? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="cancelDelete">Cancel</AlertDialogCancel>
+          <AlertDialogAction @click="confirmDelete">Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useBusinessStore } from "../../store/businessStore.js";
-import AddRestaurantForm from "../../components/AddRestaurant.vue";
-import EditRestaurantForm from "../../components/EditRestaurant.vue";
+import { useBusinessStore } from "@/store/businessStore.js";
+import AddRestaurantForm from "@/components/AddRestaurant.vue";
+import EditRestaurantForm from "@/components/EditRestaurant.vue";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
+import EmptyState from "@/components/dashboard/EmptyState.vue";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { Plus, Pencil, Trash2, Clock, Store } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
 const showForm = ref(false);
@@ -194,5 +183,3 @@ onMounted(() => {
   businessStore.getBusinesses();
 });
 </script>
-
-<style scoped></style>

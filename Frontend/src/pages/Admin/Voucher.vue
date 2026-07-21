@@ -1,256 +1,107 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
-  >
-    <div class="w-full max-w-md">
-      <div
-        class="bg-white shadow-2xl rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105"
-      >
-        <div class="px-8 py-10">
-          <h2
-            class="text-center text-4xl font-extrabold text-gray-900 mb-10 tracking-tight"
-          >
-            Create Voucher
-          </h2>
+  <div class="container mx-auto px-4 py-6">
+    <PageHeader title="Create Voucher" description="Create a new discount voucher for a business" />
 
-          <form @submit.prevent="createVoucher" class="space-y-6">
-            <div>
-              <label
-                for="business"
-                class="block text-sm font-medium text-gray-700 mb-2"
+    <div class="max-w-md mx-auto">
+      <Card>
+        <CardContent class="pt-6">
+          <form @submit.prevent="createVoucher" class="space-y-4">
+            <div class="space-y-2">
+              <Label>Business</Label>
+              <select
+                v-model="voucherData.business_id"
+                required
+                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Business
-              </label>
-              <div class="relative">
-                <select
-                  v-model="voucherData.business_id"
-                  id="business"
-                  required
-                  class="appearance-none w-full bg-white border border-gray-300 rounded-lg pl-4 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out"
+                <option value="" disabled>Select Business</option>
+                <option
+                  v-for="business in businessStore.businesses"
+                  :key="business.id"
+                  :value="business.id"
                 >
-                  <option value="" disabled>Select Business</option>
-                  <option
-                    v-for="business in businessStore.businesses"
-                    :key="business.id"
-                    :value="business.id"
-                  >
-                    {{ business.name }}
-                  </option>
-                </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"
-                >
-                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fill-rule="evenodd"
-                      d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 6.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </div>
+                  {{ business.name }}
+                </option>
+              </select>
             </div>
 
-            <div>
-              <label
-                for="code"
-                class="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Voucher Code
-              </label>
-              <input
-                type="text"
+            <div class="space-y-2">
+              <Label>Voucher Code</Label>
+              <Input
                 v-model="voucherData.code"
-                id="code"
+                type="text"
                 required
                 maxlength="12"
                 placeholder="Enter voucher code"
-                :class="[
-                  'w-full rounded-lg py-3 px-4 text-sm transition duration-200 ease-in-out',
-                  voucherData.code.length > 12
-                    ? 'border-red-500 focus:ring-red-500 bg-red-50'
-                    : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500',
-                ]"
               />
-              <p
-                :class="[
-                  'mt-2 text-sm',
-                  voucherData.code.length > 12
-                    ? 'text-red-600'
-                    : 'text-gray-500',
-                ]"
-              >
+              <p class="text-xs" :class="voucherData.code.length > 12 ? 'text-destructive' : 'text-muted-foreground'">
                 {{ voucherData.code.length }}/12 characters
               </p>
             </div>
 
-            <div>
-              <label
-                for="discount"
-                class="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Price Limit
-              </label>
-              <input
-                type="number"
+            <div class="space-y-2">
+              <Label>Price Limit</Label>
+              <Input
                 v-model.number="voucherData.min_purchase_amount"
+                type="number"
                 required
                 min="0"
                 placeholder="Enter price limit amount"
-                class="w-full rounded-lg py-3 px-4 text-sm border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out"
               />
             </div>
 
-            <div>
-              <label
-                for="discount"
-                class="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Discount Amount
-              </label>
-              <input
-                type="number"
+            <div class="space-y-2">
+              <Label>Discount Amount</Label>
+              <Input
                 v-model.number="voucherData.discount_amount"
-                id="discount"
+                type="number"
                 required
                 min="0"
                 placeholder="Enter discount amount"
-                class="w-full rounded-lg py-3 px-4 text-sm border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out"
               />
             </div>
 
-            <div>
-              <label
-                for="expiry"
-                class="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Expiry Date
-              </label>
-              <input
-                type="date"
+            <div class="space-y-2">
+              <Label>Expiry Date</Label>
+              <Input
                 v-model="voucherData.expiry_date"
-                id="expiry"
+                type="date"
                 required
-                class="w-full rounded-lg py-3 px-4 text-sm border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out"
               />
             </div>
 
-            <div>
-              <button
-                type="submit"
-                :disabled="isSubmitting"
-                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out transform active:scale-95 disabled:opacity-50"
-              >
-                <span v-if="isSubmitting" class="flex items-center">
-                  <svg
-                    class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Creating...
-                </span>
-                <span v-else>Create Voucher</span>
-              </button>
-            </div>
+            <Button type="submit" class="w-full" :disabled="isSubmitting">
+              <Loader2 v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
+              {{ isSubmitting ? 'Creating...' : 'Create Voucher' }}
+            </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <!-- Success Notification -->
-      <transition
-        enter-active-class="transition ease-out duration-300"
-        enter-from-class="opacity-0 translate-y-4"
-        enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition ease-in duration-200"
-        leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 translate-y-4"
-      >
-        <div
-          v-if="successMessage"
-          class="mt-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-lg shadow-md"
-        >
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg
-                class="h-5 w-5 text-green-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm text-green-700 font-medium">
-                {{ successMessage }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </transition>
+      <Alert v-if="successMessage" class="mt-4">
+        <CheckCircle class="h-4 w-4" />
+        <AlertDescription>{{ successMessage }}</AlertDescription>
+      </Alert>
 
-      <!-- Error Notification -->
-      <transition
-        enter-active-class="transition ease-out duration-300"
-        enter-from-class="opacity-0 translate-y-4"
-        enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition ease-in duration-200"
-        leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 translate-y-4"
-      >
-        <div
-          v-if="errorMessage"
-          class="mt-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-lg shadow-md"
-        >
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg
-                class="h-5 w-5 text-red-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm text-red-700 font-medium">
-                {{ errorMessage }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </transition>
+      <Alert v-if="errorMessage" variant="destructive" class="mt-4">
+        <AlertCircle class="h-4 w-4" />
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useBusinessStore } from "../../store/businessStore";
+import { useBusinessStore } from "@/store/businessStore";
 import axios from "axios";
-import { API_BASE_URL } from "../../config/api";
+import { API_BASE_URL } from "@/config/api";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, CheckCircle, AlertCircle } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
 
@@ -267,28 +118,22 @@ const successMessage = ref("");
 const errorMessage = ref("");
 
 const createVoucher = async () => {
-  // Validate input
   if (!voucherData.value.business_id) {
     errorMessage.value = "Please select a business";
     return;
   }
 
-  // Validate voucher code length
   if (voucherData.value.code.length > 12) {
     errorMessage.value = "Voucher code cannot be longer than 12 characters";
     return;
   }
 
-  // Reset previous messages
   errorMessage.value = "";
   successMessage.value = "";
-
-  // Start submission
   isSubmitting.value = true;
 
   try {
-    // Send data to API
-    const response = await axios.post(
+    await axios.post(
       `${API_BASE_URL}/api/admin/create-voucher`,
       {
         business_id: voucherData.value.business_id,
@@ -299,10 +144,7 @@ const createVoucher = async () => {
       }
     );
 
-    // Handle successful creation
     successMessage.value = "Voucher Created Successfully";
-
-    // Reset form
     voucherData.value = {
       business_id: null,
       code: "",
@@ -310,12 +152,10 @@ const createVoucher = async () => {
       expiry_date: null,
     };
   } catch (error) {
-    // Handle error
     errorMessage.value =
       error.response?.data?.message || "Failed to create voucher";
     console.error("Voucher creation error:", error);
   } finally {
-    // Stop submission
     isSubmitting.value = false;
   }
 };
@@ -329,11 +169,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style scoped>
-/* Additional custom styles can be added here if needed */
-input:focus,
-select:focus {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-</style>

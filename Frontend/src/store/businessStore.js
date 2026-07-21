@@ -11,11 +11,14 @@ export const useBusinessStore = defineStore("business", {
   }),
   actions: {
     async getBusinesses() {
+      this.loading = true;
       try {
         const response = await axios.get(`${API_BASE_URL}/api/business`);
         this.businesses = response.data.data;
       } catch (error) {
         console.error("Failed to fetch businesses", error);
+      } finally {
+        this.loading = false;
       }
     },
 

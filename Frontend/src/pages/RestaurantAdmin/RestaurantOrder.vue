@@ -1,393 +1,247 @@
 <template>
-  <div class="max-w-6xl mx-auto p-6 rounded-md">
-    <div class="flex justify-between">
-      <h1 class="text-2xl md:text-3xl font-bold mb-6">Restaurant Orders</h1>
-      <div>
-        <button @click="refreshOrders" class="button outline-none">
+  <div class="container mx-auto px-4 py-6">
+    <PageHeader title="Restaurant Orders" description="Manage incoming and past orders">
+      <template #actions>
+        <Button variant="outline" @click="refreshOrders">
+          <RefreshCw class="w-4 h-4 mr-2" />
           Refresh
-        </button>
-      </div>
+        </Button>
+      </template>
+    </PageHeader>
+
+    <div class="flex items-center gap-2 mt-6 mb-6 overflow-x-auto pb-2">
+      <Button
+        v-for="tab in statusTabs"
+        :key="tab.value"
+        :variant="selectedStatus === tab.value ? 'default' : 'outline'"
+        :class="selectedStatus === tab.value ? tab.activeClass : tab.inactiveClass"
+        size="sm"
+        @click="selectedStatus = tab.value"
+      >
+        <component :is="tab.icon" class="w-4 h-4 mr-1.5" />
+        {{ tab.label }}
+        <Badge
+          v-if="getStatusCount(tab.value) > 0"
+          variant="secondary"
+          class="ml-1.5 text-[10px] px-1.5 py-0"
+        >
+          {{ getStatusCount(tab.value) }}
+        </Badge>
+      </Button>
     </div>
 
-    <div class="mb-6 relative">
-      <div class="overflow-x-auto">
-        <div class="flex gap-3 whitespace-nowrap min-w-min pb-2">
-          <!-- Added whitespace-nowrap and min-w-min -->
-          <button
-            @click="selectedStatus = 'pending'"
-            :class="[
-              'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[120px]', // Added min-width
-              selectedStatus === 'pending'
-                ? 'bg-red-500 text-white'
-                : 'border-2 border-red-500 text-red-500 hover:bg-red-50',
-            ]"
-          >
-            New Orders
-          </button>
-          <button
-            @click="selectedStatus = 'preparing'"
-            :class="[
-              'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[120px]', // Added min-width
-              selectedStatus === 'preparing'
-                ? 'bg-yellow-500 text-white'
-                : 'border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-50',
-            ]"
-          >
-            Preparing
-          </button>
-          <button
-            @click="selectedStatus = 'delivered'"
-            :class="[
-              'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[120px]', // Added min-width
-              selectedStatus === 'delivered'
-                ? 'bg-green-500 text-white'
-                : 'border-2 border-green-500 text-green-500 hover:bg-green-50',
-            ]"
-          >
-            Delivered
-          </button>
-          <button
-            @click="selectedStatus = 'cancelled'"
-            :class="[
-              'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[120px]', // Added min-width
-              selectedStatus === 'cancelled'
-                ? 'bg-blue-500 text-white'
-                : 'border-2 border-blue-500 text-blue-500 hover:bg-blue-50',
-            ]"
-          >
-            Cancelled
-          </button>
-        </div>
-      </div>
+    <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <Card v-for="i in 6" :key="i">
+        <CardHeader>
+          <Skeleton class="h-5 w-1/3" />
+          <Skeleton class="h-4 w-1/2" />
+        </CardHeader>
+        <CardContent class="space-y-2">
+          <Skeleton class="h-4 w-2/3" />
+          <Skeleton class="h-4 w-1/2" />
+          <Skeleton class="h-4 w-3/4" />
+        </CardContent>
+        <CardFooter>
+          <Skeleton class="h-9 w-full" />
+        </CardFooter>
+      </Card>
     </div>
 
-    <div v-if="loading" class="text-lg">Loading orders...</div>
-    <div v-else-if="error" class="text-lg text-red-500">
-      Error loading orders: {{ error }}
-    </div>
-    <div v-else-if="ordersListSortedAndFiltered.length === 0" class="text-lg">
-      No orders available.
-    </div>
+    <Alert v-else-if="error" variant="destructive">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>Error loading orders: {{ error }}</AlertDescription>
+    </Alert>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      <div
+    <EmptyState
+      v-else-if="ordersListSortedAndFiltered.length === 0"
+      title="No Orders"
+      description="No orders found for this status."
+      :icon="ShoppingCart"
+    />
+
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <Card
         v-for="order in ordersListSortedAndFiltered"
         :key="order.id"
-        :class="[
-          'p-4 relative bg-white shadow-md flex flex-col lg:max-w-[362px] min-h-[257px] rounded-lg transition-all duration-300',
-          order.newOrder
-            ? 'ring-2 ring-red-500 ring-offset-4 ring-offset-white scale-105'
-            : '',
-        ]"
+        class="relative overflow-hidden transition-all duration-300"
+        :class="order.newOrder ? 'ring-2 ring-red-500/80 shadow-lg shadow-red-500/10' : 'hover:shadow-md'"
       >
-        <div
+        <Badge
           v-if="order.newOrder"
-          class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg"
+          class="absolute top-3 right-3 bg-red-500 hover:bg-red-500"
         >
           New
-        </div>
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h2 class="text-lg font-semibold">Order ID: {{ order.id }}</h2>
-            <p class="text-sm text-gray-500">
-              Date: {{ formatDate(order.created_at) }}
-            </p>
-          </div>
-          <p
-            :class="{
-              'bg-red-500 text-white text-sm rounded-full px-4 py-1 text-center':
-                order.status === 'pending',
-              'bg-yellow-500 text-white text-sm rounded-full px-4 py-1 text-center':
-                order.status === 'preparing',
-              'bg-green-500 text-white text-sm rounded-full px-4 py-1 text-center':
-                order.status === 'delivered',
-              'bg-blue-500 text-white text-sm rounded-full px-4 py-1 text-center':
-                order.status === 'delivered',
-            }"
-          >
-            {{ capitalize(order.status) }}
-          </p>
-        </div>
+        </Badge>
 
-        <div class="flex items-center">
-          <div class="flex-grow flex flex-col space-y-2 mb-8">
-            <div class="text-sm">
-              <strong>Name:</strong> {{ order.user?.name || "No name" }}
+        <CardHeader class="pb-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <CardTitle class="text-base">Order #{{ order.id }}</CardTitle>
+              <CardDescription class="flex items-center gap-1 mt-0.5">
+                <Clock class="w-3 h-3" />
+                {{ formatDate(order.created_at) }}
+              </CardDescription>
             </div>
-            <div class="text-sm">
-              <strong>Phone:</strong>
-              {{ order.user?.phone_no || "No phone number" }}
+            <OrderStatusBadge :status="order.status" />
+          </div>
+        </CardHeader>
+
+        <CardContent class="pb-3">
+          <div class="space-y-1.5 text-sm">
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <User class="w-3.5 h-3.5 shrink-0" />
+              <span class="truncate">{{ order.user?.name || "No name" }}</span>
             </div>
-            <div class="text-sm">
-              <strong>Address:</strong>
-              {{ order.user?.household?.address || "No Address" }},
-              {{ order.user?.household?.town?.town_name || "No Town Provided" }}
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <Phone class="w-3.5 h-3.5 shrink-0" />
+              <span>{{ order.user?.phone_no || "No phone" }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <MapPin class="w-3.5 h-3.5 shrink-0" />
+              <span class="truncate">
+                {{ order.user?.household?.address || "No Address" }},
+                {{ order.user?.household?.town?.town_name || "" }}
+              </span>
             </div>
           </div>
-          <div class="text-right mb-4">
-            <h3 class="text-sm">Total Price</h3>
-            <p class="text-lg font-semibold">{{ order.total_price }}</p>
+
+          <Separator class="my-3" />
+
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-muted-foreground">Total</span>
+            <span class="text-lg font-bold">{{ order.total_price }}</span>
           </div>
-        </div>
+        </CardContent>
 
-        <!-- <button
-          @click="openModal(order)"
-          class="button absolute outline-none top-[199px] md:left-[185px] text-white py-2 px-4 rounded-lg max-w-[154px] min-h-[42px]"
-        >
-          Proceed Order
-        </button> -->
-
-        <button
-          @click="openModal(order)"
-          class="button outline-none text-white py-2 px-4 rounded-lg max-w-[154px] min-h-[42px]"
-        >
-          Proceed Order
-        </button>
-      </div>
+        <CardFooter>
+          <Button class="w-full" @click="openModal(order)">
+            <Eye class="w-4 h-4 mr-2" />
+            View Order
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
 
-    <div
-      v-if="isModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md p-4 md:p-0"
-    >
-      <div
-        class="w-full md:w-[800px] relative bg-[#FFFFFF] rounded-lg max-h-[90vh] overflow-hidden"
-      >
-        <!-- Modal Header -->
-        <div
-          class="bg-[#F3F4F6] w-full h-auto min-h-[56px] px-4 md:px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-        >
-          <div
-            class="font-semibold text-lg md:text-xl flex items-center justify-between w-full md:w-auto"
-          >
-            <p>Order ID: {{ selectedOrder.id }}</p>
-            <button @click="closeModal" class="md:hidden">
-              <img src="/public/close-icon.svg" alt="close" />
-            </button>
-          </div>
+    <div ref="target" class="h-4 my-4"></div>
 
-          <!-- Status Buttons - Hidden on Mobile -->
-          <div class="hidden md:inline-flex gap-4 items-center">
-            <button
-              @click="updateOrderStatus('pending')"
-              :class="{
-                'bg-red-500 text-white': selectedOrder.status === 'pending',
-                'border-red-500 text-red-500':
-                  selectedOrder.status !== 'pending',
-              }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
-            >
-              Pending
-            </button>
-            <button
-              @click="updateOrderStatus('preparing')"
-              :class="{
-                'bg-yellow-500 text-white':
-                  selectedOrder.status === 'preparing',
-                'border-yellow-500 text-yellow-500':
-                  selectedOrder.status !== 'preparing',
-              }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
-            >
-              Preparing
-            </button>
-            <button
-              @click="updateOrderStatus('delivered')"
-              :class="{
-                'bg-green-500 text-white': selectedOrder.status === 'delivered',
-                'border-green-500 text-green-500':
-                  selectedOrder.status !== 'delivered',
-              }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
-            >
-              Delivered
-            </button>
-
-            <button
-              @click="updateOrderStatus('cancelled')"
-              :class="{
-                'bg-blue-500 text-white': selectedOrder.status === 'cancelled',
-                'border-blue-500 text-blue-500':
-                  selectedOrder.status !== 'cancelled',
-              }"
-              class="border-2 px-4 py-1 rounded-full text-center text-sm font-medium"
-            >
-              Cancelled
-            </button>
-          </div>
-
-          <button @click="closeModal" class="hidden md:block">
-            <img src="/public/close-icon.svg" alt="close" />
-          </button>
-        </div>
-
-        <!-- Customer Info Section -->
-        <div class="px-4 md:px-6 py-4">
-          <div
-            class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-0"
-          >
-            <div class="flex gap-3 items-center">
-              <p class="text-[#747474] text-sm">Name:</p>
-              <p class="ml-3">{{ selectedOrder.user.name || "No Name" }}</p>
+    <!-- Order Detail Dialog -->
+    <Dialog v-model:open="isModalOpen">
+      <DialogContent v-if="selectedOrder" class="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <div class="flex items-center justify-between">
+            <div>
+              <DialogTitle>Order #{{ selectedOrder.id }}</DialogTitle>
+              <DialogDescription>{{ formatDate(selectedOrder.created_at) }}</DialogDescription>
             </div>
-
-            <div class="flex gap-3 items-center">
-              <p class="text-[#747474] text-sm">Phone:</p>
-              <p class="ml-3">{{ selectedOrder.user.phone_no }}</p>
-            </div>
+            <OrderStatusBadge :status="selectedOrder.status" />
           </div>
+        </DialogHeader>
 
-          <div class="flex items-center mt-2">
-            <p class="text-[#747474] text-sm">Address:</p>
-            <p class="ml-3 text-sm">
-              {{ selectedOrder.user.household?.address || "No Address" }},
-              {{
-                selectedOrder.user.household?.town?.town_name ||
-                "No Town Provided"
-              }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Mobile Status Selector -->
-        <div class="px-4 md:hidden mb-4">
-          <select
-            v-model="selectedOrder.status"
-            @change="updateOrderStatus($event.target.value)"
-            class="w-full p-3 border-2 rounded-lg focus:outline-none transition-colors duration-300"
-            :class="{
-              'border-red-500': selectedOrder.status === 'pending',
-              'border-yellow-500': selectedOrder.status === 'preparing',
-              'border-green-500': selectedOrder.status === 'delivered',
-              'border-blue-500': selectedOrder.status === 'cancelled',
-            }"
+        <div class="flex flex-wrap gap-2">
+          <Button
+            v-for="status in statusOptions"
+            :key="status.value"
+            size="sm"
+            :variant="selectedOrder.status === status.value ? 'default' : 'outline'"
+            :class="selectedOrder.status === status.value ? status.activeClass : ''"
+            @click="updateOrderStatus(status.value)"
           >
-            <option value="pending">Pending</option>
-            <option value="preparing">Preparing</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+            <component :is="status.icon" class="w-3.5 h-3.5 mr-1" />
+            {{ status.label }}
+          </Button>
         </div>
 
-        <!-- Order Items Section -->
-        <div
-          class="mt-4 px-4 md:px-6 overflow-y-auto"
-          style="max-height: calc(90vh - 300px)"
-        >
-          <div v-if="selectedOrder.items.length > 0">
+        <Separator />
+
+        <div class="space-y-2 text-sm">
+          <div class="flex items-center gap-2">
+            <User class="w-4 h-4 text-muted-foreground" />
+            <span class="text-muted-foreground">Name:</span>
+            <span class="font-medium">{{ selectedOrder.user?.name || "No Name" }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <Phone class="w-4 h-4 text-muted-foreground" />
+            <span class="text-muted-foreground">Phone:</span>
+            <span class="font-medium">{{ selectedOrder.user?.phone_no || "No phone" }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <MapPin class="w-4 h-4 text-muted-foreground" />
+            <span class="text-muted-foreground">Address:</span>
+            <span class="font-medium">
+              {{ selectedOrder.user?.household?.address || "No Address" }},
+              {{ selectedOrder.user?.household?.town?.town_name || "" }}
+            </span>
+          </div>
+        </div>
+
+        <Separator />
+
+        <ScrollArea class="max-h-[40vh]">
+          <div v-if="selectedOrder.items?.length > 0" class="space-y-3">
             <div
               v-for="item in selectedOrder.items"
               :key="item.id"
-              class="relative mb-4 p-4 bg-[#E5E7EB] rounded-lg"
+              class="flex gap-3 p-3 rounded-lg bg-muted/50"
             >
-              <div class="flex flex-col md:flex-row gap-4">
-                <!-- Product Image -->
-                <div class="flex-shrink-0">
-                  <img
-                    :src="selectedOrder.perscription?.full_image_url || item.product.image_url"
-                    alt="No image"
-                     @click="openImageModal( selectedOrder.perscription?.full_image_url || item.product.image_url)"
-                    class="w-full md:w-[100px] h-[100px] object-contain rounded-lg border border-yellow-400 cursor-pointer"
-                  />
-                </div>
-
-                <!-- Enlarge image modal  -->
-                <!-- <div
-                  v-if="isImageModalOpen"
-                  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md overflow-auto p-4"
-                >
-                  <div
-                    class="relative overflow-hidden w-auto max-w-[95vw] max-h-[95vh] shadow-lg"
-                  >
-                    <button
-                      @click="closeImageModal"
-                      class="absolute top-2 right-2 z-10"
-                    >
-                      <img
-                        src="/public/close-icon.svg"
-                        alt="close"
-                        class="w-6 h-6"
-                      />
-                    </button>
-                    <div
-                      class="flex justify-center items-start p-4"
-                      style="max-height: calc(95vh - 40px); overflow: auto"
-                    >
-                      <img
-                        loading="lazy"
-                        :src="selectedImageUrl"
-                        alt="Product Image"
-                        class="w-auto h-auto max-w-full max-h-full object-contain"
-                      />
-                    </div>
-                  </div>
-                </div> -->
-
-                <!-- Product Details -->
-                <div class="space-y-2 flex-grow">
-                  <p class="text-lg font-semibold">{{ item.product.title }}</p>
-                    <p class="text-sm">
-                      Description:
-                      <span class="ml-2 text-[#6d6d6d]">{{ selectedOrder.perscription?.description || item.product.description
-                      }}</span>
-                    </p>
-                  <p class="text-sm">
-                    Type:
-                    <span class="ml-2 text-[#6d6d6d]">{{
-                      item.product.type
-                    }}</span>
-                  </p>
-                  <p class="text-sm">
-                    Quantity:
-                    <span class="ml-2 text-[#6d6d6d]">{{ item.quantity }}</span>
-                  </p>
-                </div>
-
-                <!-- Price -->
-                <div class="mt-2 md:mt-0 text-right">
-                  <p class="text-lg md:text-xl font-semibold">
-                    Price: {{ item.price }}
-                  </p>
+              <div class="shrink-0">
+                <img
+                  :src="selectedOrder.perscription?.full_image_url || item.product?.image_url"
+                  alt="Product"
+                  class="w-16 h-16 object-cover rounded-md border"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-medium text-sm">{{ item.product?.title }}</p>
+                <p class="text-xs text-muted-foreground line-clamp-1">
+                  {{ selectedOrder.perscription?.description || item.product?.description }}
+                </p>
+                <div class="flex items-center justify-between mt-1.5">
+                  <span class="text-xs text-muted-foreground">Qty: {{ item.quantity }}</span>
+                  <span class="text-sm font-semibold">{{ item.price }}</span>
                 </div>
               </div>
             </div>
           </div>
-          <div v-else>
-            <p>No items in this order.</p>
+          <div v-else class="text-center text-sm text-muted-foreground py-4">
+            No items in this order.
           </div>
-        </div>
+        </ScrollArea>
 
-        <!-- Total Price Section -->
-        <div class="px-4 md:px-6 py-4 bg-white sticky bottom-0 shadow-top">
-          <div class="flex justify-between items-center">
-            <div></div>
-            <div
-              class="py-3 px-4 bg-[#272727] text-white rounded-lg flex gap-4 md:gap-10 items-center justify-center w-full md:w-auto"
-            >
-              <h1 class="text-sm md:text-base">Total Price:</h1>
-              <h1 class="text-sm md:text-base">
-                {{ selectedOrder.total_price }}
-              </h1>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Separator />
 
-    <div ref="target"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-muted-foreground">Total Price</span>
+          <span class="text-xl font-bold">{{ selectedOrder.total_price }}</span>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, h } from "vue";
 import { useOrderStore } from "../../store/orderStore";
 import { toast } from "vue3-toastify";
 import { storeToRefs } from "pinia";
 import axios from "axios";
-import { API_BASE_URL } from "../../config/api";
+import { API_BASE_URL } from "@/config/api";
 import { useIntersectionObserver } from "@vueuse/core";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import EmptyState from "@/components/dashboard/EmptyState.vue";
+import OrderStatusBadge from "@/components/dashboard/StatusBadge.vue";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  RefreshCw, Clock, User, Phone, MapPin, ShoppingCart, Eye,
+  AlertCircle, Circle, Timer, CheckCircle2, XCircle
+} from "lucide-vue-next";
 
-// Refs and store setup
 const target = ref(null);
 const orderStore = useOrderStore();
 const { ordersList } = storeToRefs(useOrderStore());
@@ -397,56 +251,40 @@ const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
 
-// Function to preload an image
-const preloadImage = (url) => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.src = url;
-    img.onload = () => resolve(url);
-    img.onerror = (err) => reject(err);
-  });
-};
-
-// Enlarge product image
-// const isImageModalOpen = ref(false);
-// const selectedImageUrl = ref("");
-
-// const openImageModal = async (imageUrl) => {
-//   try {
-//     await preloadImage(imageUrl);
-//     selectedImageUrl.value = imageUrl;
-//     isImageModalOpen.value = true;
-//   } catch (err) {
-//     console.error("Failed to preload image:", err);
-//     toast.error("Failed to load image");
-//   }
-// };
-
-// const closeImageModal = () => {
-//   isImageModalOpen.value = false;
-//   selectedImageUrl.value = "";
-// };
-
-// Audio notification setup
 const I = new Audio("/notification.mp3");
 I.volume = 0.25;
 
-// Intersection observer for infinite scroll
+const statusTabs = [
+  { value: "pending", label: "New Orders", icon: Circle, activeClass: "bg-red-500 hover:bg-red-600 text-white", inactiveClass: "text-red-500 border-red-200 hover:bg-red-50" },
+  { value: "preparing", label: "Preparing", icon: Timer, activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white", inactiveClass: "text-yellow-600 border-yellow-200 hover:bg-yellow-50" },
+  { value: "delivered", label: "Delivered", icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white", inactiveClass: "text-green-600 border-green-200 hover:bg-green-50" },
+  { value: "cancelled", label: "Cancelled", icon: XCircle, activeClass: "bg-blue-500 hover:bg-blue-600 text-white", inactiveClass: "text-blue-500 border-blue-200 hover:bg-blue-50" },
+];
+
+const statusOptions = [
+  { value: "pending", label: "Pending", icon: Circle, activeClass: "bg-red-500 hover:bg-red-600 text-white" },
+  { value: "preparing", label: "Preparing", icon: Timer, activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white" },
+  { value: "delivered", label: "Delivered", icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white" },
+  { value: "cancelled", label: "Cancelled", icon: XCircle, activeClass: "bg-blue-500 hover:bg-blue-600 text-white" },
+];
+
 const { stop } = useIntersectionObserver(
   target,
-  ([{ isIntersecting }], observerElement) => {
+  ([{ isIntersecting }]) => {
     if (isIntersecting && orderStore.isLoaded) {
       orderStore.addToOrderList();
     }
   }
 );
 
-// Computed property for filtered and sorted orders
+const getStatusCount = (status) => {
+  return ordersList.value.filter((o) => o.status === status).length;
+};
+
 const ordersListSortedAndFiltered = computed(() => {
   return [...ordersList.value]
     .map((order) => ({
       ...order,
-      newOrderStatus: order.status,
       user: {
         ...order.user,
         household: {
@@ -464,7 +302,6 @@ const ordersListSortedAndFiltered = computed(() => {
     .sort((a, b) => b.id - a.id);
 });
 
-// Function to fetch restaurant orders
 const fetchRestaurantOrders = async () => {
   try {
     await orderStore.getRestaurantOrders();
@@ -479,8 +316,7 @@ const fetchRestaurantOrders = async () => {
           },
         },
       },
-      perscription: order.perscription || null, // Include prescription details
-
+      perscription: order.perscription || null,
     }));
   } catch (err) {
     error.value = "Failed to fetch orders";
@@ -490,12 +326,12 @@ const fetchRestaurantOrders = async () => {
   }
 };
 
-// Function to refresh orders
 const refreshOrders = async () => {
+  loading.value = true;
+  error.value = null;
   await fetchRestaurantOrders();
 };
 
-// Function to update order status
 const updateOrderStatus = async (status) => {
   try {
     const currentOrder = { ...selectedOrder.value };
@@ -508,7 +344,7 @@ const updateOrderStatus = async (status) => {
           status,
           user: currentOrder.user,
           items: currentOrder.items,
-          perscription: currentOrder.perscription, // Preserve prescription data
+          perscription: currentOrder.perscription,
         };
       }
       return order;
@@ -522,13 +358,10 @@ const updateOrderStatus = async (status) => {
   }
 };
 
-// Function to open modal
 const openModal = async (order) => {
   try {
     if (order.newOrder) {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/orders/${order.id}`
-      );
+      const response = await axios.get(`${API_BASE_URL}/api/orders/${order.id}`);
       selectedOrder.value = {
         ...response.data,
         user: {
@@ -551,17 +384,15 @@ const openModal = async (order) => {
   }
 };
 
-// Function to close modal
 const closeModal = () => {
   isModalOpen.value = false;
   selectedOrder.value = null;
 };
 
-// Function to format date
 const formatDate = (dateString) => {
   const options = {
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
@@ -569,18 +400,11 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 
-// Function to capitalize text
-const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
-
-// Watch for status changes
 watch(selectedStatus, async () => {
   await fetchRestaurantOrders();
 });
 
-// Initialize component
 onMounted(async () => {
   await fetchRestaurantOrders();
 });
 </script>
-
-<style scoped></style>

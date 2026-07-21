@@ -1,170 +1,135 @@
 <template>
-  <div class="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-    <div
-      class="bg-white w-full max-w-2xl rounded-2xl shadow-lg overflow-hidden"
-    >
-      <!-- Header -->
-      <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-8 py-6">
-        <h2 class="text-2xl font-semibold text-white">Add Business</h2>
-        <p class="text-blue-100 mt-1">Create a new business listing</p>
+  <form @submit.prevent="handleSubmit" class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="space-y-2 md:col-span-2">
+        <Label for="name">Business Name</Label>
+        <Input
+          id="name"
+          v-model="form.name"
+          placeholder="Enter business name"
+          required
+        />
       </div>
 
-      <form @submit.prevent="handleSubmit" class="p-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Basic Information -->
-          <div class="space-y-6 md:col-span-2">
-            <div class="relative">
-              <label
-                for="name"
-                class="text-sm font-medium text-gray-700 block mb-2"
-                >Business Name</label
-              >
-              <input
-                v-model="form.name"
-                type="text"
-                id="name"
-                class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                required
-              />
-            </div>
+      <div class="space-y-2 md:col-span-2">
+        <Label for="type">Business Type</Label>
+        <Input
+          id="type"
+          v-model="form.type"
+          placeholder="e.g. Restaurant, Grocery, Cafe"
+          required
+        />
+      </div>
 
-            <div class="relative">
-              <label
-                for="type"
-                class="text-sm font-medium text-gray-700 block mb-2"
-                >Business Type</label
-              >
-              <input
-                v-model="form.type"
-                type="text"
-                id="type"
-                class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                required
-              />
-            </div>
-          </div>
+      <div class="space-y-2">
+        <Label for="opening_time">Opening Time</Label>
+        <Input
+          id="opening_time"
+          v-model="form.opening_time"
+          type="time"
+          required
+        />
+      </div>
 
-          <!-- Operating Hours -->
-          <div class="relative">
-            <label
-              for="opening_time"
-              class="text-sm font-medium text-gray-700 block mb-2"
-              >Opening Time</label
-            >
-            <input
-              v-model="form.opening_time"
-              type="time"
-              id="opening_time"
-              class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-              required
-            />
-          </div>
+      <div class="space-y-2">
+        <Label for="closing_time">Closing Time</Label>
+        <Input
+          id="closing_time"
+          v-model="form.closing_time"
+          type="time"
+          required
+        />
+      </div>
 
-          <div class="relative">
-            <label
-              for="closing_time"
-              class="text-sm font-medium text-gray-700 block mb-2"
-              >Closing Time</label
-            >
-            <input
-              v-model="form.closing_time"
-              type="time"
-              id="closing_time"
-              class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-              required
-            />
-          </div>
-
-          <!-- Parent Business -->
-          <div class="md:col-span-2">
-            <label
-              for="parent_id"
-              class="text-sm font-medium text-gray-700 block mb-2"
-              >Parent Business</label
-            >
-            <select
-              v-model="form.parent_id"
-              id="parent_id"
-              class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-            >
-              <option value="">No Parent Business</option>
-              <option
-                v-for="business in businessStore.businesses"
-                :key="business.id"
-                :value="business.id"
-              >
-                {{ business.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Image Upload -->
-          <div class="md:col-span-2">
-            <label class="text-sm font-medium text-gray-700 block mb-2"
-              >Business Image</label
-            >
-            <div
-              class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors duration-200"
-            >
-              <div class="space-y-2 text-center">
-                <div v-if="imagePreview" class="mb-4">
-                  <img
-                    :src="imagePreview"
-                    alt="Preview"
-                    class="mx-auto h-32 w-auto rounded-lg shadow-sm"
-                  />
-                </div>
-                <div class="flex text-sm text-gray-600">
-                  <label
-                    for="image"
-                    class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                  >
-                    <span>Upload a file</span>
-                    <input
-                      @change="handleFileChange"
-                      id="image"
-                      type="file"
-                      class="sr-only"
-                      accept="image/*"
-                      required
-                    />
-                  </label>
-                  <p class="pl-1">or drag and drop</p>
-                </div>
-                <p class="text-xs text-gray-500">PNG, JPG, GIF up to 15KB</p>
-                <p v-if="imageError" class="text-xs text-red-500 mt-1">
-                  {{ imageError }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Form Actions -->
-        <div class="mt-8 flex justify-end space-x-4">
-          <button
-            @click="$emit('close')"
-            type="button"
-            class="px-6 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+      <div class="space-y-2 md:col-span-2">
+        <Label>Parent Business</Label>
+        <Select v-model="form.parent_id" placeholder="No Parent Business">
+          <SelectItem value="">No Parent Business</SelectItem>
+          <SelectItem
+            v-for="business in businessStore.businesses"
+            :key="business.id"
+            :value="business.id"
           >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200"
-          >
-            Create Business
-          </button>
+            {{ business.name }}
+          </SelectItem>
+        </Select>
+      </div>
+
+      <div class="space-y-2 md:col-span-2">
+        <Label>Business Image</Label>
+        <div
+          class="relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 transition-colors"
+          :class="imagePreview ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50'"
+        >
+          <div v-if="imagePreview" class="mb-3">
+            <img
+              :src="imagePreview"
+              alt="Preview"
+              class="h-28 w-auto rounded-md object-contain"
+            />
+            <button
+              type="button"
+              @click="removeImage"
+              class="absolute top-2 right-2 rounded-full bg-destructive/10 p-1 text-destructive hover:bg-destructive/20 transition-colors"
+            >
+              <X class="h-4 w-4" />
+            </button>
+          </div>
+
+          <div v-else class="text-center">
+            <Upload class="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+            <p class="text-sm text-muted-foreground mb-1">
+              <label
+                for="image"
+                class="relative cursor-pointer font-medium text-primary hover:underline"
+              >
+                Click to upload
+                <input
+                  @change="handleFileChange"
+                  id="image"
+                  type="file"
+                  class="sr-only"
+                  accept="image/*"
+                  required
+                />
+              </label>
+              or drag and drop
+            </p>
+            <p class="text-xs text-muted-foreground">PNG, JPG up to 15KB</p>
+          </div>
+
+          <p v-if="imageError" class="mt-2 text-xs text-destructive">
+            {{ imageError }}
+          </p>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
+
+    <Separator />
+
+    <div class="flex justify-end gap-3">
+      <Button type="button" variant="outline" @click="$emit('close')">
+        Cancel
+      </Button>
+      <Button type="submit" :disabled="submitting">
+        <Loader2 v-if="submitting" class="mr-2 h-4 w-4 animate-spin" />
+        <Store v-else class="mr-2 h-4 w-4" />
+        Create Business
+      </Button>
+    </div>
+  </form>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useBusinessStore } from "../store/businessStore.js";
+import { useBusinessStore } from "@/store/businessStore.js";
 import { useRouter } from "vue-router";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectItem } from "@/components/ui/select";
+import { Upload, X, Store, Loader2 } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
 const router = useRouter();
@@ -172,7 +137,8 @@ const emit = defineEmits(["close"]);
 
 const imagePreview = ref(null);
 const imageError = ref(null);
-const MAX_FILE_SIZE = 15 * 1024; // 15KB in bytes
+const submitting = ref(false);
+const MAX_FILE_SIZE = 15 * 1024;
 
 const form = ref({
   name: "",
@@ -207,7 +173,14 @@ const handleFileChange = (event) => {
   imagePreview.value = URL.createObjectURL(file);
 };
 
+const removeImage = () => {
+  form.value.image = null;
+  imagePreview.value = null;
+  imageError.value = null;
+};
+
 const handleSubmit = async () => {
+  submitting.value = true;
   try {
     const formData = new FormData();
     formData.append("name", form.value.name);
@@ -221,6 +194,8 @@ const handleSubmit = async () => {
     router.push("/admin/restaurantAdmin");
   } catch (error) {
     console.error("Error submitting form:", error);
+  } finally {
+    submitting.value = false;
   }
 };
 
@@ -228,43 +203,3 @@ onMounted(async () => {
   await businessStore.getBusinesses();
 });
 </script>
-
-<style scoped>
-/* Custom focus styles */
-input:focus,
-select:focus {
-  outline: none;
-}
-
-/* Smooth transitions */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
-}
-
-/* Remove default time input styling */
-input[type="time"] {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-</style>

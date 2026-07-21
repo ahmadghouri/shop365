@@ -1,193 +1,130 @@
 <template>
-  <div class="bg-gray-50 min-h-screen p-6">
-    <!-- Stats Card -->
-    <div class="mb-6 bg-white shadow-sm rounded-lg p-4">
-      <!-- Existing stats content -->
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-xl font-semibold text-gray-800">User Statistics</h2>
-        <div class="flex gap-2">
-          <button
-            @click="refreshData"
-            class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              ></path>
-            </svg>
-            Refresh
-          </button>
+  <div class="container mx-auto px-4 py-6">
+    <PageHeader title="All Users" description="Browse and manage all registered users">
+      <template #actions>
+        <Button variant="outline" @click="refreshData">
+          <RefreshCw class="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
+        <router-link to="/admin/users">
+          <Button variant="secondary">
+            <Users class="w-4 h-4 mr-2" />
+            Today's Users
+          </Button>
+        </router-link>
+      </template>
+    </PageHeader>
 
-          <router-link
-            to="/admin/users"
-            class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              ></path>
-            </svg>
-            Todays Users
-          </router-link>
-        </div>
-      </div>
-      <div class="flex justify-between items-center">
-        <div>
-          <p class="text-sm text-gray-600">Total Users</p>
-          <p class="text-2xl font-bold text-gray-900">
-            {{ userStore.totalUsersCount }}
-          </p>
-        </div>
-        <div>
-          <p class="text-sm text-gray-600">New Users Today</p>
-          <p class="text-2xl font-bold text-green-600">
-            {{ userStore.todayUsersCount }}
-          </p>
-        </div>
-      </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+      <Card>
+        <CardContent class="pt-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <Users class="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p class="text-sm text-muted-foreground">Total Users</p>
+              <p class="text-2xl font-bold">{{ userStore.totalUsersCount }}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent class="pt-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <UserPlus class="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p class="text-sm text-muted-foreground">New Users Today</p>
+              <p class="text-2xl font-bold">{{ userStore.todayUsersCount }}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
 
-    <!-- Header with Sort -->
-    <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-3xl font-semibold text-gray-900">Users</h1>
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-semibold">Users</h2>
       <select
         v-model="sortOrder"
-        class="bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-200"
+        class="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <option value="desc">Highest Orders First</option>
         <option value="asc">Lowest Orders First</option>
       </select>
     </div>
 
-    <!-- Users Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
+      <Card
         v-for="(user, index) in sortedUsers"
         :key="user.id"
-        :class="[
-          'relative group bg-white shadow-sm rounded-lg overflow-hidden flex flex-col transition-transform duration-200',
-          isTopThree(index)
-            ? 'border-2 border-yellow-400 bg-yellow-50'
-            : 'hover:shadow-lg',
-        ]"
+        :class="isTopThree(index) ? 'border-2 border-yellow-400 bg-yellow-50' : ''"
       >
-        <!-- Existing user card content -->
-        <div class="p-4 flex-grow">
+        <CardContent class="pt-6">
           <div class="flex justify-between items-start mb-4">
             <div>
-              <p class="text-lg font-semibold text-gray-800">
+              <p class="text-lg font-semibold">
                 {{ user.name || "No Name" }}
-                <span
-                  v-if="isTopThree(index)"
-                  class="ml-2 text-xs bg-yellow-300 text-gray-700 px-2 py-0.5 rounded-full"
-                >
+                <Badge v-if="isTopThree(index)" variant="secondary" class="ml-2 bg-yellow-300 text-yellow-900 border-yellow-400">
                   Top {{ index + 1 }}
-                </span>
+                </Badge>
               </p>
-              <p class="text-sm text-gray-500">{{ user.phone_no }}</p>
+              <p class="text-sm text-muted-foreground">{{ user.phone_no }}</p>
             </div>
-            <div
-              class="text-sm font-medium px-3 py-1 rounded-full"
-              :class="
-                isTopThree(index)
-                  ? 'bg-yellow-300 text-yellow-900'
-                  : 'bg-gray-200 text-gray-700'
-              "
-            >
-              {{ user.orders_count }} Order{{
-                user.orders_count !== 1 ? "s" : ""
-              }}
-            </div>
+            <Badge :variant="isTopThree(index) ? 'default' : 'secondary'">
+              {{ user.orders_count }} Order{{ user.orders_count !== 1 ? "s" : "" }}
+            </Badge>
           </div>
 
-          <div class="text-gray-600 text-sm">
-            <p class="mb-1">
-              <span class="font-medium">Created At:</span>
-              {{ new Date(user.created_at).toLocaleDateString() }}
-            </p>
-            <p class="mb-1">
-              <span class="font-medium">Points:</span>
-              {{ user.points || 0 }}
-            </p>
-            <p class="mb-1">
-              <span class="font-medium">Address:</span>
-              {{ user.household?.address || "No Address" }}
-            </p>
-            <p>
-              <span class="font-medium">Town:</span>
-              {{ user.household?.town?.town_name || "No Town" }}
-            </p>
+          <div class="space-y-1 text-sm text-muted-foreground mb-4">
+            <p><span class="font-medium text-foreground">Created At:</span> {{ new Date(user.created_at).toLocaleDateString() }}</p>
+            <p><span class="font-medium text-foreground">Points:</span> {{ user.points || 0 }}</p>
+            <p><span class="font-medium text-foreground">Address:</span> {{ user.household?.address || "No Address" }}</p>
+            <p><span class="font-medium text-foreground">Town:</span> {{ user.household?.town?.town_name || "No Town" }}</p>
           </div>
 
-          <button
-            @click="showDeleteConfirmation(user.id)"
-            class="mt-4 bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600"
-          >
+          <Button variant="destructive" size="sm" @click="showDeleteConfirmation(user.id)">
+            <Trash2 class="w-4 h-4 mr-1" />
             Delete
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
 
-    <!-- Loading Spinner -->
     <div v-if="userStore.loading" class="flex justify-center my-8">
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent"
-      ></div>
+      <Loader2 class="w-8 h-8 animate-spin text-primary" />
     </div>
 
-    <!-- Infinite Scroll Trigger -->
     <div ref="loadMoreTrigger" class="h-4 w-full"></div>
 
-    <!-- Delete Confirmation Modal -->
-    <div
-      v-if="showDeleteConfirm"
-      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50"
-    >
-      <div class="bg-white p-6 rounded-lg shadow-xl">
-        <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
-        <p class="mb-4">Are you sure you want to delete this User?</p>
-        <div class="flex justify-end space-x-2">
-          <button
-            @click="confirmDelete"
-            class="bg-red-500 px-4 py-2 text-white rounded-md"
-          >
-            Delete
-          </button>
-          <button
-            @click="cancelDelete"
-            class="bg-gray-300 px-4 py-2 text-gray-800 rounded-md"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    <AlertDialog v-model:open="showDeleteConfirm">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this user? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="cancelDelete">Cancel</AlertDialogCancel>
+          <AlertDialogAction @click="confirmDelete">Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useUserStore } from "../../store/userStore";
+import { useUserStore } from "@/store/userStore";
 import { toast } from "vue3-toastify";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { RefreshCw, Users, UserPlus, Trash2, Loader2 } from "lucide-vue-next";
 
 const userStore = useUserStore();
 const sortOrder = ref("desc");

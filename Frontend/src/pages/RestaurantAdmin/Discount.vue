@@ -1,43 +1,92 @@
 <template>
-  <div class="mobile-spacing">
-    <h1 class="text-2xl font-bold text-gray-800 mb-4">Apply Discount</h1>
+  <div class="container mx-auto px-4 py-6">
+    <PageHeader title="Discount" description="Manage bulk discount for all products" />
 
-    <form @submit.prevent="applyDiscount" class="space-y-4 lg:max-w-[400px]">
-      <div>
-        <label for="discount" class="block text-gray-700 font-semibold mb-1">
-          Discount Percentage
-        </label>
-        <input id="discount" v-model.number="discount" type="number" min="0" max="100"
-          :placeholder="discountPlaceholder" class="w-full p-2 border border-gray-300 rounded-md" required />
-      </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <Card>
+        <CardHeader>
+          <CardTitle class="text-base">Apply Discount</CardTitle>
+          <CardDescription>Set a discount percentage for all products at once.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form @submit.prevent="applyDiscount" class="space-y-4">
+            <div class="space-y-2">
+              <Label>Discount Percentage</Label>
+              <Input
+                v-model.number="discount"
+                type="number"
+                :min="0"
+                :max="100"
+                placeholder="Enter percentage (0-100)"
+                required
+              />
+              <p class="text-sm text-muted-foreground">{{ discountPlaceholder }}</p>
+            </div>
+            <Button type="submit" class="w-full" :disabled="applying">
+              <Loader2 v-if="applying" class="w-4 h-4 mr-2 animate-spin" />
+              <Percent v-else class="w-4 h-4 mr-2" />
+              Apply Discount
+            </Button>
+          </form>
 
-      <p>{{ discountPlaceholder }}</p>
+          <Alert v-if="responseMessage" :variant="responseSuccess ? 'default' : 'destructive'" class="mt-4">
+            <AlertCircle v-if="!responseSuccess" class="h-4 w-4" />
+            <CheckCircle v-else class="h-4 w-4" />
+            <AlertDescription>{{ responseMessage }}</AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
 
-      <button type="submit"
-        class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-150">
-        Apply Discount
-      </button>
-    </form>
+      <Card v-if="discountDetails">
+        <CardHeader>
+          <CardTitle class="text-base">Current Discount</CardTitle>
+          <CardDescription>Active discount on all products.</CardDescription>
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <div class="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
+            <div class="p-3 bg-primary/10 rounded-lg">
+              <Percent class="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p class="text-3xl font-bold">{{ discountDetails.discount }}%</p>
+              <p class="text-sm text-muted-foreground">Discount</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar class="w-4 h-4" />
+            Applied: {{ formatDate(discountDetails.created_at) }}
+          </div>
+          <AlertDialog v-model:open="showRemoveConfirm">
+            <AlertDialogTrigger as-child>
+              <Button variant="destructive" class="w-full">
+                <Trash2 class="w-4 h-4 mr-2" />
+                Remove Discount
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove Discount?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will remove the current {{ discountDetails.discount }}% discount from all products.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction @click="removeDiscount">Remove</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
 
-    <p v-if="responseMessage" class="mt-4 text-center text-gray-700">
-      {{ responseMessage }}
-    </p>
-
-    <!-- Display Discount Details -->
-    <div v-if="discountDetails" class="mt-8 p-4 border rounded-lg bg-white shadow-lg">
-      <h2 class="text-xl font-semibold text-gray-900 mb-2">Current Discount</h2>
-      <p class="text-gray-700">
-        <span class="font-semibold">Discount:</span>
-        {{ discountDetails.discount }}%
-      </p>
-      <p class="text-gray-700">
-        <span class="font-semibold">Created At:</span>
-        {{ formatDate(discountDetails.created_at) }}
-      </p>
-      <button @click="removeDiscount"
-        class="mt-4 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-150">
-        Remove Discount
-      </button>
+      <Card v-else>
+        <CardContent class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="p-3 bg-muted rounded-lg mb-3">
+            <Percent class="h-8 w-8 text-muted-foreground" />
+          </div>
+          <p class="text-sm text-muted-foreground">No active discount. Use the form to apply one.</p>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>
@@ -45,11 +94,22 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
-import { API_BASE_URL } from "../../config/api";
+import { API_BASE_URL } from "@/config/api";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { Percent, Trash2, Calendar, Loader2, AlertCircle, CheckCircle } from "lucide-vue-next";
 
 const discount = ref(0);
 const responseMessage = ref("");
+const responseSuccess = ref(false);
 const discountDetails = ref(null);
+const applying = ref(false);
+const showRemoveConfirm = ref(false);
 
 const discountPlaceholder = computed(() => {
   return discountDetails.value
@@ -57,53 +117,48 @@ const discountPlaceholder = computed(() => {
     : "Current discount: 0%";
 });
 
-// Load discount details from local storage on component mount
 onMounted(() => {
   const savedDiscount = localStorage.getItem("discountDetails");
   if (savedDiscount) {
     discountDetails.value = JSON.parse(savedDiscount);
-    discount.value = discountDetails.value.discount; // Set discount to reflect current value
+    discount.value = discountDetails.value.discount;
   }
 });
 
 const applyDiscount = async () => {
+  applying.value = true;
+  responseMessage.value = "";
   try {
     const response = await axios.post(
       `${API_BASE_URL}/api/restaurantAdmin/products/discount`,
-      {
-        discount: discount.value,
-      }
+      { discount: discount.value }
     );
-
+    responseSuccess.value = true;
     responseMessage.value = "Discount applied successfully!";
-    // Update discount details from response
     discountDetails.value = {
       discount: response.data.data.discount,
       created_at: response.data.data.created_at,
     };
-    discount.value = discountDetails.value.discount; // Update the discount value
-    // Save discount details to local storage
-    localStorage.setItem(
-      "discountDetails",
-      JSON.stringify(discountDetails.value)
-    );
+    discount.value = discountDetails.value.discount;
+    localStorage.setItem("discountDetails", JSON.stringify(discountDetails.value));
   } catch (error) {
+    responseSuccess.value = false;
     responseMessage.value = "Failed to apply discount. Please try again.";
+  } finally {
+    applying.value = false;
   }
 };
 
 const removeDiscount = async () => {
   try {
-    await axios.get(
-      `${API_BASE_URL}/api/restaurantAdmin/products/removeDiscount`,
-      {}
-    );
+    await axios.get(`${API_BASE_URL}/api/restaurantAdmin/products/removeDiscount`);
+    responseSuccess.value = true;
     responseMessage.value = "Discount removed successfully!";
-    discountDetails.value = null; // Clear discount details
-    discount.value = 0; // Reset discount input
-    // Remove discount details from local storage
+    discountDetails.value = null;
+    discount.value = 0;
     localStorage.removeItem("discountDetails");
   } catch (error) {
+    responseSuccess.value = false;
     responseMessage.value = "Failed to remove discount. Please try again.";
   }
 };
@@ -119,7 +174,3 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 </script>
-
-<style scoped>
-/* Add your styles here */
-</style>

@@ -26,7 +26,6 @@ import Dashboard from "../pages/Admin/Dashboard.vue";
 import Product from "../pages/Admin/Products.vue";
 import UserAdmin from "../pages/Admin/User.vue";
 import CarouselImages from "../pages/Admin/CarouselImages.vue";
-import RegisterAdmin from "../pages/Admin/RegisterAdmin.vue";
 import RestaurantAdminDashboard from "../pages/RestaurantAdmin/RestaurantAdminDashboard.vue";
 import OurStoreUsers from "../pages/Admin/OurStoreUsers.vue";
 import RestaurantOrder from "../pages/RestaurantAdmin/RestaurantOrder.vue";
@@ -37,7 +36,6 @@ import UserLogin from "../pages/Login.vue";
 import ForgotPassword from "../pages/ForgotPassword.vue";
 import SearchProduct from "../pages/SearchProduct.vue";
 import Discount from "../pages/RestaurantAdmin/Discount.vue";
-import StoreProduct from "../components/Vendor/StoreProduct.vue";
 import ViewAdmins from "../components/ViewAdmins.vue";
 import ShopStats from "../pages/Admin/ShopStats.vue";
 import TotalUsers from "../pages/Admin/TotalUsers.vue";
@@ -334,14 +332,6 @@ const routes = [
         },
       },
       {
-        path: "restaurantAdmin",
-        name: "RestaurantAdmin",
-        component: RegisterAdmin,
-        meta: {
-          requiresAdminAuth: true,
-        },
-      },
-      {
         path: "restaurantOrders",
         name: "RestaurantOrders",
         component: RestaurantOrder,
@@ -385,14 +375,6 @@ const routes = [
         path: "discount",
         name: "Discount",
         component: Discount,
-        meta: {
-          requiresAdminAuth: true,
-        },
-      },
-      {
-        path: "store-product",
-        name: "Store-Product",
-        component: StoreProduct,
         meta: {
           requiresAdminAuth: true,
         },

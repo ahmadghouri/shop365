@@ -1,141 +1,165 @@
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-semibold mb-6 text-gray-700">Vendor Admins</h1>
+  <div class="container mx-auto px-4 py-6">
+    <PageHeader title="Vendor Admins" description="Manage vendor administrator accounts">
+      <template #actions>
+        <Button variant="outline" @click="fetchVendors">
+          <RefreshCw class="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
+        <Button @click="showRegisterDialog = true">
+          <UserPlus class="w-4 h-4 mr-2" />
+          Register Admin
+        </Button>
+      </template>
+    </PageHeader>
 
-    <!-- Loading Spinner -->
-    <div
-      v-if="loading"
-      class="flex justify-center items-center h-screen bg-gray-100"
-    >
-      <div
-        class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"
-      ></div>
+    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Card v-for="i in 3" :key="i">
+        <CardHeader>
+          <Skeleton class="h-6 w-2/3" />
+          <Skeleton class="h-4 w-1/2" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton class="h-4 w-3/4 mb-2" />
+          <Skeleton class="h-4 w-1/2" />
+        </CardContent>
+      </Card>
     </div>
 
-    <!-- Error Message -->
-    <div v-else-if="error" class="text-center text-red-500">
-      <p>Error fetching vendor admins: {{ error }}</p>
-    </div>
+    <Alert v-else-if="error" variant="destructive">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>Error fetching vendor admins: {{ error }}</AlertDescription>
+    </Alert>
 
-    <!-- Vendor List -->
-    <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <div
-        v-for="vendor in vendors"
-        :key="vendor.id"
-        class="bg-white p-4 rounded-lg shadow-md border border-gray-200"
-      >
-        <h2 class="text-lg font-semibold text-gray-800">{{ vendor.name }}</h2>
-        <p class="text-sm text-gray-500">Phone: {{ vendor.phone_no }}</p>
-        <p class="text-sm text-gray-500">
-          Business:
-          <span class="font-semibold text-slate-900">{{
-            vendor.business_name
-          }}</span>
-        </p>
-        <p class="text-sm text-gray-500">
-          Created At: {{ new Date(vendor.created_at).toLocaleDateString() }}
-        </p>
-
-        <!-- Edit Button -->
-        <button
-          @click="openEditModal(vendor)"
-          class="mt-4 bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600"
-        >
-          Edit
-        </button>
-
-        <button
-          @click="showDeleteConfirmation(vendor.id)"
-          class="mt-4 ml-2 bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-
-    <div
-      v-if="showDeleteConfirm"
-      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50"
-    >
-      <div class="bg-white p-6 rounded-lg shadow-xl">
-        <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
-        <p class="mb-4">Are you sure you want to delete this Admin?</p>
-        <div class="flex justify-end space-x-2">
-          <button
-            @click="confirmDelete"
-            class="bg-red-500 px-4 py-2 text-white rounded-md"
-          >
-            Delete
-          </button>
-          <button
-            @click="cancelDelete"
-            class="bg-gray-300 px-4 py-2 text-gray-800 rounded-md"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Admin Modal -->
-    <div
-      v-if="showEditModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-    >
-      <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h2 class="text-lg font-semibold mb-4">Edit Admin</h2>
-
-        <form @submit.prevent="updateAdmin">
-          <div class="mb-4">
-            <label class="block text-gray-700">Name</label>
-            <input
-              type="text"
-              v-model="editVendor.name"
-              class="border p-2 rounded w-full"
-            />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Card v-for="vendor in vendors" :key="vendor.id">
+        <CardHeader>
+          <CardTitle>{{ vendor.name }}</CardTitle>
+          <CardDescription>{{ vendor.business_name }}</CardDescription>
+        </CardHeader>
+        <CardContent class="space-y-2">
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <Phone class="w-4 h-4" />
+            {{ vendor.phone_no }}
           </div>
-          <div class="mb-4">
-            <label class="block text-gray-700">Phone Number</label>
-            <input
-              type="text"
-              v-model="editVendor.phone_no"
-              @input="validatePhoneNumber"
-              class="border p-2 rounded w-full"
-            />
-            <!-- Display error message for phone number -->
-            <p v-if="phoneError" class="text-red-500 text-sm">
-              {{ phoneError }}
-            </p>
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar class="w-4 h-4" />
+            Created: {{ new Date(vendor.created_at).toLocaleDateString() }}
           </div>
-          <div class="flex justify-end">
-            <button
-              type="button"
-              @click="closeEditModal"
-              class="mr-2 bg-gray-500 text-white py-1 px-3 rounded hover:bg-gray-600"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600"
-            >
-              Save
-            </button>
+          <div class="flex gap-2 pt-2">
+            <Button variant="outline" size="sm" @click="openEditModal(vendor)">
+              <Pencil class="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+            <Button variant="destructive" size="sm" @click="showDeleteConfirmation(vendor.id)">
+              <Trash2 class="w-4 h-4 mr-1" />
+              Delete
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <AlertDialog v-model:open="showDeleteConfirm">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this admin? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="cancelDelete">Cancel</AlertDialogCancel>
+          <AlertDialogAction @click="confirmDelete">Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <Dialog v-model:open="showEditModal">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Admin</DialogTitle>
+          <DialogDescription>Update admin details below.</DialogDescription>
+        </DialogHeader>
+        <form @submit.prevent="updateAdmin" class="space-y-4">
+          <div class="space-y-2">
+            <Label>Name</Label>
+            <Input v-model="editVendor.name" type="text" />
+          </div>
+          <div class="space-y-2">
+            <Label>Phone Number</Label>
+            <Input v-model="editVendor.phone_no" type="text" @input="validatePhoneNumber" />
+            <p v-if="phoneError" class="text-sm text-destructive">{{ phoneError }}</p>
+          </div>
+          <div class="flex justify-end gap-2">
+            <Button type="button" variant="outline" @click="closeEditModal">Cancel</Button>
+            <Button type="submit">Save</Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="showRegisterDialog">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Register Admin</DialogTitle>
+          <DialogDescription>Create a new restaurant admin account.</DialogDescription>
+        </DialogHeader>
+        <form @submit.prevent="registerAdmin" class="space-y-4">
+          <div class="space-y-2">
+            <Label for="reg-name">Name</Label>
+            <Input id="reg-name" v-model="regForm.name" placeholder="Enter admin name" required />
+          </div>
+          <div class="space-y-2">
+            <Label for="reg-phone">Phone Number</Label>
+            <Input id="reg-phone" v-model="regForm.phone_no" placeholder="Enter phone number" required />
+          </div>
+          <div class="space-y-2">
+            <Label for="reg-password">Password</Label>
+            <Input id="reg-password" type="password" v-model="regForm.password" placeholder="Enter password" required />
+          </div>
+          <div class="space-y-2">
+            <Label>Restaurant</Label>
+            <Select v-model="regForm.business" placeholder="Select a restaurant">
+              <SelectItem v-for="b in businessStore.businesses" :key="b.id" :value="b.name">
+                {{ b.name }}
+              </SelectItem>
+            </Select>
+          </div>
+          <div class="flex justify-end gap-2">
+            <Button type="button" variant="outline" @click="showRegisterDialog = false">Cancel</Button>
+            <Button type="submit" :disabled="registering">
+              <Loader2 v-if="registering" class="w-4 h-4 mr-2 animate-spin" />
+              <UserPlus v-else class="w-4 h-4 mr-2" />
+              Register
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { API_BASE_URL } from "../config/api";
-import { useUserStore } from "../store/userStore";
+import { API_BASE_URL } from "@/config/api";
+import { useUserStore } from "@/store/userStore";
+import { useBusinessStore } from "@/store/businessStore";
 import { toast } from "vue3-toastify";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore } from "@/stores/authStore";
 import { storeToRefs } from "pinia";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { Select, SelectItem } from "@/components/ui/select";
+import { RefreshCw, Pencil, Trash2, Phone, Calendar, AlertCircle, UserPlus, Loader2 } from "lucide-vue-next";
 
 const vendors = ref([]);
 const loading = ref(false);
@@ -144,8 +168,13 @@ const showEditModal = ref(false);
 const editVendor = ref({ name: "", phone_no: "", id: null });
 const phoneError = ref("");
 const userStore = useUserStore();
+const businessStore = useBusinessStore();
 const showDeleteConfirm = ref(false);
 const userId = ref("");
+
+const showRegisterDialog = ref(false);
+const registering = ref(false);
+const regForm = ref({ name: "", phone_no: "", password: "", business: "" });
 
 const authStore = useAuthStore();
 const { token } = storeToRefs(authStore);
@@ -157,7 +186,7 @@ const showDeleteConfirmation = (id) => {
 
 const cancelDelete = () => {
   showDeleteConfirm.value = false;
-  restaurantToDeleteId.value = null;
+  userId.value = null;
 };
 
 const confirmDelete = async () => {
@@ -185,45 +214,30 @@ const fetchVendors = async () => {
   }
 };
 
-const deleteAdmin = async (id) => {
-  try {
-    await userStore.deleteUser(id);
-    toast.success(
-      "Admin deleted successfully. Please refresh to see the results"
-    );
-  } catch (error) {
-    toast.error("Something went wrong");
-  }
-};
-
 const openEditModal = (vendor) => {
   editVendor.value = { ...vendor };
   showEditModal.value = true;
   phoneError.value = "";
 };
 
-// Close the edit modal
 const closeEditModal = () => {
   showEditModal.value = false;
-  editVendor.value = { name: "", phone_no: "", id: null }; // reset the form
-  phoneError.value = ""; // Reset phone error on modal close
+  editVendor.value = { name: "", phone_no: "", id: null };
+  phoneError.value = "";
 };
 
-// Validate phone number
 const validatePhoneNumber = () => {
   const phoneNumber = editVendor.value.phone_no;
   if (phoneNumber.length !== 11) {
     phoneError.value = "Phone number must be 11 digits long.";
   } else {
-    phoneError.value = ""; // Clears error if valid
+    phoneError.value = "";
   }
 };
 
-// Update admin
 const updateAdmin = async () => {
-  // Ensure validation before proceeding
   validatePhoneNumber();
-  if (phoneError.value) return; // Prevent update if there is an error
+  if (phoneError.value) return;
 
   try {
     await axios.put(
@@ -238,7 +252,6 @@ const updateAdmin = async () => {
         },
       }
     );
-    // Refresh vendor list after successful update
     fetchVendors();
     closeEditModal();
   } catch (err) {
@@ -246,22 +259,32 @@ const updateAdmin = async () => {
   }
 };
 
-// Fetch the vendors on page load
+const registerAdmin = async () => {
+  registering.value = true;
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/api/admin/createAdmins`,
+      regForm.value,
+    );
+    if (response.status === 200 || response.status === 201) {
+      toast.success("Admin registered successfully");
+      regForm.value = { name: "", phone_no: "", password: "", business: "" };
+      showRegisterDialog.value = false;
+      fetchVendors();
+    }
+  } catch (err) {
+    if (err.response) {
+      toast.error(`Error: ${err.response.data.message}`);
+    } else {
+      toast.error("Network error. Please try again.");
+    }
+  } finally {
+    registering.value = false;
+  }
+};
+
 onMounted(() => {
   fetchVendors();
+  businessStore.getBusinesses();
 });
 </script>
-
-<style scoped>
-body {
-  background-color: #f7fafc;
-}
-
-h1 {
-  font-family: "Poppins", sans-serif;
-}
-
-.grid {
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-}
-</style>

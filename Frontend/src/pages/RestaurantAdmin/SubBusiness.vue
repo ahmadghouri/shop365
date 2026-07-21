@@ -1,26 +1,40 @@
 <script setup>
 import { onMounted, computed } from "vue";
 import { useBusinessStore } from "../../store/businessStore";
-import { ChevronRight } from "lucide-vue-next";
 import { useRouter } from "vue-router";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import EmptyState from "@/components/dashboard/EmptyState.vue";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Building2, Clock, Tag, Percent, Calendar, ArrowRight, AlertCircle, Store
+} from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
-
-// Retrieve the user data from localStorage
 const user = JSON.parse(localStorage.getItem("user") || "{}");
 const businessId = user?.business_id;
-
-const isLoading = computed(() => businessStore.loading);
 const router = useRouter();
 
+const isLoading = computed(() => businessStore.loading);
+
 const formatTime = (time) => {
-  // Handle the specific time format from the API (e.g., "09:00:00AM")
   return time ? time.replace(/:00([AP]M)$/, "$1") : "";
+};
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 };
 
 const viewProductDetails = (name, businessId) => {
   try {
-    // Encode the name to make it URL-safe
     const encodedName = encodeURIComponent(name);
     router.push(`/business/${businessId}/${encodedName}`);
   } catch (error) {
@@ -36,156 +50,98 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
-      <h1 class="text-3xl font-bold text-gray-900 text-center mb-8">
-        Business List
-      </h1>
+  <div class="space-y-6">
+    <PageHeader title="Sub Businesses" description="View and manage your sub businesses" />
 
-      <!-- Loading State -->
-      <div
-        v-if="isLoading"
-        class="flex justify-center items-center min-h-[400px]"
-      >
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"
-        ></div>
-      </div>
-
-      <!-- Products Grid -->
-      <div
-        v-else-if="businessStore.subBusinesses?.length"
-        class="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        <div
-          v-for="product in businessStore.subBusinesses"
-          :key="product.id"
-          class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
-        >
-          <!-- Image Container -->
-          <div class="relative h-56 overflow-hidden">
-            <img
-              :src="product.image_url"
-              :alt="product.name"
-              class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-            />
-            <div
-              class="absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium"
-              :class="
-                product.status === 'active'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              "
-            >
-              {{ product.status }}
-            </div>
-          </div>
-
-          <!-- Content -->
-          <div class="p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">
-              {{ product.name }}
-            </h2>
-            <div class="space-y-3">
-              <p class="text-gray-600 flex items-center">
-                <span class="material-icons-outlined text-sm mr-2"
-                  >category</span
-                >
-                {{ product.type }}
-              </p>
-              <div class="flex items-center text-gray-600">
-                <span class="material-icons-outlined text-sm mr-2"
-                  >schedule</span
-                >
-                <span
-                  >{{ formatTime(product.opening_time) }} -
-                  {{ formatTime(product.closing_time) }}</span
-                >
-              </div>
-              <div class="flex items-center text-gray-600">
-                <span class="material-icons-outlined text-sm mr-2"
-                  >Discount</span
-                >
-                <span>{{ product.discount }}% Off</span>
-              </div>
-              <div class="flex items-center text-gray-600 text-sm">
-                <span class="material-icons-outlined text-sm mr-2">update</span>
-                <span
-                  >Updated:
-                  {{ new Date(product.updated_at).toLocaleDateString() }}</span
-                >
-              </div>
-            </div>
-
-            <!-- Action Button -->
-            <button
-              @click="viewProductDetails(product.name, product.id)"
-              class="mt-6 w-full bg-primary hover:bg-primary-dark text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
-            >
-              View Products
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div
-        v-else
-        class="min-h-[400px] flex flex-col items-center justify-center text-gray-500"
-      >
-        <span class="material-icons-outlined text-6xl mb-4">inventory_2</span>
-        <p class="text-xl">No businesses available</p>
-        <p class="mt-2">Add some business to get started</p>
-      </div>
+    <!-- Loading State -->
+    <div v-if="isLoading" class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <Card v-for="i in 6" :key="i" class="overflow-hidden">
+        <Skeleton class="h-56 w-full rounded-none" />
+        <CardHeader class="pb-3">
+          <Skeleton class="h-5 w-2/3" />
+          <Skeleton class="h-4 w-1/2" />
+        </CardHeader>
+        <CardContent class="space-y-2">
+          <Skeleton class="h-4 w-full" />
+          <Skeleton class="h-4 w-3/4" />
+          <Skeleton class="h-4 w-1/2" />
+        </CardContent>
+        <CardFooter>
+          <Skeleton class="h-10 w-full" />
+        </CardFooter>
+      </Card>
     </div>
+
+    <!-- Error -->
+    <Alert v-else-if="businessStore.error" variant="destructive">
+      <AlertCircle class="h-4 w-4" />
+      <AlertDescription>{{ businessStore.error }}</AlertDescription>
+    </Alert>
+
+    <!-- Products Grid -->
+    <div
+      v-else-if="businessStore.subBusinesses?.length"
+      class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      <Card
+        v-for="(business, index) in businessStore.subBusinesses"
+        :key="business.id"
+        class="overflow-hidden transition-all duration-300 hover:shadow-lg animate-in fade-in slide-in-from-bottom-4"
+        :style="{ animationDelay: `${index * 75}ms` }"
+      >
+        <!-- Image -->
+        <div class="relative h-56 overflow-hidden">
+          <img
+            :src="business.image_url"
+            :alt="business.name"
+            class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          />
+          <Badge
+            class="absolute top-3 right-3"
+            :variant="business.status === 'active' ? 'default' : 'destructive'"
+          >
+            {{ business.status }}
+          </Badge>
+        </div>
+
+        <CardHeader class="pb-3">
+          <CardTitle class="text-lg">{{ business.name }}</CardTitle>
+        </CardHeader>
+
+        <CardContent class="space-y-2.5 text-sm text-muted-foreground">
+          <div class="flex items-center gap-2">
+            <Tag class="h-4 w-4 shrink-0" />
+            <span>{{ business.type }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <Clock class="h-4 w-4 shrink-0" />
+            <span>{{ formatTime(business.opening_time) }} - {{ formatTime(business.closing_time) }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <Percent class="h-4 w-4 shrink-0" />
+            <span>{{ business.discount }}% Off</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <Calendar class="h-4 w-4 shrink-0" />
+            <span>Updated {{ formatDate(business.updated_at) }}</span>
+          </div>
+        </CardContent>
+
+        <CardFooter>
+          <Button class="w-full" @click="viewProductDetails(business.name, business.id)">
+            View Products
+            <ArrowRight class="ml-2 h-4 w-4" />
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+
+    <!-- Empty State -->
+    <EmptyState
+      v-else
+      title="No Businesses"
+      description="Add some businesses to get started."
+      :icon="Store"
+    />
   </div>
 </template>
-
-<style scoped>
-.bg-primary {
-  @apply bg-blue-600;
-}
-
-.bg-primary-dark {
-  @apply bg-blue-700;
-}
-
-.text-primary {
-  @apply text-blue-600;
-}
-
-/* Smooth fade in animation for cards */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.grid > div {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.grid > div:nth-child(1) {
-  animation-delay: 0.1s;
-}
-.grid > div:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.grid > div:nth-child(3) {
-  animation-delay: 0.3s;
-}
-.grid > div:nth-child(4) {
-  animation-delay: 0.4s;
-}
-.grid > div:nth-child(5) {
-  animation-delay: 0.5s;
-}
-.grid > div:nth-child(6) {
-  animation-delay: 0.6s;
-}
-</style>

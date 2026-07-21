@@ -1,174 +1,204 @@
 <template>
-  <div class="bg-gray-50 min-h-screen p-6">
-    <div class="mb-6 bg-white shadow-sm rounded-lg p-4">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-xl font-semibold text-gray-800">Today's users</h2>
-        <div class="flex gap-2">
-          <button
-            @click="refreshData"
-            class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              ></path>
-            </svg>
-            Refresh
-          </button>
-          <router-link
-            to="/admin/total-users"
-            class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              ></path>
-            </svg>
+  <div class="container mx-auto px-4 py-6">
+    <PageHeader title="Today's Users" description="View users from the last two days">
+      <template #actions>
+        <Button variant="outline" @click="refreshData">
+          <RefreshCw class="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
+        <router-link to="/admin/total-users">
+          <Button variant="secondary">
+            <Users class="w-4 h-4 mr-2" />
             See All Users
-          </router-link>
-        </div>
-      </div>
-      <div class="flex justify-between items-center">
-        <div>
-          <p class="text-sm text-gray-600">New Users Today</p>
-          <p class="text-2xl font-bold text-green-600">
-            {{ userStore.todayUsersCount }}
-          </p>
-        </div>
-      </div>
+          </Button>
+        </router-link>
+      </template>
+    </PageHeader>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <Card>
+        <CardContent class="pt-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <UserPlus class="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">New Users Today</p>
+              <p class="text-2xl font-bold">{{ userStore.todayUsersCount }}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent class="pt-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-blue-500/10 rounded-lg">
+              <Users class="w-5 h-5 text-blue-500" />
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Total Users</p>
+              <p class="text-2xl font-bold">{{ userStore.users.length }}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent class="pt-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-emerald-500/10 rounded-lg">
+              <TrendingUp class="w-5 h-5 text-emerald-500" />
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Top User Orders</p>
+              <p class="text-2xl font-bold">{{ sortedUsers[0]?.orders_count || 0 }}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent class="pt-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-orange-500/10 rounded-lg">
+              <Award class="w-5 h-5 text-orange-500" />
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Total Points</p>
+              <p class="text-2xl font-bold">{{ totalPoints }}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-    <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-3xl font-semibold text-gray-900">Users</h1>
-      <select
-        v-model="sortOrder"
-        class="bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-200"
-      >
-        <option value="desc">Highest Orders First</option>
-        <option value="asc">Lowest Orders First</option>
-      </select>
+
+    <div class="flex items-center mb-6 gap-2 text-right">
+      <h2 class="text-xl font-semibold">Users</h2>
+      <Select v-model="sortOrder" class="w-80">
+        <SelectItem value="desc">Highest Orders First</SelectItem>
+        <SelectItem value="asc">Lowest Orders First</SelectItem>
+      </Select>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
+      <Card
         v-for="(user, index) in sortedUsers"
         :key="user.id"
-        :class="[
-          'relative group bg-white shadow-sm rounded-lg overflow-hidden flex flex-col transition-transform duration-200',
-          isTopThree(index)
-            ? 'border-2 border-yellow-400 bg-yellow-50'
-            : 'hover:shadow-lg',
-        ]"
+        class="overflow-hidden transition-shadow hover:shadow-md"
+        :class="isTopThree(index) ? 'ring-2 ring-yellow-400/80' : ''"
       >
-        <div class="p-4 flex-grow">
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <p class="text-lg font-semibold text-gray-800">
-                {{ user.name || "No Name" }}
-                <span
-                  v-if="isTopThree(index)"
-                  class="ml-2 text-xs bg-yellow-300 text-gray-700 px-2 py-0.5 rounded-full"
-                >
-                  Top {{ index + 1 }}
-                </span>
-              </p>
-              <p class="text-sm text-gray-500">{{ user.phone_no }}</p>
+        <CardHeader class="pb-3">
+          <div class="flex items-center gap-3">
+            <Avatar class="h-11 w-11 border-2" :class="isTopThree(index) ? 'border-yellow-400' : 'border-muted'">
+              <AvatarFallback :class="isTopThree(index) ? 'bg-yellow-100 text-yellow-700' : 'bg-muted text-muted-foreground'">
+                {{ getInitials(user.name) }}
+              </AvatarFallback>
+            </Avatar>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <CardTitle class="text-base truncate">{{ user.name || "No Name" }}</CardTitle>
+                <Badge v-if="isTopThree(index)" class="shrink-0 bg-yellow-400 text-yellow-900 border-yellow-400 hover:bg-yellow-400">
+                  <Award class="w-3 h-3 mr-0.5" />
+                  #{{ index + 1 }}
+                </Badge>
+              </div>
+              <CardDescription class="flex items-center gap-1 mt-0.5">
+                <Phone class="w-3 h-3" />
+                {{ user.phone_no || "No phone" }}
+              </CardDescription>
             </div>
-            <div
-              class="text-sm font-medium px-3 py-1 rounded-full"
-              :class="
-                isTopThree(index)
-                  ? 'bg-yellow-300 text-yellow-900'
-                  : 'bg-gray-200 text-gray-700'
-              "
-            >
-              {{ user.orders_count }} Order{{
-                user.orders_count !== 1 ? "s" : ""
-              }}
+          </div>
+        </CardHeader>
+
+        <CardContent class="pb-3">
+          <div class="flex items-center justify-between p-3 rounded-lg bg-muted/50 mb-3">
+            <div class="text-center">
+              <p class="text-xs text-muted-foreground">Orders</p>
+              <p class="text-lg font-bold">{{ user.orders_count }}</p>
+            </div>
+            <Separator orientation="vertical" class="h-8" />
+            <div class="text-center">
+              <p class="text-xs text-muted-foreground">Points</p>
+              <p class="text-lg font-bold">{{ user.points || 0 }}</p>
+            </div>
+            <Separator orientation="vertical" class="h-8" />
+            <div class="text-center">
+              <p class="text-xs text-muted-foreground">Joined</p>
+              <p class="text-sm font-semibold">{{ new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }}</p>
             </div>
           </div>
 
-          <div class="text-gray-600 text-sm">
-            <p class="mb-1">
-              <span class="font-medium">Created At:</span>
-              {{ new Date(user.created_at).toLocaleDateString() }}
-            </p>
-            <p class="mb-1">
-              <span class="font-medium">Points:</span>
-              {{ user.points || 0 }}
-            </p>
-            <p class="mb-1">
-              <span class="font-medium">Address:</span>
-              {{ user.household?.address || "No Address" }}
-            </p>
-            <p>
-              <span class="font-medium">Town:</span>
-              {{ user.household?.town?.town_name || "No Town" }}
-            </p>
+          <div class="space-y-1.5 text-sm">
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <MapPin class="w-3.5 h-3.5 shrink-0" />
+              <span class="truncate">{{ user.household?.address || "No Address" }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <Building2 class="w-3.5 h-3.5 shrink-0" />
+              <span class="truncate">{{ user.household?.town?.town_name || "No Town" }}</span>
+            </div>
           </div>
+        </CardContent>
 
-          <button
-            @click="showDeleteConfirmation(user.id)"
-            class="mt-4 bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
+        <CardFooter class="pt-0">
+          <Button variant="destructive" size="sm" class="w-full" @click="showDeleteConfirmation(user.id)">
+            <Trash2 class="w-4 h-4 mr-1" />
+            Delete User
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
 
-    <div
-      v-if="showDeleteConfirm"
-      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50"
-    >
-      <div class="bg-white p-6 rounded-lg shadow-xl">
-        <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
-        <p class="mb-4">Are you sure you want to delete this User?</p>
-        <div class="flex justify-end space-x-2">
-          <button
-            @click="confirmDelete"
-            class="bg-red-500 px-4 py-2 text-white rounded-md"
-          >
-            Delete
-          </button>
-          <button
-            @click="cancelDelete"
-            class="bg-gray-300 px-4 py-2 text-gray-800 rounded-md"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    <EmptyState
+      v-if="!userStore.loading && sortedUsers.length === 0"
+      title="No Users Found"
+      description="No users found in the last two days."
+      :icon="Users"
+    />
+
+    <AlertDialog v-model:open="showDeleteConfirm">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this user? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="cancelDelete">Cancel</AlertDialogCancel>
+          <AlertDialogAction @click="confirmDelete">Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useUserStore } from "../../store/userStore";
+import { useUserStore } from "@/store/userStore";
 import { toast } from "vue3-toastify";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import EmptyState from "@/components/dashboard/EmptyState.vue";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectItem } from "@/components/ui/select";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { RefreshCw, Users, UserPlus, Trash2, Award, Phone, MapPin, Building2, TrendingUp } from "lucide-vue-next";
 
 const userStore = useUserStore();
 const sortOrder = ref("desc");
 const showDeleteConfirm = ref(false);
 const userId = ref("");
+
+const getInitials = (name) => {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+};
+
+const totalPoints = computed(() => {
+  return userStore.users.reduce((sum, u) => sum + (u.points || 0), 0);
+});
 
 const showDeleteConfirmation = (id) => {
   userId.value = id;
@@ -215,5 +245,3 @@ const isTopThree = (index) => {
   return index < 3 && sortOrder.value === "desc";
 };
 </script>
-
-<style scoped></style>

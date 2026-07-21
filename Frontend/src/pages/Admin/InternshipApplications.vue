@@ -1,43 +1,68 @@
 <template>
   <div class="container mx-auto px-4 py-6">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Internship Applications</h1>
+    <PageHeader title="Internship Applications" description="Review incoming internship applications" />
+
+    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card v-for="i in 3" :key="i">
+        <CardHeader>
+          <Skeleton class="h-5 w-2/3" />
+          <Skeleton class="h-4 w-1/2" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton class="h-4 w-3/4 mb-2" />
+          <Skeleton class="h-4 w-1/2" />
+        </CardContent>
+      </Card>
     </div>
 
-    <div v-if="loading" class="text-center py-8">
-      <p class="text-gray-600">Loading applications...</p>
-    </div>
+    <EmptyState
+      v-else-if="applications.length === 0"
+      title="No Applications"
+      description="No internship applications have been submitted yet."
+      :icon="GraduationCap"
+    />
 
-    <div v-else-if="applications.length === 0" class="text-center py-8">
-      <p class="text-gray-600">No applications found.</p>
-    </div>
-
-    <div v-else class="grid gap-4">
-      <div
-        v-for="application in applications"
-        :key="application.id"
-        class="bg-white shadow-md rounded-lg p-4 flex justify-between items-center"
-      >
-        <div>
-          <p class="font-semibold text-gray-800">{{ application.full_name }}</p>
-          <p class="text-sm text-gray-600">Email: {{ application.email }}</p>
-          <p class="text-sm text-gray-600">Phone: {{ application.phone }}</p>
-          <p v-if="application.portfolio_url" class="text-sm text-blue-600 underline">
-            <a :href="application.portfolio_url" target="_blank">View Portfolio</a>
-          </p>
-          <p v-if="application.academic_info" class="text-sm text-gray-500">
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card v-for="application in applications" :key="application.id">
+        <CardHeader>
+          <CardTitle class="flex items-center gap-2">
+            <User class="w-5 h-5" />
+            {{ application.full_name }}
+          </CardTitle>
+        </CardHeader>
+        <CardContent class="space-y-2">
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <Mail class="w-4 h-4" />
+            {{ application.email }}
+          </div>
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <Phone class="w-4 h-4" />
+            {{ application.phone }}
+          </div>
+          <div v-if="application.portfolio_url" class="text-sm">
+            <a :href="application.portfolio_url" target="_blank" class="text-primary hover:underline flex items-center gap-1">
+              <ExternalLink class="w-3 h-3" />
+              View Portfolio
+            </a>
+          </div>
+          <p v-if="application.academic_info" class="text-sm text-muted-foreground">
             Academic Info: {{ application.academic_info }}
           </p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { API_BASE_URL } from "../../config/api.js"
+import { API_BASE_URL } from "@/config/api.js"
 import axios from 'axios'
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import EmptyState from "@/components/dashboard/EmptyState.vue";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { User, Mail, Phone, ExternalLink, GraduationCap } from "lucide-vue-next";
 
 const applications = ref([])
 const loading = ref(true)
@@ -46,7 +71,7 @@ const selectedApplicationId = ref(null)
 
 const fetchApplications = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/admin/internship-applications`) // Adjust API route as needed
+    const response = await axios.get(`${API_BASE_URL}/api/admin/internship-applications`)
     applications.value = response.data
   } catch (error) {
     console.error('Failed to fetch applications', error)
@@ -74,7 +99,3 @@ onMounted(() => {
   fetchApplications()
 })
 </script>
-
-<style scoped>
-/* You can add scoped styles if needed */
-</style>

@@ -1,296 +1,246 @@
-<!-- Product Management Template with Discount Feature -->
 <template>
-  <div class="container mx-auto mobile-spacing">
-    <div class="mb-4">
-      <input
+  <div class="container mx-auto px-4 py-6">
+    <PageHeader title="Products" description="Manage your restaurant products">
+      <template #actions>
+        <Button variant="outline" @click="refreshProducts">
+          <RefreshCw class="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
+        <Button @click="showAddDialog = true">
+          <Plus class="w-4 h-4 mr-2" />
+          Add Product
+        </Button>
+      </template>
+    </PageHeader>
+
+    <div class="relative mb-6">
+      <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input
         v-model="searchQuery"
-        @input="debounceSearch"
-        type="text"
         placeholder="Search products..."
-        class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        class="pl-9"
       />
-      <!-- <div v-if="isLoading" class="mt-2 mb-2 text-center">
-        <div
-          class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"
-        ></div>
-      </div> -->
     </div>
 
-    <div class="flex justify-between items-center">
-      <h1 class="text-xl font-semibold mb-4">Product List</h1>
-      <router-link
-        class="bg-blue-500 px-5 py-1 mb-4 text-white rounded-md"
-        to="/admin/store-product"
-      >
-        ADD
-      </router-link>
-    </div>
-
-    <div class="relative mb-4"></div>
-
-    <!-- Product Form -->
-    <div v-if="selectedProduct" class="mt-4">
-      <form @submit.prevent="submitForm" class="space-y-4">
-        <!-- Form Fields for Title, Price, Description, Image -->
-        <div>
-          <label for="title" class="block text-sm font-medium text-gray-700">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            v-model="form.title"
-            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label for="price" class="block text-sm font-medium text-gray-700">
-            Price
-          </label>
-          <input
-            type="text"
-            id="price"
-            v-model="form.price"
-            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label for="image" class="block text-sm font-medium text-gray-700">
-            Image (Max 15KB)
-          </label>
-          <input
-            @change="handleFileChange"
-            type="file"
-            id="image"
-            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <p v-if="imageError" class="text-red-500 text-xs mt-1">
-            {{ imageError }}
-          </p>
-        </div>
-
-        <div>
-          <label
-            for="description"
-            class="block text-sm font-medium text-gray-700"
-          >
-            Description
-          </label>
-          <textarea
-            id="description"
-            v-model="form.description"
-            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          ></textarea>
-        </div>
-
-        <div>
-          <label for="type" class="block text-sm font-medium text-gray-700">
-            Type
-          </label>
-          <input
-            type="text"
-            id="type"
-            v-model="form.type"
-            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <!-- Discount Field -->
-        <!-- <div>
-          <label for="discount" class="block text-sm font-medium text-gray-700">
-            Discount (%)
-          </label>
-          <input
-            type="number"
-            id="discount"
-            v-model="discount"
-            min="0"
-            max="100"
-            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="Enter discount percentage"
-          />
-        </div> -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">
-            Discount Type
-          </label>
-          <div class="mt-1 flex space-x-4">
-            <label class="inline-flex items-center">
-              <input
-                type="radio"
-                v-model="discountType"
-                value="percentage"
-                class="form-radio"
-              />
-              <span class="ml-2">Percentage (%)</span>
-            </label>
-            <label class="inline-flex items-center">
-              <input
-                type="radio"
-                v-model="discountType"
-                value="flat"
-                class="form-radio"
-              />
-              <span class="ml-2">Flat Amount</span>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <label for="discount" class="block text-sm font-medium text-gray-700">
-            {{
-              discountType === "percentage" ? "Discount (%)" : "Discount Amount"
-            }}
-          </label>
-          <input
-            type="number"
-            id="discount"
-            v-model="discount"
-            :min="0"
-            :max="discountType === 'percentage' ? 100 : undefined"
-            class="mt-1 p-2 block w-full border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-            :placeholder="
-              discountType === 'percentage'
-                ? 'Enter discount percentage'
-                : 'Enter discount amount'
-            "
-          />
-        </div>
-
-        <!-- Buttons -->
-        <div class="flex space-x-4">
-          <button
-            type="submit"
-            class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-150 ease-in-out"
-          >
-            Update Product
-          </button>
-          <button
-            type="button"
-            @click="applyDiscountToProduct"
-            class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-150 ease-in-out"
-          >
-            Apply Discount
-          </button>
-          <button
-            type="button"
-            @click="closeForm"
-            class="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition duration-150 ease-in-out"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Product List -->
-    <div v-else>
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-        <div
-          v-for="product in productStore.currentProducts"
-          :key="product.id"
-          class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col justify-between"
-        >
-          <div class="p-4 flex-grow">
-            <div class="flex items-start justify-between">
-              <div>
-                <h2 class="text-xl font-semibold">{{ product.title }}</h2>
-                <div
-                  v-html="product.description"
-                  class="prose text-sm lg:text-base text-gray-600 mt-1"
-                ></div>
+    <div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card v-for="product in productStore.currentProducts" :key="product.id" class="overflow-hidden flex flex-col">
+          <CardHeader class="pb-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <CardTitle class="truncate text-base">{{ product.title }}</CardTitle>
               </div>
-              <div class="mt-1 text-right">
-                <span class="text-lg font-bold block">{{ product.price }}</span>
-                <span
-                  v-if="product.discount > 0"
-                  class="text-sm text-green-600"
-                >
-                  {{ product.discount }}% OFF
-                </span>
+              <div class="text-right shrink-0">
+                <p class="text-lg font-bold">{{ product.price }}</p>
+                <Badge v-if="product.discount > 0" variant="destructive" class="text-xs">
+                  {{ product.discount }}{{ product.discount_type === 'flat' ? ' PKR' : '%' }} OFF
+                </Badge>
               </div>
             </div>
+            <CardDescription class="line-clamp-2" v-html="product.description"></CardDescription>
+          </CardHeader>
 
-            <div class="flex items-center justify-between mt-4 border-t pt-3">
-              <span class="text-sm text-gray-600">Product Status</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only peer"
-                  :checked="product.status === 1"
-                  @change="() => handleStatusToggle(product)"
-                />
-                <div
-                  class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"
-                ></div>
-              </label>
+          <CardContent class="flex-1 pb-3">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-muted-foreground">Product Status</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    class="sr-only peer"
+                    :checked="product.status === 1"
+                    @change="() => handleStatusToggle(product)"
+                  />
+                  <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                </label>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-muted-foreground">Active Status</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    class="sr-only peer"
+                    :checked="product.is_active === 1"
+                    @change="() => handleActiveToggle(product)"
+                  />
+                  <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                </label>
+              </div>
             </div>
-            <div class="flex items-center justify-between mt-4 border-t pt-3">
-              <span class="text-sm text-gray-600">Active Status</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only peer"
-                  :checked="product.is_active === 1"
-                   @change="() => handleActiveToggle(product)"
-                />
-                <div
-                  class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"
-                ></div>
-              </label>
-            </div>
-          </div>
-          <div class="p-4">
-            <button
-              @click="openFormForUpdate(product)"
-              class="bg-yellow-500 text-white w-full font-bold rounded-lg px-4 py-2 hover:bg-yellow-600 transition duration-150 ease-in-out"
-            >
-              Update
-            </button>
-          </div>
-        </div>
+          </CardContent>
+
+          <CardFooter>
+            <Button variant="outline" class="w-full" @click="openFormForUpdate(product)">
+              <Pencil class="w-4 h-4 mr-2" />
+              Edit Product
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
 
-      <div v-if="productStore.isLoading" class="text-center py-4">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent"
-        ></div>
+      <div v-if="productStore.isLoading" class="flex justify-center py-8">
+        <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
 
-      <!-- Intersection observer target -->
       <div ref="loadMoreTrigger" class="h-4 my-4"></div>
+
+      <EmptyState
+        v-if="!productStore.isLoading && productStore.currentProducts.length === 0"
+        title="No Products"
+        description="Get started by adding your first product."
+        :icon="Package"
+        actionLabel="Add Product"
+        @action="showAddDialog = true"
+      />
     </div>
 
-    <!-- Confirmation Modal -->
-    <div
-      v-if="showConfirmModal"
-      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50 p-4"
-    >
-      <div class="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full md:w-1/3">
-        <h2 class="text-lg font-semibold mb-4 text-center">Confirm Deletion</h2>
-        <p class="text-center mb-4">
-          Are you sure you want to delete this product?
-        </p>
-        <div
-          class="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4"
-        >
-          <button
-            @click="deleteProduct(confirmDeleteId)"
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-150 ease-in-out w-full md:w-auto"
-          >
-            Yes, Delete
-          </button>
-          <button
-            @click="cancelDelete"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition duration-150 ease-in-out w-full md:w-auto"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    <AlertDialog v-model:open="showConfirmModal">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this product? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="cancelDelete">Cancel</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" @click="deleteProduct(confirmDeleteId)">
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <Dialog v-model:open="showAddDialog">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Product</DialogTitle>
+          <DialogDescription>Create a new product entry.</DialogDescription>
+        </DialogHeader>
+        <form @submit.prevent="handleAddProduct" class="space-y-4">
+          <div class="space-y-2">
+            <Label>Title</Label>
+            <Input v-model="addForm.title" placeholder="Product title" required />
+          </div>
+          <div class="space-y-2">
+            <Label>Description</Label>
+            <textarea
+              v-model="addForm.description"
+              placeholder="Product description"
+              class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
+            ></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <Label>Price</Label>
+              <Input v-model="addForm.price" type="number" placeholder="0.00" required />
+            </div>
+            <div class="space-y-2">
+              <Label>Type</Label>
+              <Input v-model="addForm.type" placeholder="e.g. Veg, Non-Veg" required />
+            </div>
+          </div>
+          <div class="space-y-2">
+            <Label>Image (Max 15KB)</Label>
+            <Input type="file" accept="image/*" @change="handleAddFileChange" required />
+            <p v-if="addImageError" class="text-sm text-destructive">{{ addImageError }}</p>
+          </div>
+          <div class="flex justify-end gap-2">
+            <Button type="button" variant="outline" @click="showAddDialog = false">Cancel</Button>
+            <Button type="submit" :disabled="addingProduct">
+              <Loader2 v-if="addingProduct" class="w-4 h-4 mr-2 animate-spin" />
+              <Plus v-else class="w-4 h-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="selectedProduct">
+      <DialogContent class="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit Product</DialogTitle>
+          <DialogDescription>Update product details below.</DialogDescription>
+        </DialogHeader>
+        <form @submit.prevent="submitForm" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <Label>Title</Label>
+              <Input v-model="form.title" placeholder="Product title" />
+            </div>
+            <div class="space-y-2">
+              <Label>Price</Label>
+              <Input v-model="form.price" type="number" placeholder="0.00" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <Label>Description</Label>
+            <textarea
+              v-model="form.description"
+              class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <Label>Type</Label>
+              <Input v-model="form.type" placeholder="e.g. Veg, Non-Veg" />
+            </div>
+            <div class="space-y-2">
+              <Label>Image (Max 15KB)</Label>
+              <Input type="file" accept="image/*" @change="handleFileChange" />
+              <p v-if="imageError" class="text-sm text-destructive">{{ imageError }}</p>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div class="space-y-3">
+            <Label>Discount</Label>
+            <div class="flex gap-4">
+              <Button
+                type="button"
+                :variant="discountType === 'percentage' ? 'default' : 'outline'"
+                size="sm"
+                @click="discountType = 'percentage'"
+              >
+                Percentage (%)
+              </Button>
+              <Button
+                type="button"
+                :variant="discountType === 'flat' ? 'default' : 'outline'"
+                size="sm"
+                @click="discountType = 'flat'"
+              >
+                Flat Amount
+              </Button>
+            </div>
+            <Input
+              v-model="discount"
+              type="number"
+              :min="0"
+              :max="discountType === 'percentage' ? 100 : undefined"
+              :placeholder="discountType === 'percentage' ? 'Enter percentage (0-100)' : 'Enter amount'"
+            />
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" @click="closeForm">Cancel</Button>
+            <Button type="submit">
+              <Save class="w-4 h-4 mr-2" />
+              Update Product
+            </Button>
+            <Button type="button" variant="secondary" @click="applyDiscountToProduct">
+              <Percent class="w-4 h-4 mr-2" />
+              Apply Discount
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -300,6 +250,19 @@ import { useProductStore } from "../../store/productStore";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import debounce from "lodash/debounce";
+import axios from "axios";
+import { API_BASE_URL } from "@/config/api";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import EmptyState from "@/components/dashboard/EmptyState.vue";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { RefreshCw, Plus, Pencil, X, Search, Save, Percent, Package, Loader2 } from "lucide-vue-next";
 
 const router = useRouter();
 const productStore = useProductStore();
@@ -313,7 +276,7 @@ const form = ref({
   type: "",
   image: null,
 });
-const discount = ref(0); // New discount field
+const discount = ref(0);
 const discountType = ref("percentage");
 const showConfirmModal = ref(false);
 const confirmDeleteId = ref(null);
@@ -321,6 +284,11 @@ const searchQuery = ref("");
 const loadMoreTrigger = ref(null);
 const isLoading = ref(true);
 const currentPage = ref(1);
+
+const showAddDialog = ref(false);
+const addingProduct = ref(false);
+const addForm = ref({ title: "", description: "", price: "", type: "", image: null });
+const addImageError = ref("");
 
 const setupIntersectionObserver = () => {
   const options = {
@@ -346,6 +314,18 @@ const setupIntersectionObserver = () => {
   }
 
   return observer;
+};
+
+const refreshProducts = async () => {
+  currentPage.value = 1;
+  isLoading.value = true;
+  try {
+    await productStore.getRestaurantProducts(searchQuery.value, 1);
+  } catch (error) {
+    toast.error("Failed to refresh products");
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const handleStatusToggle = async (product) => {
@@ -394,6 +374,7 @@ const handleFileChange = (e) => {
 
 const searchProducts = async () => {
   isLoading.value = true;
+  currentPage.value = 1;
   try {
     await productStore.getRestaurantProducts(searchQuery.value);
   } catch (error) {
@@ -404,12 +385,10 @@ const searchProducts = async () => {
   }
 };
 
-// Debounce the search function
 const debounceSearch = debounce(() => {
   searchProducts();
 }, 300);
 
-// Watch for changes in the search query
 watch(searchQuery, () => {
   debounceSearch();
 });
@@ -452,7 +431,7 @@ const submitForm = async () => {
   if (form.value.image && form.value.image.size > 15 * 1024) {
     imageError.value = "Image size must be less than 15KB.";
     toast.error("Image size exceeds the limit.");
-    return; // Prevent submission if the image is too large
+    return;
   }
 
   const formData = new FormData();
@@ -524,13 +503,55 @@ const deleteProduct = async (productId) => {
   toast.success("Product deleted successfully!");
 };
 
+const handleAddFileChange = (e) => {
+  const file = e.target.files[0];
+  if (file && file.size > 15 * 1024) {
+    addImageError.value = "Image size must be less than 15KB.";
+    addForm.value.image = null;
+  } else {
+    addImageError.value = "";
+    addForm.value.image = file;
+  }
+};
+
+const handleAddProduct = async () => {
+  if (!addForm.value.image) {
+    addImageError.value = "Please upload a valid image.";
+    return;
+  }
+
+  addingProduct.value = true;
+  try {
+    const formData = new FormData();
+    formData.append("title", addForm.value.title);
+    formData.append("description", addForm.value.description);
+    formData.append("price", addForm.value.price);
+    formData.append("type", addForm.value.type);
+    formData.append("image", addForm.value.image);
+
+    await axios.post(`${API_BASE_URL}/api/restaurantAdmin/add-products`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    toast.success("Product added successfully");
+    addForm.value = { title: "", description: "", price: "", type: "", image: null };
+    addImageError.value = "";
+    showAddDialog.value = false;
+    await productStore.getRestaurantProducts();
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to add product.");
+  } finally {
+    addingProduct.value = false;
+  }
+};
+
 onMounted(async () => {
   currentPage.value = 1;
   try {
     await productStore.getRestaurantProducts();
     const observer = setupIntersectionObserver();
 
-    // Cleanup observer on component unmount
     onUnmounted(() => {
       if (observer && loadMoreTrigger.value) {
         observer.unobserve(loadMoreTrigger.value);
@@ -549,7 +570,6 @@ onMounted(async () => {
   width: 100%;
 }
 
-/* Table styling */
 .prose table {
   width: 100%;
   border-collapse: collapse;
@@ -568,7 +588,6 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-/* List styling */
 .prose ul {
   list-style-type: disc;
   padding-left: 1.5rem;
@@ -579,18 +598,14 @@ onMounted(async () => {
   padding-left: 1.5rem;
 }
 
-/* Maintain spacing */
 .prose > * + * {
   margin-top: 1rem;
 }
-/* Custom styling for the select element */
-select::-ms-expand {
-  display: none;
-}
 
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

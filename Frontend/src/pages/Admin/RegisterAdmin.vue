@@ -1,55 +1,60 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-      <h2 class="text-2xl font-bold mb-6 text-center">Register Admin</h2>
-      <form @submit.prevent="registerAdmin">
-        <div class="mb-4">
-          <label for="name" class="block text-gray-700">Name</label>
-          <input type="text" id="name" v-model="form.name"
-            class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-blue-500 focus:ring-blue-500"
-            required />
-        </div>
-        <div class="mb-4">
-          <label for="phone_no" class="block text-gray-700">Phone Number</label>
-          <input type="text" id="phone_no" v-model="form.phone_no"
-            class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-blue-500 focus:ring-blue-500"
-            required />
-        </div>
-        <div class="mb-4">
-          <label for="password" class="block text-gray-700">Password</label>
-          <input type="password" id="password" v-model="form.password"
-            class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-blue-500 focus:ring-blue-500"
-            required />
-        </div>
-
-        <div class="mb-4">
-          <label for="restaurant" class="block text-gray-700">Restaurant</label>
-          <select id="restaurant" v-model="form.business"
-            class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:border-blue-500 focus:ring-blue-500"
-            required>
-            <option value="" disabled>Select a restaurant</option>
-            <option v-for="restaurant in businessStore.businesses" :key="restaurant.id" :value="restaurant.name">
-              {{ restaurant.name }}
-            </option>
-          </select>
-        </div>
-        <div class="flex justify-center">
-          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+  <div class="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-12">
+    <Card class="w-full max-w-md">
+      <CardHeader class="text-center">
+        <CardTitle class="text-2xl">Register Admin</CardTitle>
+        <CardDescription>Create a new restaurant admin account</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form @submit.prevent="registerAdmin" class="space-y-4">
+          <div class="space-y-2">
+            <Label for="name">Name</Label>
+            <Input id="name" type="text" v-model="form.name" placeholder="Enter admin name" required />
+          </div>
+          <div class="space-y-2">
+            <Label for="phone_no">Phone Number</Label>
+            <Input id="phone_no" type="text" v-model="form.phone_no" placeholder="Enter phone number" required />
+          </div>
+          <div class="space-y-2">
+            <Label for="password">Password</Label>
+            <Input id="password" type="password" v-model="form.password" placeholder="Enter password" required />
+          </div>
+          <div class="space-y-2">
+            <Label for="restaurant">Restaurant</Label>
+            <select
+              id="restaurant"
+              v-model="form.business"
+              required
+              class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="" disabled>Select a restaurant</option>
+              <option v-for="restaurant in businessStore.businesses" :key="restaurant.id" :value="restaurant.name">
+                {{ restaurant.name }}
+              </option>
+            </select>
+          </div>
+          <Button type="submit" class="w-full">
+            <UserPlus class="w-4 h-4 mr-2" />
             Register
-          </button>
-        </div>
-      </form>
-    </div>
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { useBusinessStore } from "../../store/businessStore";
-import { API_BASE_URL } from "../../config/api";
+import { useBusinessStore } from "@/store/businessStore";
+import { API_BASE_URL } from "@/config/api";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { UserPlus } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
 const form = ref({
@@ -92,5 +97,3 @@ onMounted(async () => {
   await businessStore.getBusinesses();
 });
 </script>
-
-<style scoped></style>

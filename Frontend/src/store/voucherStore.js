@@ -32,10 +32,25 @@ export const useVoucherStore = defineStore("vouchers", () => {
     }
   }
 
+  async function createVoucher(data) {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/admin/create-voucher`,
+        data
+      );
+      await fetchVouchers();
+      return response.data;
+    } catch (error) {
+      console.error("Failed to create voucher:", error);
+      throw error;
+    }
+  }
+
   return {
     vouchers,
     fetchVouchers,
     deleteVoucher,
+    createVoucher,
   };
 });
 

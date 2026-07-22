@@ -40,7 +40,7 @@
             class="fixed inset-0 bg-gray-900 bg-opacity-50"
             @click="showForm = false"
           ></div>
-          <div class="relative bg-white rounded-lg w-full max-w-2xl mx-auto">
+          <div class="relative bg-card rounded-lg w-full max-w-2xl mx-auto">
             <AddProduct @close="showForm = false" />
           </div>
         </div>
@@ -59,7 +59,7 @@
             class="fixed inset-0 bg-gray-900 bg-opacity-50"
             @click="editFormVisible = false"
           ></div>
-          <div class="relative bg-white rounded-lg w-full max-w-2xl mx-auto">
+          <div class="relative bg-card rounded-lg w-full max-w-2xl mx-auto">
             <EditProduct
               :product="selectedProduct"
               @close="editFormVisible = false"
@@ -82,13 +82,13 @@
             class="fixed inset-0 bg-gray-900 bg-opacity-50"
             @click="cancelDelete"
           ></div>
-          <div class="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
+          <div class="relative bg-card rounded-lg w-full max-w-md mx-auto p-6">
             <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
             <p class="mb-6">Are you sure you want to delete this product?</p>
             <div class="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 @click="cancelDelete"
-                class="w-full sm:w-auto px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors"
+                class="w-full sm:w-auto px-6 py-2 bg-muted text-foreground rounded-lg hover:bg-accent transition-colors"
               >
                 Cancel
               </button>
@@ -111,7 +111,7 @@
       <div
         v-for="product in productStore.adminProducts"
         :key="product.id"
-        class="bg-white shadow-lg rounded-xl overflow-hidden flex flex-col"
+        class="bg-card shadow-lg rounded-xl overflow-hidden flex flex-col"
       >
         <div class="p-6 flex flex-col h-full">
           <h2 class="text-xl font-semibold mb-3 truncate">

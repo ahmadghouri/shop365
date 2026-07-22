@@ -203,7 +203,7 @@ onMounted(() => {
             class="fixed inset-0 bg-gray-900 bg-opacity-50"
             @click="showAddModal = false"
           ></div>
-          <div class="relative bg-white rounded-lg w-full max-w-2xl mx-auto">
+          <div class="relative bg-card rounded-lg w-full max-w-2xl mx-auto">
             <AddSubProduct
               :business="businessName"
               @close="handleProductAdded"
@@ -217,7 +217,7 @@ onMounted(() => {
     <div v-if="selectedProduct" class="mt-4">
       <form @submit.prevent="submitForm" class="space-y-4">
         <div>
-          <label for="title" class="block text-sm font-medium text-gray-700"
+          <label for="title" class="block text-sm font-medium text-muted-foreground"
             >Title</label
           >
           <input
@@ -229,7 +229,7 @@ onMounted(() => {
         </div>
 
         <div>
-          <label for="price" class="block text-sm font-medium text-gray-700"
+          <label for="price" class="block text-sm font-medium text-muted-foreground"
             >Price</label
           >
           <input
@@ -241,7 +241,7 @@ onMounted(() => {
         </div>
 
         <div>
-          <label for="image" class="block text-sm font-medium text-gray-700">
+          <label for="image" class="block text-sm font-medium text-muted-foreground">
             Image (Max 15KB)
           </label>
           <input
@@ -258,7 +258,7 @@ onMounted(() => {
         <div>
           <label
             for="description"
-            class="block text-sm font-medium text-gray-700"
+            class="block text-sm font-medium text-muted-foreground"
           >
             Description
           </label>
@@ -270,7 +270,7 @@ onMounted(() => {
         </div>
 
         <div>
-          <label for="type" class="block text-sm font-medium text-gray-700"
+          <label for="type" class="block text-sm font-medium text-muted-foreground"
             >Type</label
           >
           <input
@@ -283,7 +283,7 @@ onMounted(() => {
 
         <!-- Discount Field -->
         <div>
-          <label for="discount" class="block text-sm font-medium text-gray-700">
+          <label for="discount" class="block text-sm font-medium text-muted-foreground">
             Discount (%)
           </label>
           <input
@@ -329,7 +329,7 @@ onMounted(() => {
         <div
           v-for="product in productStore.currentProducts"
           :key="product.id"
-          class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col justify-between"
+          class="bg-card shadow-md rounded-lg overflow-hidden flex flex-col justify-between"
         >
           <div class="p-4 flex-grow">
             <div class="flex items-start justify-between">
@@ -337,7 +337,7 @@ onMounted(() => {
                 <h2 class="text-xl font-semibold">{{ product.title }}</h2>
                 <div
                   v-html="product.description"
-                  class="prose text-sm lg:text-base text-gray-600 mt-1"
+                  class="prose text-sm lg:text-base text-muted-foreground mt-1"
                 ></div>
               </div>
               <div class="mt-1 text-right">

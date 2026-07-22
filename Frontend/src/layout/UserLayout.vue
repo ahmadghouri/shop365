@@ -11,8 +11,23 @@
 </template>
 
 <script setup>
+import { onMounted, onUnmounted } from 'vue'
 import NavBar from "../components/NavBar.vue";
 import Footer from "../components/Footer.vue";
+
+function forceLightMode() {
+  document.documentElement.classList.remove('dark')
+  document.documentElement.style.colorScheme = 'light'
+}
+
+onMounted(() => {
+  forceLightMode()
+})
+
+onUnmounted(() => {
+  document.documentElement.classList.remove('dark')
+  document.documentElement.style.colorScheme = 'light'
+})
 </script>
 
 <style scoped></style>

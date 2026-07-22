@@ -1,10 +1,8 @@
 <script setup>
 import { useAuthStore } from "./stores/authStore";
-import { useTheme } from "./composables/useTheme";
 import { onMounted, onUnmounted } from "vue";
 
 const authStore = useAuthStore();
-useTheme();
 
 const refreshInterval = 10 * 60 * 1000; // 5 minutes in milliseconds
 let refreshIntervalId;

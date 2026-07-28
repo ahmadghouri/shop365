@@ -157,9 +157,8 @@
 </template>
 
 <script setup>
+import { headerImageApi } from "@/api/modules/header-image.api";
 import { ref, onMounted } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -197,7 +196,7 @@ const newImage = ref({
 const fetchImages = async () => {
   loadingList.value = true;
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/header-images`);
+    const response = await headerImageApi.getAll();
     carouselImages.value = response.data;
   } catch (error) {
     console.error("Failed to fetch images:", error);
@@ -228,9 +227,7 @@ const uploadImage = async () => {
     formData.append("description", newImage.value.description);
     formData.append("order", carouselImages.value.length);
 
-    const response = await axios.post(`${API_BASE_URL}/api/header-images`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const response = await headerImageApi.create(formData);
 
     carouselImages.value.push(response.data.data);
     newImage.value = { title: "", description: "", file: null };
@@ -252,7 +249,7 @@ const confirmDelete = (id) => {
 const executeDelete = async () => {
   if (!imageToDelete.value) return;
   try {
-    await axios.delete(`${API_BASE_URL}/api/header-images/${imageToDelete.value}`);
+    await headerImageApi.delete(imageToDelete.value);
     carouselImages.value = carouselImages.value.filter((img) => img.id !== imageToDelete.value);
   } catch (error) {
     console.error("Failed to delete image:", error);
@@ -274,7 +271,7 @@ const moveImage = async (id, direction) => {
       order: index === currentIndex ? newIndex : index === newIndex ? currentIndex : index,
     }));
 
-    await axios.post(`${API_BASE_URL}/api/header-images/reorder`, { orders });
+    await headerImageApi.reorder({ orders });
 
     const images = [...carouselImages.value];
     [images[currentIndex], images[newIndex]] = [images[newIndex], images[currentIndex]];
@@ -299,3 +296,4 @@ const moveImage = async (id, direction) => {
   transform: translateX(30px);
 }
 </style>
+

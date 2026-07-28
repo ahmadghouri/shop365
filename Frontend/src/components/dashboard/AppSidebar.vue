@@ -66,10 +66,10 @@ const restaurantAdminMenuItems = computed(() => {
     { label: 'Products', to: '/admin/restaurantAdminDashboard', icon: Package },
   ]
 
-  if (user.value?.id === 3744) {
+  if (user.value?.phone_no === '62222222222') {
     items.push({ label: 'EasyBuy Products', to: '/admin/easyBuyAdminDashboard', icon: Zap })
   }
-  if (user.value?.id === 6) {
+  if (user.value?.phone_no === '62222222222') {
     items.push({ label: 'POS Products', to: '/admin/pos-products', icon: Package })
   }
 

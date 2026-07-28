@@ -91,10 +91,10 @@
 </template>
 
 <script setup>
+import { voucherApi } from "@/api/modules/voucher.api";
 import { ref, onMounted } from "vue";
+import { useMutation } from "@tanstack/vue-query";
 import { useBusinessStore } from "@/store/businessStore";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -113,11 +113,28 @@ const voucherData = ref({
   expiry_date: null,
 });
 
-const isSubmitting = ref(false);
 const successMessage = ref("");
 const errorMessage = ref("");
 
-const createVoucher = async () => {
+const { mutate: createVoucherMutation, isPending: isSubmitting } = useMutation({
+  mutationFn: (data) => voucherApi.create(data),
+  onSuccess: () => {
+    successMessage.value = "Voucher Created Successfully";
+    voucherData.value = {
+      business_id: null,
+      code: "",
+      discount_amount: null,
+      expiry_date: null,
+    };
+  },
+  onError: (error) => {
+    errorMessage.value =
+      error.response?.data?.message || "Failed to create voucher";
+    console.error("Voucher creation error:", error);
+  },
+});
+
+const createVoucher = () => {
   if (!voucherData.value.business_id) {
     errorMessage.value = "Please select a business";
     return;
@@ -130,34 +147,14 @@ const createVoucher = async () => {
 
   errorMessage.value = "";
   successMessage.value = "";
-  isSubmitting.value = true;
 
-  try {
-    await axios.post(
-      `${API_BASE_URL}/api/admin/create-voucher`,
-      {
-        business_id: voucherData.value.business_id,
-        code: voucherData.value.code,
-        discount_amount: voucherData.value.discount_amount,
-        min_purchase_amount: voucherData.value.min_purchase_amount,
-        expiry_date: voucherData.value.expiry_date,
-      }
-    );
-
-    successMessage.value = "Voucher Created Successfully";
-    voucherData.value = {
-      business_id: null,
-      code: "",
-      discount_amount: null,
-      expiry_date: null,
-    };
-  } catch (error) {
-    errorMessage.value =
-      error.response?.data?.message || "Failed to create voucher";
-    console.error("Voucher creation error:", error);
-  } finally {
-    isSubmitting.value = false;
-  }
+  createVoucherMutation({
+    business_id: voucherData.value.business_id,
+    code: voucherData.value.code,
+    discount_amount: voucherData.value.discount_amount,
+    min_purchase_amount: voucherData.value.min_purchase_amount,
+    expiry_date: voucherData.value.expiry_date,
+  });
 };
 
 onMounted(async () => {
@@ -169,3 +166,4 @@ onMounted(async () => {
   }
 });
 </script>
+

@@ -146,9 +146,8 @@
 </template>
 
 <script setup>
-import axios from "axios";
+import { easyBuyApi } from "@/api/modules/easy-buy.api";
 import { onMounted, ref } from "vue";
-import { API_BASE_URL } from "../../config/api";
 import { toast } from "vue3-toastify";
 
 const isLoading = ref(false);
@@ -172,7 +171,7 @@ onMounted(async () => {
 const fetchProducts = async () => {
     try {
         isLoading.value = true;
-        const response = await axios.get(`${API_BASE_URL}/api/easy-buy`);
+        const response = await easyBuyApi.getAll();
         easyBuyProducts.value = response.data;
     } catch (error) {
         console.error("Error loading easybuy products:", error);
@@ -309,8 +308,7 @@ const submitProduct = async () => {
     try {
         isSubmitting.value = true;
 
-        const response = await axios.post(
-            `${API_BASE_URL}/api/easy-buy/${selectedProduct.value.id}`,
+        const response = await easyBuyApi.updateWithFormData(selectedProduct.value.id,
             {
                 ...finalProduct,
                 _method: "PUT",
@@ -358,7 +356,7 @@ const handleDelete = async (product) => {
     try {
         isLoading.value = true;
 
-        const response = await axios.delete(`${API_BASE_URL}/api/easy-buy/${product.id}`);
+        const response = await easyBuyApi.delete(product.id);
 
         toast.success(response.data.data);
         // Refresh the products list
@@ -370,3 +368,4 @@ const handleDelete = async (product) => {
     }
 };
 </script>
+

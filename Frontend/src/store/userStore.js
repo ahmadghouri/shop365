@@ -1,6 +1,10 @@
-import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
-import axios from "axios";
+import { userApi } from "@/api/modules/user.api";
+import { authApi } from "@/api/modules/auth.api";
+import { businessApi } from "@/api/modules/business.api";
+import { orderApi } from "@/api/modules/order.api";
+import { queryClient } from "@/api/queries/query-client";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -22,24 +26,16 @@ export const useUserStore = defineStore("user", {
     async getUsers(page = 1, perPage = 10) {
       try {
         this.loading = true;
-        const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
-          params: { page, per_page: perPage },
-        });
+        const response = await userApi.getAll({ page, per_page: perPage });
         const data = response.data;
 
-        if (page === 1) {
-          this.users = data.users.data;
-        } else {
-          this.users = [...this.users, ...data.users.data];
-        }
-
-        this.currentPage = data.users.current_page;
-        this.lastPage = data.users.last_page;
-        this.perPage = data.users.per_page;
-        this.totalUsersCount = data.total_users_count;
-        this.todayUsersCount = data.today_users_count;
+        const users = data.users?.data || data.data?.data || [];
+        this.users = page === 1 ? users : [...this.users, ...users];
+        this.currentPage = data.users?.current_page || data.data?.current_page || 1;
+        this.lastPage = data.users?.last_page || data.data?.last_page || 1;
+        this.totalUsersCount = data.total_users_count || data.data?.total || 0;
+        this.todayUsersCount = data.today_users_count || 0;
       } catch (error) {
-        console.error(error);
         this.error = error.response?.data?.message || "An error occurred.";
       } finally {
         this.loading = false;
@@ -48,14 +44,11 @@ export const useUserStore = defineStore("user", {
 
     async getUsersPreviousTwoDays() {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/admin/users/previous-two-days`,
-          {}
-        );
-
-        this.users = response.data.users;
-        this.totalUsersPrevCount = response.data.total_count;
-        this.todayUsersCount = response.data.today_users_count;
+        const response = await userApi.getRecentUsers();
+        const data = response.data.data || response.data;
+        this.users = data.users || data;
+        this.totalUsersPrevCount = data.total_count || 0;
+        this.todayUsersCount = data.today_users_count || 0;
       } catch (error) {
         console.error(error);
       }
@@ -63,13 +56,9 @@ export const useUserStore = defineStore("user", {
 
     async deleteUser(id) {
       try {
-        const response = await axios.delete(
-          `${API_BASE_URL}/api/admin/users/${id}`,
-          {}
-        );
-
-        localStorage.removeItem("token");
-        this.users = this.users.filter((user) => user.id !== id);
+        await userApi.delete(id);
+        this.users = this.users.filter((u) => u.id !== id);
+        queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
       } catch (error) {
         console.error(error);
       }
@@ -77,37 +66,45 @@ export const useUserStore = defineStore("user", {
 
     async updateUser(id, updatedData) {
       try {
-        const response = await axios.put(`${API_BASE_URL}/api/update/${id}`, {
-          updatedData,
-        });
+        await userApi.update(id, updatedData);
         this.user = { ...this.user, ...updatedData };
       } catch (error) {
-        console.error("Error adding business:", error);
+        console.error("Error updating user:", error);
       }
     },
 
     async getSingleProfile() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/profile`, {});
-
-        this.user = response.data.data.user;
-        this.user.household = response.data.data.household;
-        this.user.town = response.data.data.town;
-      } catch (error) {}
+        const data = await queryClient.fetchQuery({
+          queryKey: QUERY_KEYS.PROFILE,
+          queryFn: () => authApi.profile().then((r) => r.data.data),
+        });
+        this.user = data.user;
+        this.user.household = data.household;
+        this.user.town = data.town;
+      } catch (error) {
+        console.error("Failed to get profile:", error);
+      }
     },
 
-    // only for grocery store
-    async fetchUsers() {
+    async fetchUsers(groceryBusinessId) {
       this.loading = true;
       this.error = null;
-
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/admin/grocery/6`);
+        let businessId = groceryBusinessId;
+        if (!businessId) {
+          const bizResponse = await businessApi.getAll();
+          const businesses = bizResponse.data.data || bizResponse.data;
+          const grocery = Array.isArray(businesses)
+            ? businesses.find((b) => b.type === "Grocery" || b.name === "Shop365 Mart")
+            : null;
+          businessId = grocery?.id || grocery?._id;
+        }
+        if (!businessId) { this.groceryUsers = []; return; }
+        const response = await orderApi.getGroceryUsers(businessId);
         this.groceryUsers = response.data;
       } catch (error) {
-        this.error =
-          error instanceof Error ? error.message : "An error occurred";
-        console.error("Failed to fetch users:", error);
+        this.error = error instanceof Error ? error.message : "An error occurred";
       } finally {
         this.loading = false;
       }

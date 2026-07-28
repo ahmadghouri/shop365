@@ -1,44 +1,40 @@
 import { defineStore } from "pinia";
-import axios from "axios";
-import { computed, ref } from "vue";
-import { API_BASE_URL } from "../config/api";
+import { ref } from "vue";
+import { voucherApi } from "@/api/modules/voucher.api";
+import { queryClient } from "@/api/queries/query-client";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 
 export const useVoucherStore = defineStore("vouchers", () => {
   const vouchers = ref([]);
 
   async function fetchVouchers() {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/admin/get-voucher`);
-      vouchers.value = response.data.data;
-      console.log(vouchers.value);
-
-      return response.data;
+      const data = await queryClient.fetchQuery({
+        queryKey: QUERY_KEYS.VOUCHERS,
+        queryFn: () => voucherApi.getAll().then((r) => r.data.data),
+      });
+      vouchers.value = data;
     } catch (error) {
       console.error("Failed to fetch vouchers:", error);
-      throw error;
     }
   }
 
   async function deleteVoucher(id) {
     try {
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/admin/voucher/${id}/delete`
-      );
-      vouchers.value = vouchers.value.filter((voucher) => voucher.id !== id);
-      return response.data;
+      await voucherApi.delete(id);
+      vouchers.value = vouchers.value.filter((v) => v.id !== id);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VOUCHERS });
     } catch (error) {
-      console.error(`Failed to delete voucher with ID ${id}:`, error);
+      console.error("Failed to delete voucher:", error);
       throw error;
     }
   }
 
   async function createVoucher(data) {
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/admin/create-voucher`,
-        data
-      );
-      await fetchVouchers();
+      const response = await voucherApi.create(data);
+      vouchers.value.push(response.data.data);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.VOUCHERS });
       return response.data;
     } catch (error) {
       console.error("Failed to create voucher:", error);
@@ -46,12 +42,5 @@ export const useVoucherStore = defineStore("vouchers", () => {
     }
   }
 
-  return {
-    vouchers,
-    fetchVouchers,
-    deleteVoucher,
-    createVoucher,
-  };
+  return { vouchers, fetchVouchers, deleteVoucher, createVoucher };
 });
-
-export default useVoucherStore;

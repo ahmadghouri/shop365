@@ -201,9 +201,8 @@
 </template>
 
 <script setup>
-import axios from "axios";
+import { easyBuyApi } from "@/api/modules/easy-buy.api";
 import { ref, reactive, onMounted, computed, watch } from "vue";
-import { API_BASE_URL } from "../config/api";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../store/cartStore";
 import { toast } from "vue3-toastify";
@@ -234,7 +233,7 @@ const goBack = () => {
 const fetchGroceryItems = async () => {
     try {
         isLoading.value = true;
-        const response = await axios.get(`${API_BASE_URL}/api/easy-buy`);
+        const response = await easyBuyApi.getAll();
         if (response.data) {
             allGroceryItems.value = response.data;
             groceryItems.value = response.data;
@@ -423,7 +422,7 @@ const addToCart = async (itemId) => {
         console.log("Adding to cart:", cartItems);
 
         // API call to search matching regular products
-        const response = await axios.post(`${API_BASE_URL}/api/resolve-product`, {
+        const response = await easyBuyApi.resolveProduct({
             items: cartItems,
         });
 
@@ -511,3 +510,4 @@ onMounted(() => {
     }
 }
 </style>
+

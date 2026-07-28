@@ -49,7 +49,7 @@
         :key="restaurant.id"
         :to="{
           name: 'Products',
-          params: { id: restaurant.id },
+          params: { id: restaurant.id || restaurant._id },
           query: { title: restaurant.name },
         }"
       >

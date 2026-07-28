@@ -90,12 +90,11 @@
 
 
 <script setup>
-import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useMutation } from "@tanstack/vue-query";
 import { toast } from 'vue3-toastify';
-import { API_BASE_URL } from '../../config/api';
-
+import { easyBuyApi } from "@/api/modules/easy-buy.api";
 const router = useRouter();
 
 const title = ref('');
@@ -161,7 +160,24 @@ const resetForm = () => {
     }
 };
 
-const submitProduct = async () => {
+const { mutate: createEasyBuyMutation } = useMutation({
+  mutationFn: (data) => easyBuyApi.create(data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  }),
+  onSuccess: (response) => {
+    toast.success(response.data.message);
+    resetForm();
+    router.push("/admin/easybuyAdminDashboard");
+  },
+  onError: (error) => {
+    console.error(error);
+    toast.error("Failed to add easy buy product.");
+  },
+});
+
+const submitProduct = () => {
 
     if (!image.value) {
         imageError.value = "Please upload a valid image.";
@@ -194,26 +210,7 @@ const submitProduct = async () => {
 
     console.log(finalProduct);
 
-    try {
-
-        const response = await axios.post(
-            `${API_BASE_URL}/api/easy-buy`,
-            finalProduct,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        );
-
-        toast.success(response.data.message);
-        resetForm();
-        router.push("/admin/easybuyAdminDashboard");
-        
-    } catch (error) {
-        console.error(error);
-        toast.error("Failed to add easy buy product.");
-    }
-
+    createEasyBuyMutation(finalProduct);
 };
 </script>
+

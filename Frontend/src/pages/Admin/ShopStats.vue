@@ -50,14 +50,14 @@
                   <ShoppingCart class="w-4 h-4" />
                   Total Orders
                 </span>
-                <span class="font-semibold">{{ business.total_orders }}</span>
+                <span class="font-semibold">{{ business.total_orders || 0 }}</span>
               </div>
               <div class="flex items-center justify-between text-sm">
                 <span class="text-muted-foreground flex items-center gap-2">
                   <DollarSign class="w-4 h-4" />
                   Total Revenue
                 </span>
-                <span class="font-semibold">PKR {{ business.total_revenue.toLocaleString() }}</span>
+                <span class="font-semibold">PKR {{ (business.total_revenue || 0).toLocaleString() }}</span>
               </div>
             </div>
           </CardContent>
@@ -110,10 +110,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
+import { businessApi } from "@/api/modules/business.api";
+import { ref, computed } from "vue";
+import { useQuery } from "@tanstack/vue-query";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 import { useOrderStore } from "@/store/orderStore";
-import { API_BASE_URL } from "@/config/api";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import StatusBadge from "@/components/dashboard/StatusBadge.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
@@ -124,8 +125,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShoppingCart, DollarSign, PackageX, BarChart3 } from "lucide-vue-next";
 
-const businesses = ref([]);
-const loading = ref(true);
 const selectedFilter = ref("all");
 const showModal = ref(false);
 const orderStore = useOrderStore();
@@ -137,23 +136,18 @@ const filters = [
   { value: "month", label: "Last Month" },
 ];
 
-const fetchBusinessStats = async (filter = "all") => {
-  loading.value = true;
-  try {
-    const response = await axios.get(
-      `${API_BASE_URL}/api/admin/business-stats?filter=${filter}`
-    );
-    businesses.value = response.data.data;
-  } catch (error) {
-    console.error("Error fetching business stats:", error);
-  } finally {
-    loading.value = false;
-  }
-};
+const { data: statsData, isLoading: loading, refetch } = useQuery({
+  queryKey: computed(() => [...QUERY_KEYS.BUSINESS_STATS, selectedFilter.value]),
+  queryFn: async () => {
+    const response = await businessApi.getStats({ filter: selectedFilter.value });
+    return response.data.data;
+  },
+});
+
+const businesses = computed(() => statsData.value ?? []);
 
 const applyFilter = (filter) => {
   selectedFilter.value = filter;
-  fetchBusinessStats(filter);
 };
 
 const showBusinessOrders = async (businessId) => {
@@ -167,8 +161,5 @@ const showBusinessOrders = async (businessId) => {
     console.error("Error fetching business orders:", error);
   }
 };
-
-onMounted(() => {
-  fetchBusinessStats();
-});
 </script>
+

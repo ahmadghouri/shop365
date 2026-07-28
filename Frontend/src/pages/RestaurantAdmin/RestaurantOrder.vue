@@ -219,12 +219,11 @@
 </template>
 
 <script setup>
+import { orderApi } from "@/api/modules/order.api";
 import { ref, onMounted, computed, watch, h } from "vue";
 import { useOrderStore } from "../../store/orderStore";
 import { toast } from "vue3-toastify";
 import { storeToRefs } from "pinia";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
 import { useIntersectionObserver } from "@vueuse/core";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
@@ -361,7 +360,7 @@ const updateOrderStatus = async (status) => {
 const openModal = async (order) => {
   try {
     if (order.newOrder) {
-      const response = await axios.get(`${API_BASE_URL}/api/orders/${order.id}`);
+      const response = await orderApi.getById(order.id);
       selectedOrder.value = {
         ...response.data,
         user: {
@@ -408,3 +407,4 @@ onMounted(async () => {
   await fetchRestaurantOrders();
 });
 </script>
+

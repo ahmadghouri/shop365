@@ -3,7 +3,7 @@
     <PageHeader title="Customer Reviews" description="Manage and respond to customer feedback" />
 
     <!-- Loading State -->
-    <div v-if="reviewStore.loading && !reviewStore.reviewsList.length" class="space-y-4">
+    <div v-if="reviewStore.loading && !(reviewStore.reviewsList || []).length" class="space-y-4">
       <Card v-for="i in 3" :key="i">
         <CardHeader class="pb-3">
           <div class="flex items-center gap-3">
@@ -28,7 +28,7 @@
     </Alert>
 
     <!-- Reviews List -->
-    <div v-else-if="reviewStore.reviewsList.length" class="space-y-4">
+    <div v-else-if="(reviewStore.reviewsList || []).length" class="space-y-4">
       <Card
         v-for="review in reviewStore.reviewsList"
         :key="review.id"
@@ -107,7 +107,7 @@
 
     <!-- Empty State -->
     <EmptyState
-      v-if="!reviewStore.loading && !reviewStore.reviewsList.length"
+      v-if="!reviewStore.loading && !(reviewStore.reviewsList || []).length"
       title="No Reviews"
       description="No customer reviews to display yet."
       :icon="MessageSquare"
@@ -152,7 +152,7 @@ const formatDate = (dateString) => {
 
 onMounted(async () => {
   try {
-    await reviewStore.getBusinessReviews();
+    await reviewStore.getRestaurantReviews();
   } catch (error) {
     console.error("Failed to fetch reviews:", error);
   }

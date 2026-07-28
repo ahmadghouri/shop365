@@ -136,84 +136,68 @@
 
 <script setup>
 import { ref } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "../config/api";
+import { useMutation } from "@tanstack/vue-query";
+import { authApi } from "@/api/modules/auth.api";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { useCartStore } from "../store/cartStore";
 
-// Reactive variables for form fields and state
 const phone = ref("");
 const password = ref("");
-const confirmPassword = ref(""); // New field for confirm password
+const confirmPassword = ref("");
 const termsAccepted = ref(true);
 const errors = ref({});
 const generalError = ref("");
-const confirmPasswordError = ref(""); // Error for confirm password
+const confirmPasswordError = ref("");
 const router = useRouter();
 
-const register = async () => {
-  if (!termsAccepted.value) {
-    alert("You must accept the terms and conditions.");
-    return;
-  }
-
-  // Clear previous errors
-  errors.value = {};
-  generalError.value = "";
-  confirmPasswordError.value = "";
-
-  // Check if password and confirm password match
-  if (password.value !== confirmPassword.value) {
-    confirmPasswordError.value = "Passwords do not match.";
-    return;
-  }
-
-  try {
-    // Register the user
-    await axios.post(`${API_BASE_URL}/api/register`, {
-      phone_no: phone.value,
-      password: password.value,
-    });
-
+const registerMutation = useMutation({
+  mutationFn: (data) => authApi.register(data),
+  onSuccess: async () => {
     const authStore = useAuthStore();
     const cartStore = useCartStore();
-
-    // Store the initial cart status before login
     const hasGuestCartItems = cartStore.cartItems.length > 0;
 
-    // Login the user
     const loginResult = await authStore.login(phone.value, password.value);
-
     if (loginResult.success) {
       cartStore.$patch({ isGuest: false });
-
       if (hasGuestCartItems) {
-        router.push({
-          path: "/compregister",
-          query: { fromCart: "true" },
-        });
+        router.push({ path: "/compregister", query: { fromCart: "true" } });
       } else {
         router.push("/compregister");
       }
     }
-  } catch (error) {
-    console.error("Registration error:", error);
-
+  },
+  onError: (error) => {
     if (error.response) {
       const responseData = error.response.data;
-      if (responseData.errors) {
-        errors.value = responseData.errors;
-      } else {
-        generalError.value = responseData.message || "An error occurred";
-      }
+      if (responseData.errors) errors.value = responseData.errors;
+      else generalError.value = responseData.message || "An error occurred";
     } else if (error.request) {
       generalError.value = "Network error. Please try again.";
     } else {
       generalError.value = "An unexpected error occurred.";
     }
+  },
+});
+
+const register = () => {
+  if (!termsAccepted.value) {
+    alert("You must accept the terms and conditions.");
+    return;
   }
+  errors.value = {};
+  generalError.value = "";
+  confirmPasswordError.value = "";
+
+  if (password.value !== confirmPassword.value) {
+    confirmPasswordError.value = "Passwords do not match.";
+    return;
+  }
+
+  registerMutation.mutate({ phone_no: phone.value, password: password.value });
 };
+
 const sanitizePhoneInput = () => {
   phone.value = phone.value.replace(/[^0-9]/g, "");
 };

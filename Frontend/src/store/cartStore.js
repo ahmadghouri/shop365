@@ -1,289 +1,158 @@
 import { defineStore } from "pinia";
-import { API_BASE_URL } from "../config/api";
-import axios from "axios";
+import { cartApi } from "@/api/modules/cart.api";
+import { orderApi } from "@/api/modules/order.api";
+import { queryClient } from "@/api/queries/query-client";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 
 export const useCartStore = defineStore("cart", {
   state: () => ({
     cartItems: [],
     cartCount: 0,
     voucherDiscount: 0,
-    isGuest: true,
-    migrationInProgress: false,
+    voucherCode: null,
+    isGuest: false,
   }),
-
-  persist: {
-    storage: localStorage,
-    paths: ["cartItems", "cartCount", "voucherDiscount"],
-  },
-
-  getters: {
-    // Add a computed property to check auth status
-    isGuestUser() {
-      return !localStorage.getItem("token");
-    },
-  },
-
+  persist: true,
   actions: {
-    async applyVoucher(voucherCode) {
-      if (this.isGuestUser) {
-        throw {
-          response: {
-            data: {
-              message: "Please login to apply voucher codes",
-            },
-          },
-        };
-      }
-
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/cart/apply-voucher`,
-          {
-            voucher_code: voucherCode,
-          }
-        );
-
-        // Handle successful voucher application
-        this.voucherDiscount = response.data.discount;
-        return {
-          message: "Voucher applied successfully",
-          ...response.data, // Include all response data (e.g., inactive_products, etc.)
-        };
-      } catch (error) {
-        // Reset voucher discount on error
-        this.voucherDiscount = 0;
-
-        // Log the error for debugging
-        console.error("Voucher application error:", error);
-
-        // Propagate the error details from the backend
-        if (error.response && error.response.data) {
-          throw {
-            response: {
-              data: {
-                message:
-                  error.response.data.message || "Failed to apply voucher",
-                inactive_products: error.response.data.inactive_products || "",
-                remaining_amount: error.response.data.remaining_amount || 0,
-              },
-            },
-          };
+    async addItem(cartItem) {
+      if (this.isGuest) {
+        const existing = this.cartItems.find((i) => i.product_id === cartItem.product_id);
+        if (existing) {
+          existing.quantity += cartItem.quantity;
         } else {
-          // Fallback for unexpected errors
-          throw {
-            response: {
-              data: {
-                message: "Failed to apply voucher due to an unexpected error",
-              },
-            },
-          };
-        }
-      }
-    },
-
-    resetVoucherDiscount() {
-      this.voucherDiscount = 0;
-    },
-
-    async addToCart(cartItem) {
-      if (this.isGuestUser) {
-        const existingItem = this.cartItems.find(
-          (item) => item.product_id === cartItem.product_id
-        );
-
-        if (existingItem) {
-          existingItem.quantity += cartItem.quantity;
-        } else {
-          // For guest cart, we need to store the complete product information
           this.cartItems.push({
-            id: Date.now(), // temporary ID for guest cart
+            id: `guest_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             product_id: cartItem.product_id,
             quantity: cartItem.quantity,
-            product: cartItem.product, // Store the complete product object
+            product: cartItem.product,
           });
         }
         this.cartCount += cartItem.quantity;
-        return Promise.resolve(); // Return resolved promise for consistent behavior
+        return;
       }
-    
-      //Create a prescription if the product requires it
-      // if(cartItem.product.prescription){
-      //   try {
-      //     const response = await axios.post(
-      //       `${API_BASE_URL}/api/prescription`,
-      //       cartItem,
-      //       {
-      //         headers: {
-      //           "Content-Type": "multipart/form-data",
-      //         },
-      //       }
-      //     );
-      //   } catch (error) {
-      //     console.error('Upload error details:', error.response?.data);
-      //     throw new Error(error.response?.data?.message || "Upload failed");
-      //   }
-      // }
 
       try {
-        await axios.post(`${API_BASE_URL}/api/cart`, cartItem);
+        await cartApi.add(cartItem);
         await this.fetchCartCount();
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
       } catch (error) {
-        console.error("Failed to add to cart", error);
+        console.error("Failed to add item:", error);
         throw error;
       }
     },
 
     async getCartItems() {
-      if (this.isGuestUser) {
-        return this.cartItems;
-      }
-
+      if (this.isGuest) return;
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/cart`);
-        this.cartItems = response.data.data;
-        return response.data;
+        const data = await queryClient.fetchQuery({
+          queryKey: QUERY_KEYS.CART,
+          queryFn: () => cartApi.getAll().then((r) => r.data.data?.cartItems || r.data.data || []),
+        });
+        this.cartItems = data;
+        return data;
       } catch (error) {
-        console.error("Failed to fetch cart items", error);
-        throw error;
+        console.error("Failed to get cart items:", error);
       }
     },
 
     async removeItem(id) {
-      if (this.isGuestUser) {
-        const itemIndex = this.cartItems.findIndex((item) => item.id === id);
-        if (itemIndex !== -1) {
-          this.cartCount -= this.cartItems[itemIndex].quantity;
-          this.cartItems.splice(itemIndex, 1);
-        }
+      if (this.isGuest) {
+        this.cartItems = this.cartItems.filter((i) => i.id !== id);
+        this.cartCount = this.cartItems.reduce((s, i) => s + i.quantity, 0);
         return;
       }
-
       try {
-        await axios.delete(`${API_BASE_URL}/api/cart/${id}`);
+        await cartApi.remove(id);
         await this.getCartItems();
         await this.fetchCartCount();
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
       } catch (error) {
-        console.error("Failed to remove item from cart", error);
-        throw error;
+        console.error("Failed to remove item:", error);
       }
     },
 
     async updateItemQuantity(id, quantity) {
-      if (this.isGuestUser) {
-        const item = this.cartItems.find((item) => item.id === id);
-        if (item) {
-          const quantityDiff = quantity - item.quantity;
-          item.quantity = quantity;
-          this.cartCount += quantityDiff;
-        }
+      if (this.isGuest) {
+        const item = this.cartItems.find((i) => i.id === id);
+        if (item) item.quantity = quantity;
+        this.cartCount = this.cartItems.reduce((s, i) => s + i.quantity, 0);
         return;
       }
-
       try {
-        await axios.patch(`${API_BASE_URL}/api/cart/update/${id}`, {
-          quantity,
-        });
+        await cartApi.updateQuantity(id, { quantity });
         await this.getCartItems();
         await this.fetchCartCount();
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
       } catch (error) {
-        console.error("Failed to update item quantity", error);
-        throw error;
+        console.error("Failed to update quantity:", error);
       }
     },
 
     async fetchCartCount() {
-      if (this.isGuestUser) {
-        this.cartCount = this.cartItems.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
+      if (this.isGuest) {
+        this.cartCount = this.cartItems.reduce((s, i) => s + i.quantity, 0);
         return;
       }
-
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/cart/item-count`);
-        this.cartCount = response.data.item_count;
+        const data = await queryClient.fetchQuery({
+          queryKey: QUERY_KEYS.CART_ITEM_COUNT,
+          queryFn: () => cartApi.getItemCount().then((r) => r.data.data?.count || r.data.item_count || 0),
+          staleTime: 0,
+        });
+        this.cartCount = data;
       } catch (error) {
-        console.error("Error fetching cart count:", error);
+        console.error("Failed to fetch cart count:", error);
+      }
+    },
+
+    async applyVoucher(voucherCode) {
+      try {
+        const response = await cartApi.applyVoucher({ voucher_code: voucherCode });
+        this.voucherDiscount = response.data.discount || 0;
+        this.voucherCode = voucherCode;
+        return response.data;
+      } catch (error) {
         throw error;
       }
     },
 
-    async reorderPreviousOrder(orderId) {
+    async reorder(orderId) {
       try {
-        console.log("order", orderId);
-        const response = await axios.post(
-          `${API_BASE_URL}/api/reorder/${orderId}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        // Update cart count based on the response
-        if (response.data.count) {
-          this.cartCount += response.data.count;
-        }
-        // Refresh cart items to ensure the latest state
-        await this.getCartItems();
-        // Show success message (you might want to handle this differently based on your UI)
-        return {
-          success: true,
-          message: response.data.message,
-          count: response.data.count,
-        };
+        const response = await orderApi.reorder(orderId);
+        await this.fetchCartCount();
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
+        return response.data;
       } catch (error) {
-        console.error("Failed to reorder previous order", error);
-        // Return error details
-        return {
-          success: false,
-          message:
-            error.response?.data?.message || "Failed to reorder previous order",
-          error: error,
-        };
+        console.error("Failed to reorder:", error);
+        throw error;
       }
     },
 
     async migrateGuestCart() {
-      if (!this.cartItems.length || this.migrationInProgress) return;
-
-      try {
-        this.migrationInProgress = true;
-        console.log("Starting cart migration", this.cartItems);
-
-        // Create a copy of cart items before migration
-        const itemsToMigrate = [...this.cartItems];
-
-        // Migrate each item from guest cart to authenticated cart
-        for (const item of itemsToMigrate) {
-          const cartItem = {
-            quantity: item.quantity,
-            product_id: item.product_id,
-          };
-
-          try {
-            await axios.post(`${API_BASE_URL}/api/cart`, cartItem);
-          } catch (error) {
-            console.error("Failed to migrate item:", error);
-          }
+      if (!this.isGuest || this.cartItems.length === 0) return;
+      for (const item of this.cartItems) {
+        try {
+          await cartApi.add({ product_id: item.product_id, quantity: item.quantity });
+        } catch (error) {
+          console.error("Failed to migrate item:", error);
         }
-
-        // Clear guest cart after migration
-        this.cartItems = [];
-        this.isGuest = false;
-
-        // Fetch the new cart state
-        await this.fetchCartCount();
-        await this.getCartItems();
-
-        console.log("Cart migration completed");
-      } catch (error) {
-        console.error("Cart migration failed:", error);
-        throw error;
-      } finally {
-        this.migrationInProgress = false;
       }
+      this.cartItems = [];
+      this.cartCount = 0;
+      this.isGuest = false;
+      await this.fetchCartCount();
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
+    },
+
+    setGuestMode(isGuest) {
+      this.isGuest = isGuest;
+    },
+
+    clearCart() {
+      this.cartItems = [];
+      this.cartCount = 0;
+      this.voucherDiscount = 0;
+      this.voucherCode = null;
     },
   },
 });

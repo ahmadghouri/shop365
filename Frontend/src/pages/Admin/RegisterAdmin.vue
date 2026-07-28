@@ -44,10 +44,10 @@
 </template>
 
 <script setup>
+import { userApi } from "@/api/modules/user.api";
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import { useMutation } from "@tanstack/vue-query";
 import { useBusinessStore } from "@/store/businessStore";
-import { API_BASE_URL } from "@/config/api";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -71,18 +71,15 @@ const closeForm = () => {
   form.value.business = "";
 };
 
-const registerAdmin = async () => {
-  try {
-    const response = await axios.post(
-      `${API_BASE_URL}/api/admin/createAdmins`,
-      form.value,
-    );
-
+const { mutate: registerAdminMutation } = useMutation({
+  mutationFn: (data) => userApi.createAdmin(data),
+  onSuccess: (response) => {
     closeForm();
     if (response.status === 200 || response.status === 201) {
       toast.success("Admin registered successfully");
     }
-  } catch (error) {
+  },
+  onError: (error) => {
     if (error.response) {
       toast.error(`Error: ${error.response.data.message}`);
     } else if (error.request) {
@@ -90,10 +87,15 @@ const registerAdmin = async () => {
     } else {
       toast.error("An unexpected error occurred.");
     }
-  }
+  },
+});
+
+const registerAdmin = () => {
+  registerAdminMutation(form.value);
 };
 
 onMounted(async () => {
   await businessStore.getBusinesses();
 });
 </script>
+

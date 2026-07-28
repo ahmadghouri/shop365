@@ -55,30 +55,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { API_BASE_URL } from "@/config/api.js"
-import axios from 'axios'
+import { internshipApi } from "@/api/modules/internship.api";
+import { ref, computed } from 'vue'
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { User, Mail, Phone, ExternalLink, GraduationCap } from "lucide-vue-next";
 
-const applications = ref([])
-const loading = ref(true)
+const queryClient = useQueryClient();
+
+const { data: applicationsData, isLoading: loading } = useQuery({
+  queryKey: QUERY_KEYS.INTERNSHIP_APPS,
+  queryFn: async () => {
+    const response = await internshipApi.getAll();
+    return response.data;
+  },
+});
+
+const applications = computed(() => applicationsData.value ?? []);
+
 const showDeleteConfirmation = ref(false)
 const selectedApplicationId = ref(null)
-
-const fetchApplications = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/api/admin/internship-applications`)
-    applications.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch applications', error)
-  } finally {
-    loading.value = false
-  }
-}
 
 const confirmDelete = (id) => {
   selectedApplicationId.value = id
@@ -88,14 +88,11 @@ const confirmDelete = (id) => {
 const executeDelete = async () => {
   try {
     await axios.delete(`/api/internship-applications/${selectedApplicationId.value}`)
-    applications.value = applications.value.filter(app => app.id !== selectedApplicationId.value)
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.INTERNSHIP_APPS });
     showDeleteConfirmation.value = false
   } catch (error) {
     console.error('Failed to delete application', error)
   }
 }
-
-onMounted(() => {
-  fetchApplications()
-})
 </script>
+

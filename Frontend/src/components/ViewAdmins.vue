@@ -141,9 +141,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import { userApi } from "@/api/modules/user.api";
+import { ref, computed } from "vue";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/vue-query";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 import { useUserStore } from "@/store/userStore";
 import { useBusinessStore } from "@/store/businessStore";
 import { toast } from "vue3-toastify";
@@ -161,9 +162,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Select, SelectItem } from "@/components/ui/select";
 import { RefreshCw, Pencil, Trash2, Phone, Calendar, AlertCircle, UserPlus, Loader2 } from "lucide-vue-next";
 
-const vendors = ref([]);
-const loading = ref(false);
-const error = ref(null);
+const queryClient = useQueryClient();
 const showEditModal = ref(false);
 const editVendor = ref({ name: "", phone_no: "", id: null });
 const phoneError = ref("");
@@ -173,11 +172,54 @@ const showDeleteConfirm = ref(false);
 const userId = ref("");
 
 const showRegisterDialog = ref(false);
-const registering = ref(false);
 const regForm = ref({ name: "", phone_no: "", password: "", business: "" });
 
 const authStore = useAuthStore();
 const { token } = storeToRefs(authStore);
+
+const { data: vendorsData, isLoading: loading, error: queryError, refetch: fetchVendors } = useQuery({
+  queryKey: QUERY_KEYS.ADMIN_VENDORS,
+  queryFn: async () => {
+    const response = await userApi.getVendors();
+    return response.data.data;
+  },
+});
+
+const vendors = computed(() => vendorsData.value ?? []);
+const error = computed(() => {
+  if (!queryError.value) return null;
+  return queryError.value.response ? queryError.value.response.data.message : queryError.value.message;
+});
+
+const { mutate: registerAdminMutation, isPending: registering } = useMutation({
+  mutationFn: (data) => userApi.createAdmin(data),
+  onSuccess: (response) => {
+    if (response.status === 200 || response.status === 201) {
+      toast.success("Admin registered successfully");
+      regForm.value = { name: "", phone_no: "", password: "", business: "" };
+      showRegisterDialog.value = false;
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ADMIN_VENDORS });
+    }
+  },
+  onError: (err) => {
+    if (err.response) {
+      toast.error(`Error: ${err.response.data.message}`);
+    } else {
+      toast.error("Network error. Please try again.");
+    }
+  },
+});
+
+const { mutate: updateAdminMutation } = useMutation({
+  mutationFn: ({ id, data }) => userApi.updateAdmin(id, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ADMIN_VENDORS });
+    closeEditModal();
+  },
+  onError: (err) => {
+    console.error(err.response ? err.response.data.message : err.message);
+  },
+});
 
 const showDeleteConfirmation = (id) => {
   userId.value = id;
@@ -195,22 +237,7 @@ const confirmDelete = async () => {
     showDeleteConfirm.value = false;
     userId.value = null;
     toast.success("Admin Deleted Successfully");
-  }
-};
-
-const fetchVendors = async () => {
-  loading.value = true;
-  try {
-    const response = await axios.get(`${API_BASE_URL}/api/admin/vendors`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-    vendors.value = response.data.data;
-  } catch (err) {
-    error.value = err.response ? err.response.data.message : err.message;
-  } finally {
-    loading.value = false;
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ADMIN_VENDORS });
   }
 };
 
@@ -235,56 +262,23 @@ const validatePhoneNumber = () => {
   }
 };
 
-const updateAdmin = async () => {
+const updateAdmin = () => {
   validatePhoneNumber();
   if (phoneError.value) return;
 
-  try {
-    await axios.put(
-      `${API_BASE_URL}/api/admin/admins/${editVendor.value.id}`,
-      {
-        name: editVendor.value.name,
-        phone_no: editVendor.value.phone_no,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
-    fetchVendors();
-    closeEditModal();
-  } catch (err) {
-    error.value = err.response ? err.response.data.message : err.message;
-  }
+  updateAdminMutation({
+    id: editVendor.value.id,
+    data: {
+      name: editVendor.value.name,
+      phone_no: editVendor.value.phone_no,
+    },
+  });
 };
 
-const registerAdmin = async () => {
-  registering.value = true;
-  try {
-    const response = await axios.post(
-      `${API_BASE_URL}/api/admin/createAdmins`,
-      regForm.value,
-    );
-    if (response.status === 200 || response.status === 201) {
-      toast.success("Admin registered successfully");
-      regForm.value = { name: "", phone_no: "", password: "", business: "" };
-      showRegisterDialog.value = false;
-      fetchVendors();
-    }
-  } catch (err) {
-    if (err.response) {
-      toast.error(`Error: ${err.response.data.message}`);
-    } else {
-      toast.error("Network error. Please try again.");
-    }
-  } finally {
-    registering.value = false;
-  }
+const registerAdmin = () => {
+  registerAdminMutation(regForm.value);
 };
 
-onMounted(() => {
-  fetchVendors();
-  businessStore.getBusinesses();
-});
+businessStore.getBusinesses();
 </script>
+

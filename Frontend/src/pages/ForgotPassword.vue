@@ -83,8 +83,8 @@
 
 <script setup>
 import { ref } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "../config/api";
+import { useMutation } from "@tanstack/vue-query";
+import { authApi } from "@/api/modules/auth.api";
 import { useRouter } from "vue-router";
 
 const phone = ref("");
@@ -93,35 +93,25 @@ const errors = ref({});
 const generalError = ref("");
 const router = useRouter();
 
-const sendResetRequest = async () => {
-  errors.value = {};
-  generalError.value = "";
-
-  try {
-    await axios.post(`${API_BASE_URL}/api/update-password`, {
-      phone_no: phone.value,
-      password: newPassword.value,
-    });
-
-    router.push("/userlogin");
-  } catch (error) {
+const resetMutation = useMutation({
+  mutationFn: (data) => authApi.updatePassword(data),
+  onSuccess: () => router.push("/userlogin"),
+  onError: (error) => {
     if (error.response) {
       const responseData = error.response.data;
-
-      if (responseData.errors) {
-        errors.value = responseData.errors;
-      } else {
-        generalError.value = responseData.message || "An error occurred";
-      }
+      if (responseData.errors) errors.value = responseData.errors;
+      else generalError.value = responseData.message || "An error occurred";
     } else if (error.request) {
       generalError.value = "Network error. Please try again.";
     } else {
       generalError.value = "An unexpected error occurred.";
     }
-  }
+  },
+});
+
+const sendResetRequest = () => {
+  errors.value = {};
+  generalError.value = "";
+  resetMutation.mutate({ phone_no: phone.value, password: newPassword.value });
 };
 </script>
-
-<style scoped>
-/* Add custom styles here if needed */
-</style>

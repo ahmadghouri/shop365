@@ -75,80 +75,56 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useUserStore } from "../store/userStore"; // Pinia store import
+import { ref, computed } from "vue";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/vue-query";
+import { authApi } from "@/api/modules/auth.api";
+import { userApi } from "@/api/modules/user.api";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 import { useRouter } from "vue-router";
-import axios from "axios";
-import { API_BASE_URL } from "../config/api";
 import { useAuthStore } from "../stores/authStore";
 
-const profile = ref(null);
 const router = useRouter();
-const profile_id = ref();
-const phone = ref("");
-const name = ref("");
-const address = ref("");
 const authStore = useAuthStore();
 const { logout } = authStore;
+const queryClient = useQueryClient();
+
+const name = ref("");
+const phone = ref("");
+const address = ref("");
+const profile_id = ref();
+
+// TanStack Query - fetch profile
+const { data: profile, isLoading } = useQuery({
+  queryKey: QUERY_KEYS.PROFILE,
+  queryFn: () => authApi.profile().then((r) => {
+    const d = r.data.data;
+    profile_id.value = d.user?.id || d.user?._id;
+    phone.value = d.user?.phone_no || "";
+    name.value = d.user?.name || "No Name";
+    address.value = d.household?.address || "No Address";
+    return d;
+  }),
+});
+
+// TanStack Mutation - update profile
+const updateMutation = useMutation({
+  mutationFn: (data) => userApi.update(profile_id.value, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROFILE });
+    alert("Profile updated successfully!");
+  },
+  onError: () => alert("Failed to update profile."),
+});
+
+const updateProfile = () => {
+  updateMutation.mutate({ phone_no: phone.value, name: name.value, address: address.value });
+};
 
 const logoutButton = () => {
   logout();
   router.push("/userlogin");
 };
 
-const goBack = () => {
-  router.back();
-};
-
-async function getProfileData() {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/api/profile`, {});
-    profile.value = response.data.data;
-    profile_id.value = response.data.data.user.id;
-    phone.value = profile.value.user?.phone_no || "";
-    name.value = profile.value.user?.name || "No Name";
-    address.value = profile.value.household?.address || "No Address";
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-const sanitizePhoneInput = () => {
-  phone.value = phone.value.replace(/[^0-9]/g, "");
-};
-
-// Use the store to update user
-const userStore = useUserStore();
-
-const updateProfile = async () => {
-  const updatedData = {
-    phone_no: phone.value,
-    name: name.value,
-    address: address.value,
-  };
-
-  try {
-    // Send the update request to the API
-    await axios.put(
-      `${API_BASE_URL}/api/update/${profile_id.value}`,
-      updatedData,
-      {}
-    );
-
-    // Optionally, refresh profile data after the update
-    await getProfileData();
-    alert("Profile updated successfully!"); // Success message
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    alert("Failed to update profile."); // Error message
-  }
-};
-
-onMounted(async () => {
-  await getProfileData();
-});
+const goBack = () => router.back();
 </script>
 
-<style scoped>
-/* Optional: Add custom styles here if needed */
-</style>

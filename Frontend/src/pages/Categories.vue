@@ -551,11 +551,11 @@
 </template>
 
 <script setup>
+import { authApi } from "@/api/modules/auth.api";
+import { internshipApi } from "@/api/modules/internship.api";
 import { useBusinessStore } from "../store/businessStore";
 import { ref, computed, onMounted } from "vue";
 import moment from "moment-timezone";
-import axios from "axios";
-import { API_BASE_URL } from "../config/api";
 import Services from "../components/Services.vue";
 import { useRouter } from "vue-router";
 import Launchment from "./Launchment.vue";
@@ -616,7 +616,7 @@ const submitInternshipApplication = async () => {
     return;
   }
     try {
-        const response = await axios.post(`${API_BASE_URL}/api/internship/apply`, {
+        const response = await internshipApi.apply({
             full_name: formData.value.full_name,
             email: formData.value.email,
             phone: formData.value.phone,
@@ -739,7 +739,7 @@ const filterByService = (service) => {
 async function getProfileData() {
   try {
     if (authStore.isAuthenticated) {
-      const response = await axios.get(`${API_BASE_URL}/api/profile`, {});
+      const response = await authApi.profile();
       profile.value = response.data.data;
       name.value = response.data.data.user.name;
     }
@@ -932,3 +932,4 @@ onMounted(async () => {
   }
 }
 </style>
+

@@ -55,10 +55,10 @@
 
 <script setup>
 import { ref } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "../../config/api";
 import { useRouter } from "vue-router";
+import { useMutation } from "@tanstack/vue-query";
 import { toast } from "vue3-toastify";
+import { productApi } from "@/api/modules/product.api";
 
 const title = ref("");
 const description = ref("");
@@ -79,38 +79,34 @@ const handleFileUpload = (event) => {
   }
 };
 
-const handleSubmit = async () => {
+const { mutate: addProductMutation } = useMutation({
+  mutationFn: (formData) => productApi.addProduct(formData),
+  onSuccess: () => {
+    toast.success("Product added successfully");
+    router.push("/admin/restaurantAdminDashboard");
+  },
+  onError: (error) => {
+    console.error(error);
+    toast.error("Failed to add product.");
+  },
+});
+
+const handleSubmit = () => {
   if (!image.value) {
     imageError.value = "Please upload a valid image.";
     return;
   }
 
-  try {
+  const formData = new FormData();
+  formData.append("title", title.value);
+  formData.append("description", description.value);
+  formData.append("price", price.value);
+  formData.append("type", type.value);
+  formData.append("image", image.value);
 
-    const formData = new FormData();
-    formData.append("title", title.value);
-    formData.append("description", description.value);
-    formData.append("price", price.value);
-    formData.append("type", type.value);
-    formData.append("image", image.value);
-
-    const response = await axios.post(
-      `${API_BASE_URL}/api/restaurantAdmin/add-products`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    toast.success("Product added successfully");
-    router.push("/admin/restaurantAdminDashboard");
-  } catch (error) {
-    console.error(error);
-    toast.error("Failed to add product.");
-  }
+  addProductMutation(formData);
 };
 </script>
 
 <style scoped></style>
+

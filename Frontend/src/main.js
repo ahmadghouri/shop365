@@ -3,6 +3,8 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import { createPinia } from "pinia";
 import piniaPluginPersistedState from "pinia-plugin-persistedstate";
+import { VueQueryPlugin } from "@tanstack/vue-query";
+import { queryClient } from "./api/queries/query-client.js";
 import router from "./routes/routes.js";
 import Toast from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
@@ -21,6 +23,7 @@ const initVueApp = () => {
   const pinia = createPinia();
   pinia.use(piniaPluginPersistedState);
   app.use(pinia);
+  app.use(VueQueryPlugin, { queryClient });
   app.use(router);
   app.use(Toast, {
     position: "top-right",

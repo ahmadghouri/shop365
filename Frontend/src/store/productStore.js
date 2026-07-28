@@ -1,6 +1,7 @@
-import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
-import axios from "axios";
+import { productApi } from "@/api/modules/product.api";
+import { queryClient } from "@/api/queries/query-client";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 
 export const useProductStore = defineStore("products", {
   state: () => ({
@@ -12,8 +13,6 @@ export const useProductStore = defineStore("products", {
     filters: [],
     products: [],
     product: null,
-    restaurantProducts: [],
-    productsList: [],
     number: "",
     currentPage: 0,
     totalPages: 1,
@@ -22,9 +21,7 @@ export const useProductStore = defineStore("products", {
   }),
 
   getters: {
-    currentProducts: (state) => {
-      return state.products;
-    },
+    currentProducts: (state) => state.products,
   },
 
   actions: {
@@ -34,8 +31,6 @@ export const useProductStore = defineStore("products", {
       this.filters = [];
       this.products = [];
       this.product = null;
-      this.restaurantProducts = [];
-      this.productsList = [];
       this.number = "";
       this.currentPage = 0;
       this.totalPages = 1;
@@ -53,33 +48,21 @@ export const useProductStore = defineStore("products", {
     async getRestaurantProducts(search = "", page = 1) {
       this.isLoading = true;
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/restaurantAdmin/allproducts`,
-          {
-            params: {
-              search,
-              page,
-            },
-          }
-        );
+        const response = await productApi.getRestaurantProducts({ search, page });
+        const resData = response.data.data || response.data;
+        const data = resData.data || resData || [];
+        const current_page = resData.current_page || 1;
+        const last_page = resData.last_page || 1;
+        const total = resData.total || 0;
 
-        const { data, current_page, last_page, total } = response.data.data;
-
-        // If it's page 1, reset the products array
-        if (page === 1) {
-          this.products = data;
-        } else {
-          // Otherwise append new products
-          this.products = [...this.products, ...data];
-        }
-
+        this.products = page === 1 ? data : [...this.products, ...data];
         this.currentPage = current_page;
         this.totalPages = last_page;
         this.total = total;
-
         return this.products;
       } catch (error) {
         console.error("Failed to fetch restaurant products", error);
+        this.products = [];
         throw error;
       } finally {
         this.isLoading = false;
@@ -89,38 +72,16 @@ export const useProductStore = defineStore("products", {
     async getProducts(id, search = "", page = 1) {
       try {
         this.setBusinessContext(id, "child");
-
-        const response = await axios.get(
-          `${API_BASE_URL}/api/all-products/${id}`,
-          {
-            params: { search, page },
-          }
-        );
-
-        console.log(response.data);
-
+        const response = await productApi.getBusinessProducts(id, { search, page });
         const data = response.data.data;
-        const newProducts = data.products.data;
+        const newProducts = data.products?.data || data.products || data;
         this.number = data.number;
 
-        let types = data.types;
-
-        const uniqueFilters = [
-          ...new Set(types.map((product) => product.type)),
-        ];
-        this.filters = ["All", ...uniqueFilters];
-
-        // If it's the first page, replace products array
-        // Otherwise append new products
-        if (page === 1) {
-          this.products = newProducts;
-        } else {
-          this.products = [...this.products, ...newProducts];
-        }
-
-        this.currentPage = data.products.current_page;
-        this.totalPages = data.products.last_page;
-
+        const types = data.types || [];
+        this.filters = ["All", ...new Set(types.map((t) => t.type || t))];
+        this.products = page === 1 ? newProducts : [...this.products, ...newProducts];
+        this.currentPage = data.products?.current_page || 1;
+        this.totalPages = data.products?.last_page || 1;
         return this.products;
       } catch (error) {
         console.error("Failed to fetch products", error);
@@ -130,27 +91,17 @@ export const useProductStore = defineStore("products", {
 
     async fetchFilters(businessId) {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/businessTypes/${businessId}`
-        );
-        const uniqueFilters = [
-          ...new Set(response.data.data.map((product) => product.type)),
-        ];
-        this.filters = ["All", ...uniqueFilters];
+        const response = await productApi.getTypes(businessId);
+        const types = response.data.data?.types || response.data.data || [];
+        this.filters = ["All", ...new Set(types.map((t) => t.type || t))];
       } catch (error) {
-        console.error("Failed to fetch filters from the backend.");
+        console.error("Failed to fetch filters");
       }
     },
 
     async getProductsAdmin(id, search = "") {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/all-products/${id}/admin`,
-          {
-            params: { search },
-          }
-        );
-
+        const response = await productApi.getBusinessProductsAdmin(id, { search });
         this.adminProducts = response.data.data;
       } catch (error) {
         console.error(error);
@@ -159,22 +110,19 @@ export const useProductStore = defineStore("products", {
 
     async getProduct(id, business_id) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/products/${id}`, {
-          params: { business_id },
-        });
+        const response = await productApi.getById(id, { business_id });
         this.product = response.data.data;
       } catch (error) {
-        console.error("Failed to fetch products", error);
+        console.error("Failed to fetch product", error);
       }
     },
 
     async deleteProduct(id) {
       try {
-        await axios.delete(`${API_BASE_URL}/api/products/${id}`);
-        this.products = this.products.filter((product) => product.id !== id);
-        this.adminProducts = this.adminProducts.filter(
-          (product) => product.id !== id
-        );
+        await productApi.delete(id);
+        this.products = this.products.filter((p) => p.id !== id);
+        this.adminProducts = this.adminProducts.filter((p) => p.id !== id);
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       } catch (error) {
         console.error("Failed to delete product", error);
       }
@@ -182,11 +130,9 @@ export const useProductStore = defineStore("products", {
 
     async storeProduct(productInfo) {
       try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/products`,
-          productInfo
-        );
+        const response = await productApi.create(productInfo);
         this.products.push(response.data.data);
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       } catch (error) {
         console.error("Error adding product:", error);
       }
@@ -194,24 +140,10 @@ export const useProductStore = defineStore("products", {
 
     async updateProduct(productInfo, id) {
       try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/products/${id}`,
-          productInfo,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        // Update product in the list
+        const response = await productApi.update(id, productInfo);
         const index = this.products.findIndex((p) => p.id === id);
-        if (index !== -1) {
-          this.products[index] = {
-            ...this.products[index],
-            ...response.data.data,
-          };
-        }
+        if (index !== -1) this.products[index] = { ...this.products[index], ...response.data.data };
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       } catch (error) {
         console.error("Error updating product:", error);
       }
@@ -219,25 +151,11 @@ export const useProductStore = defineStore("products", {
 
     async applyDiscount(productId, discount, discountType) {
       try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/restaurantAdmin/products/${productId}/apply-discount`,
-          {
-            discount,
-            discount_type: discountType,
-          }
-        );
-
-        const updatedProduct = response.data.data;
-
+        const response = await productApi.applyDiscountToProduct(productId, { discount, discount_type: discountType });
+        const updated = response.data.data;
         const index = this.products.findIndex((p) => p.id === productId);
-
         if (index !== -1) {
-          this.products[index] = {
-            ...this.products[index],
-            discount: updatedProduct.discount,
-            discount_type: updatedProduct.discount_type,
-            final_price: updatedProduct.final_price,
-          };
+          this.products[index] = { ...this.products[index], discount: updated.discount, discount_type: updated.discount_type, final_price: updated.final_price };
         }
       } catch (error) {
         console.error("Failed to apply discount", error);
@@ -247,46 +165,23 @@ export const useProductStore = defineStore("products", {
 
     async getNumber(businessId) {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/getNumber/${businessId}`
-        );
+        const { businessApi } = await import("@/api/modules/business.api");
+        const response = await businessApi.getNumber(businessId);
         this.number = response.data.data;
-        console.log(response.data.data);
-        console.log(this.number);
       } catch (error) {
         console.error("Error getting business number:", error);
       }
     },
 
     async initializeBusinessData(businessId) {
-      try {
-        await Promise.all([
-          this.getNumber(businessId),
-          this.fetchFilters(businessId),
-        ]);
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+      await Promise.all([this.getNumber(businessId), this.fetchFilters(businessId)]);
     },
 
-    // Add this to your store's actions
     async updateProductStatus(productId, status) {
       try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/product/${productId}/status`,
-          { status }
-        );
-
-        // Update the product in the local state
+        await productApi.updateStatus(productId, { status });
         const index = this.products.findIndex((p) => p.id === productId);
-        if (index !== -1) {
-          this.products[index] = {
-            ...this.products[index],
-            status: response.data.status || status,
-          };
-        }
-
+        if (index !== -1) this.products[index] = { ...this.products[index], status };
         return true;
       } catch (error) {
         console.error("Failed to update product status:", error);
@@ -294,12 +189,10 @@ export const useProductStore = defineStore("products", {
       }
     },
 
-    //Update the product active or not 
     async updateProductActive(productId) {
       try {
-        const response = await axios.patch(
-          `${API_BASE_URL}/api/restaurantAdmin/products/${productId}/toggle-active`
-        );
+        await productApi.toggleActive(productId);
+        queryClient.invalidateQueries({ queryKey: ["products"] });
         return true;
       } catch (error) {
         console.error("Failed to update product active status:", error);

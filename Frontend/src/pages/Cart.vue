@@ -545,13 +545,13 @@
 </template>
 
 <script setup>
+import { authApi } from "@/api/modules/auth.api";
+import { userApi } from "@/api/modules/user.api";
 import { computed, onMounted, ref } from "vue";
 import { useCartStore } from "../store/cartStore";
 import { useOrderStore } from "../store/orderStore";
 import { useRouter } from "vue-router";
-import { API_BASE_URL } from "../config/api";
 import { toast } from "vue3-toastify";
-import axios from "axios";
 import { useAuthStore } from "../stores/authStore";
 
 const cartStore = useCartStore();
@@ -616,7 +616,7 @@ const originalTotal = computed(() => {
 
 const hasBusinessSixProducts = computed(() => {
   return cartStore.cartItems.some(
-    (item) => Number(item?.product?.business_id) === 6
+    (item) => item?.product?.business_id?.name === 'Shop365 Mart' || item?.product?.business_id?.type === 'Grocery'
   );
 });
 
@@ -714,7 +714,7 @@ const showRegistrationPrompt = () => {
 async function getProfileData() {
   if (cartStore.isGuest) return;
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/profile`, {});
+    const response = await authApi.profile();
     const profile = response.data.data;
     profile_id.value = profile.user.id;
     phone.value = profile.user?.phone_no || "";
@@ -744,14 +744,12 @@ const toggleEditAddress = () => {
 
 const saveAddress = async () => {
   try {
-    await axios.put(
-      `${API_BASE_URL}/api/update/${profile_id.value}`,
+    await userApi.update(profile_id.value,
       {
         phone_no: editPhone.value,
         name: editName.value,
         address: editAddress.value,
-      },
-      {}
+      }
     );
 
     // Update local values
@@ -864,3 +862,4 @@ const goBack = () => {
   }
 }
 </style>
+

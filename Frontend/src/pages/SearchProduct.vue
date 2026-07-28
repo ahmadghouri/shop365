@@ -85,35 +85,28 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import axios from "axios";
+import { ref, computed, watch } from "vue";
+import { useQuery } from "@tanstack/vue-query";
 import moment from "moment-timezone";
-import { API_BASE_URL } from "../config/api";
+import { productApi } from "@/api/modules/product.api";
 import { useRouter } from "vue-router";
 
 const searchQuery = ref("");
-const products = ref([]);
-const isLoading = ref(false);
 const route = useRouter();
 
-const fetchProducts = async () => {
-  isLoading.value = true;
-  try {
-    const response = await axios.get(`${API_BASE_URL}/api/products`, {
-      params: { search: searchQuery.value },
-    });
-    products.value = response.data.data;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-  } finally {
-    isLoading.value = false;
-  }
-};
+// TanStack Query - reactive search
+const { data: products, isLoading } = useQuery({
+  queryKey: ["searchProducts", searchQuery],
+  queryFn: () => productApi.getAll({ search: searchQuery.value }).then((r) => r.data.data || []),
+  enabled: computed(() => searchQuery.value.length > 0),
+});
+
+const fetchProducts = () => {}; // kept for template @submit compatibility
 
 const filteredProducts = computed(() =>
-  products.value.filter(
+  (products.value || []).filter(
     (product) =>
-      isOpen(product.business.opening_time, product.business.closing_time) &&
+      isOpen(product.business?.opening_time, product.business?.closing_time) &&
       product.title.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 );

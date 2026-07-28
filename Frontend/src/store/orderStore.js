@@ -1,8 +1,8 @@
-import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
-import axios from "axios";
+import { orderApi } from "@/api/modules/order.api";
+import { queryClient } from "@/api/queries/query-client";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 import { useCartStore } from "./cartStore";
-import { useUserStore } from "./userStore";
 
 export const useOrderStore = defineStore("order", {
   state: () => ({
@@ -17,20 +17,14 @@ export const useOrderStore = defineStore("order", {
     async placeOrder(usePoints, voucherCode = null) {
       try {
         const cartStore = useCartStore();
-        const cartItems = cartStore.cartItems;
-        cartItems.forEach((item, index) => {
-          console.log("orderStore:", item.product);
+        const response = await orderApi.place({
+          userPoints: usePoints,
+          voucher_code: voucherCode,
         });
-        const response = await axios.post(
-          `${API_BASE_URL}/api/order`,
-          {
-            userPoints: usePoints,
-            voucher_code: voucherCode,
-          },
-          {}
-        );
-        
         cartStore.cartCount = 0;
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ORDERS });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CART_ITEM_COUNT });
         return response;
       } catch (error) {
         console.error("Order didn't take place", error);
@@ -40,10 +34,11 @@ export const useOrderStore = defineStore("order", {
 
     async getOrderDetails() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/order`, {});
-        console.log(response.data.data);
-
-        this.userOrderDetails = response.data.data;
+        const data = await queryClient.fetchQuery({
+          queryKey: QUERY_KEYS.ORDERS,
+          queryFn: () => orderApi.getAll().then((r) => r.data.data),
+        });
+        this.userOrderDetails = data;
       } catch (error) {
         console.error("Something went wrong", error);
       }
@@ -55,17 +50,9 @@ export const useOrderStore = defineStore("order", {
 
     async getRestaurantOrders(page = 1) {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/restaurantAdmin/orders`,
-          {
-            params: { page },
-          }
-        );
+        const response = await orderApi.getRestaurantOrders({ page });
         const newOrders = response.data.data.orders.filter(
-          (order) =>
-            !this.ordersList.some(
-              (existingOrder) => existingOrder.id === order.id
-            )
+          (order) => !this.ordersList.some((existing) => existing.id === order.id)
         );
         this.ordersList = [...this.ordersList, ...newOrders];
         this.businessId = response.data.data.business_id;
@@ -82,28 +69,13 @@ export const useOrderStore = defineStore("order", {
 
     async updateStatus(id, status) {
       try {
-        const response = await axios.put(
-          `${API_BASE_URL}/api/orders/${id}/status`,
-          { status },
-          {}
-        );
-
+        const response = await orderApi.updateStatus(id, { status });
         const updatedOrder = response.data.data;
-        // Update in ordersList
-        const orderIndex = this.ordersList.findIndex(
-          (order) => order.id === updatedOrder.id
-        );
-        if (orderIndex !== -1) {
-          this.ordersList[orderIndex] = updatedOrder;
-        }
-
-        // Update in userOrderDetails
-        const userOrderIndex = this.userOrderDetails.findIndex(
-          (order) => order.id === updatedOrder.id
-        );
-        if (userOrderIndex !== -1) {
-          this.userOrderDetails[userOrderIndex] = updatedOrder;
-        }
+        const orderIndex = this.ordersList.findIndex((o) => o.id === updatedOrder.id);
+        if (orderIndex !== -1) this.ordersList[orderIndex] = updatedOrder;
+        const userIndex = this.userOrderDetails.findIndex((o) => o.id === updatedOrder.id);
+        if (userIndex !== -1) this.userOrderDetails[userIndex] = updatedOrder;
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ORDERS });
       } catch (error) {
         console.error("Failed to update order status", error);
         throw error;
@@ -112,10 +84,7 @@ export const useOrderStore = defineStore("order", {
 
     async getAdminOrders(businessId) {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/admin/business-orders/${businessId}`,
-          {}
-        );
+        const response = await orderApi.getBusinessOrders(businessId);
         this.adminOrders = response.data.data.orders;
       } catch (error) {
         throw error;
@@ -123,69 +92,9 @@ export const useOrderStore = defineStore("order", {
     },
 
     handleNewOrder(event) {
-      if (!event || !event.mergedData) {
-        console.error("Merged data is missing in event:", event);
-        return;
-      }
-
-      const { order, items, audioUrl } = event.mergedData;
-
-      if (!order) {
-        console.error("Order data is missing in mergedData:", event.mergedData);
-        return;
-      }
-
-      // const newOrder = {
-      //   id: order.id,
-      //   user_id: order.user_id,
-      //   total_price: order.total_price,
-      //   status: order.status,
-      //   created_at: order.created_at,
-      //   updated_at: order.updated_at,
-      //   items: items
-      //     ? items.map((item) => ({
-      //         id: item.id,
-      //         order_id: item.order_id,
-      //         product_id: item.product_id,
-      //         price: item.price,
-      //         quantity: item.quantity,
-      //         created_at: item.created_at,
-      //         updated_at: item.updated_at,
-      //         product: {
-      //           id: item.product.id,
-      //           title: item.product.title,
-      //           description: item.product.description,
-      //           price: item.product.price,
-      //           image: item.product.image,
-      //           image_url: item.product.image_url,
-      //           type: item.product.type,
-      //           created_at: item.product.created_at,
-      //           updated_at: item.product.updated_at,
-      //         },
-      //       }))
-      //     : [],
-      //   user: order.user
-      //     ? {
-      //         id: order.user.id,
-      //         phone_no: order.user.phone_no,
-      //         name: order.user.name,
-      //         role: order.user.role,
-      //         household: order.user.household
-      //           ? {
-      //               address: order.user.household.address,
-      //               town: order.user.household.town
-      //                 ? {
-      //                     town_name: order.user.household.town.town_name,
-      //                   }
-      //                 : {},
-      //             }
-      //           : {},
-      //         created_at: order.user.created_at,
-      //         updated_at: order.user.updated_at,
-      //       }
-      //     : {},
-      //   newOrder: true,
-      // };
+      if (!event || !event.mergedData) return;
+      const { order } = event.mergedData;
+      if (!order) return;
 
       const newOrder = {
         id: order.id,
@@ -197,18 +106,14 @@ export const useOrderStore = defineStore("order", {
           name: order.name,
           phone_no: order.phone_no,
           household: {
-            address: order.address.household,
-            town: {
-              town_name: order.address.town,
-            },
+            address: order.address?.household,
+            town: { town_name: order.address?.town },
           },
         },
-        items: [], // You might want to modify this if items are sent separately
+        items: [],
       };
 
-      this.ordersList = JSON.parse(
-        JSON.stringify([newOrder, ...this.ordersList])
-      );
+      this.ordersList = JSON.parse(JSON.stringify([newOrder, ...this.ordersList]));
     },
   },
 });

@@ -294,6 +294,13 @@
               Rs:{{ product.price }}
             </p>
           </div>
+
+          <!-- Sizes -->
+          <div v-if="product.sizes && product.sizes.length" class="px-2 pb-2 flex flex-wrap gap-1">
+            <span v-for="(size, i) in product.sizes" :key="i" class="text-xs bg-yellow-50 border border-yellow-200 rounded-full px-2 py-0.5 text-slate-700">
+              {{ size.name }} - Rs {{ size.price }}
+            </span>
+          </div>
         </div>
 
         <button
@@ -659,8 +666,6 @@ import { useCartStore } from "../store/cartStore";
 import { useOrderStore } from "../store/orderStore";
 import { toast } from "vue3-toastify";
 import { useRoute, useRouter } from "vue-router";
-import axios from "axios";
-import { API_BASE_URL } from "../config/api";
 import debounce from "lodash/debounce";
 import { storeToRefs } from "pinia";
 import { useReviewStore } from "../store/useReviewStore";
@@ -1227,3 +1232,4 @@ onUnmounted(() => {
   }
 } */
 </style>
+

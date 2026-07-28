@@ -1,108 +1,63 @@
 import { ref } from "vue";
-import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
-import axios from "axios";
+import { reviewApi } from "@/api/modules/review.api";
+import { queryClient } from "@/api/queries/query-client";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 
 export const useReviewStore = defineStore("reviews", () => {
-  const reviewsList = ref([]);
-  const loading = ref(false);
-  const error = ref(null);
+  const reviews = ref([]);
+  const restaurantReviews = ref([]);
 
-  const postReview = async (order_id, business_id, comments, rating) => {
+  async function createReview(order_id, business_id, rating, comments) {
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/reviews`,
-        {
-          order_id: order_id,
-          business_id: business_id,
-          comments: comments,
-          rating: rating,
-        },
-        {}
-      );
-      reviewsList.value.push(response.data.data);
-    } catch (error) {
-      console.error("Review didn't take place", error);
-      throw error;
-    }
-  };
-
-  const getReviews = async (business_id) => {
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/reviews/${business_id}`,
-        {}
-      );
-      reviewsList.value = response.data.reviews.data;
-    } catch (error) {
-      console.error("Something went wrong", error);
-      throw error;
-    }
-  };
-
-  const getBusinessReviews = async () => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/restaurantAdmin/get-reviews`,
-        {
-          headers: {
-            Accept: "application/json",
-          },
-        }
-      );
-      reviewsList.value = response.data.reviews;
-    } catch (err) {
-      error.value = err.response?.data?.message || "Failed to fetch reviews";
-      throw error.value;
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const replyToReview = async (reviewId, replyText) => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/restaurantAdmin/review/${reviewId}/reply`,
-        { reply: replyText },
-        {
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const index = reviewsList.value.findIndex(
-        (review) => review.id === reviewId
-      );
-      if (index !== -1) {
-        // Preserve the existing user data while updating the review
-        reviewsList.value[index] = {
-          ...reviewsList.value[index],
-          ...response.data.review,
-        };
-      }
-
+      const response = await reviewApi.create({ order_id, business_id, rating, comments });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.REVIEWS(business_id) });
       return response.data;
-    } catch (err) {
-      error.value = err.response?.data?.message || "Failed to submit reply";
-      throw error.value;
-    } finally {
-      loading.value = false;
+    } catch (error) {
+      console.error("Failed to create review:", error);
+      throw error;
     }
-  };
+  }
 
-  return {
-    postReview,
-    getReviews,
-    reviewsList,
-    loading,
-    error,
-    getBusinessReviews,
-    replyToReview,
-  };
+  async function getReviews(business_id) {
+    try {
+      const data = await queryClient.fetchQuery({
+        queryKey: QUERY_KEYS.REVIEWS(business_id),
+        queryFn: () => reviewApi.getByBusiness(business_id).then((r) => r.data.data),
+      });
+      reviews.value = data;
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    }
+  }
+
+  async function getRestaurantReviews() {
+    try {
+      const data = await queryClient.fetchQuery({
+        queryKey: QUERY_KEYS.RESTAURANT_REVIEWS,
+        queryFn: () => reviewApi.getAll().then((r) => r.data.data || r.data || []),
+      });
+      restaurantReviews.value = data || [];
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch restaurant reviews:", error);
+      restaurantReviews.value = [];
+    }
+  }
+
+  async function replyToReview(reviewId, replyText) {
+    try {
+      const response = await reviewApi.reply(reviewId, { reply: replyText });
+      const index = restaurantReviews.value.findIndex((r) => r.id === reviewId);
+      if (index !== -1) restaurantReviews.value[index].reply = replyText;
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.RESTAURANT_REVIEWS });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to reply to review:", error);
+      throw error;
+    }
+  }
+
+  return { reviews, restaurantReviews, reviewsList: restaurantReviews, createReview, getReviews, getRestaurantReviews, replyToReview };
 });

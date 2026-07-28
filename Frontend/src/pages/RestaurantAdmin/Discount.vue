@@ -92,9 +92,9 @@
 </template>
 
 <script setup>
+import { productApi } from "@/api/modules/product.api";
 import { ref, onMounted, computed } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import { useMutation } from "@tanstack/vue-query";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -108,7 +108,6 @@ const discount = ref(0);
 const responseMessage = ref("");
 const responseSuccess = ref(false);
 const discountDetails = ref(null);
-const applying = ref(false);
 const showRemoveConfirm = ref(false);
 
 const discountPlaceholder = computed(() => {
@@ -125,14 +124,9 @@ onMounted(() => {
   }
 });
 
-const applyDiscount = async () => {
-  applying.value = true;
-  responseMessage.value = "";
-  try {
-    const response = await axios.post(
-      `${API_BASE_URL}/api/restaurantAdmin/products/discount`,
-      { discount: discount.value }
-    );
+const { mutate: applyDiscountMutation, isPending: applying } = useMutation({
+  mutationFn: (data) => productApi.updateDiscount(data),
+  onSuccess: (response) => {
     responseSuccess.value = true;
     responseMessage.value = "Discount applied successfully!";
     discountDetails.value = {
@@ -141,26 +135,35 @@ const applyDiscount = async () => {
     };
     discount.value = discountDetails.value.discount;
     localStorage.setItem("discountDetails", JSON.stringify(discountDetails.value));
-  } catch (error) {
+  },
+  onError: () => {
     responseSuccess.value = false;
     responseMessage.value = "Failed to apply discount. Please try again.";
-  } finally {
-    applying.value = false;
-  }
-};
+  },
+});
 
-const removeDiscount = async () => {
-  try {
-    await axios.get(`${API_BASE_URL}/api/restaurantAdmin/products/removeDiscount`);
+const { mutate: removeDiscountMutation } = useMutation({
+  mutationFn: () => productApi.removeDiscount(),
+  onSuccess: () => {
     responseSuccess.value = true;
     responseMessage.value = "Discount removed successfully!";
     discountDetails.value = null;
     discount.value = 0;
     localStorage.removeItem("discountDetails");
-  } catch (error) {
+  },
+  onError: () => {
     responseSuccess.value = false;
     responseMessage.value = "Failed to remove discount. Please try again.";
-  }
+  },
+});
+
+const applyDiscount = () => {
+  responseMessage.value = "";
+  applyDiscountMutation({ discount: discount.value });
+};
+
+const removeDiscount = () => {
+  removeDiscountMutation();
 };
 
 const formatDate = (dateString) => {
@@ -174,3 +177,4 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 </script>
+

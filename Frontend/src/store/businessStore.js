@@ -1,6 +1,7 @@
-import { API_BASE_URL } from "../config/api";
 import { defineStore } from "pinia";
-import axios from "axios";
+import { businessApi } from "@/api/modules/business.api";
+import { queryClient } from "@/api/queries/query-client";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
 
 export const useBusinessStore = defineStore("business", {
   state: () => ({
@@ -13,8 +14,12 @@ export const useBusinessStore = defineStore("business", {
     async getBusinesses() {
       this.loading = true;
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/business`);
-        this.businesses = response.data.data;
+        // Use queryClient to fetch and cache
+        const data = await queryClient.fetchQuery({
+          queryKey: QUERY_KEYS.BUSINESSES,
+          queryFn: () => businessApi.getAll().then((r) => r.data.data),
+        });
+        this.businesses = data;
       } catch (error) {
         console.error("Failed to fetch businesses", error);
       } finally {
@@ -24,91 +29,50 @@ export const useBusinessStore = defineStore("business", {
 
     async subBusiness(businessId) {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/business/${businessId}/sub-businesses`
-        );
+        const data = await queryClient.fetchQuery({
+          queryKey: QUERY_KEYS.SUB_BUSINESSES(businessId),
+          queryFn: () => businessApi.getSubBusinesses(businessId).then((r) => r.data.data),
+        });
+        this.subBusinesses = data;
         this.loading = false;
-        this.subBusinesses = response.data.data;
-        console.log(this.subBusiness);
+        return data;
       } catch (error) {
-        console.error("Failed to fetch sub-business", error);
-        this.error = response.data.message;
-        this.loading = false;
-        // Set the error message from the server response
+        console.error("Failed to fetch sub-businesses", error);
       }
     },
 
     async deleteBusiness(id) {
       try {
-        const response = await axios.delete(
-          `${API_BASE_URL}/api/business/${id}`
-        );
-        this.businesses = this.businesses.filter(
-          (business) => business.id !== id
-        );
+        await businessApi.delete(id);
+        this.businesses = this.businesses.filter((b) => b.id !== id);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BUSINESSES });
       } catch (error) {
-        console.error("Failed to fetch businesses", error);
+        console.error("Failed to delete business", error);
+      }
+    },
+
+    async addBusiness(newBusiness) {
+      try {
+        const response = await businessApi.create(newBusiness);
+        this.businesses.push(response.data.data);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BUSINESSES });
+        return response.data;
+      } catch (error) {
+        console.error("Failed to add business", error);
         throw error;
       }
     },
-    async addBusiness(newBusiness) {
+
+    async editBusiness(id, editBusiness) {
       try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/business`,
-          newBusiness
-        );
-        this.businesses.push(response.data);
-        await this.getBusinesses();
+        const response = await businessApi.update(id, editBusiness);
+        const index = this.businesses.findIndex((b) => b.id === id);
+        if (index !== -1) this.businesses[index] = response.data.data;
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BUSINESSES });
+        return response.data;
       } catch (error) {
-        console.error("Error adding business:", error);
-      }
-    },
-
-    // async editBusiness(editBusiness, id) {
-    //   try {
-    //     const response = await axios.put(
-    //       `${API_BASE_URL}/api/business/${id}`,
-    //       editBusiness
-    //     );
-
-    //     const index = this.businesses.findIndex(
-    //       (business) => business.id === id
-    //     );
-
-    //     if (index !== -1) {
-    //       this.businesses[index] = {
-    //         ...this.businesses[index],
-    //         ...editBusiness,
-    //       };
-    //     }
-    //   } catch (error) {
-    //     console.error("Error editing business:", error);
-    //   }
-    // },
-
-    async editBusiness(editBusiness, id) {
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/api/business/${id}`,
-          editBusiness,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        const updatedBusiness = response.data.data; // Use the updated data from the server response
-
-        const index = this.businesses.findIndex(
-          (business) => business.id === id
-        );
-
-        if (index !== -1) {
-          this.businesses[index] = updatedBusiness; // Update the local state with the server response data
-        }
-      } catch (error) {
-        console.error("Error editing business:", error);
+        console.error("Failed to edit business", error);
+        throw error;
       }
     },
   },

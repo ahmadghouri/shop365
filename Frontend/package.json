@@ -17,6 +17,7 @@
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@iconify/vue": "^4.3.0",
     "@tailwindcss/typography": "^0.5.15",
+    "@tanstack/vue-query": "^5.101.4",
     "@tinymce/tinymce-vue": "^6.1.0",
     "@tiptap/extension-table": "^2.10.4",
     "@tiptap/extension-table-cell": "^2.10.4",

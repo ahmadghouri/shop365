@@ -80,13 +80,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
-import { API_BASE_URL } from "../config/api";
+import { useQuery, useMutation } from "@tanstack/vue-query";
+import { authApi } from "@/api/modules/auth.api";
+import { townApi } from "@/api/modules/town.api";
+import { QUERY_KEYS } from "@/api/queries/query-keys";
+import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useCartStore } from "../store/cartStore";
 
-const towns = ref([]);
 const name = ref("");
 const address = ref("");
 const town = ref("");
@@ -94,53 +95,42 @@ const router = useRouter();
 const route = useRoute();
 const cartStore = useCartStore();
 
-const register = async () => {
-  try {
-    const formattedAddress = address.value.toLowerCase().replace(/\s+/g, "");
+// TanStack Query - fetch towns
+const { data: townsData } = useQuery({
+  queryKey: QUERY_KEYS.TOWNS,
+  queryFn: () => townApi.getTowns().then((r) => {
+    const t = r.data.data;
+    if (t && t.length > 0 && !town.value) {
+      town.value = t[0].town_name;
+    }
+    return t;
+  }),
+});
 
-    const resp = await axios.post(`${API_BASE_URL}/api/add-details`, {
-      name: name.value,
-      address: address.value,
-      town: town.value,
-    });
+const towns = computed(() => townsData.value || []);
 
+// TanStack Mutation - add details
+const addDetailsMutation = useMutation({
+  mutationFn: (data) => authApi.addDetails(data),
+  onSuccess: () => {
     if (route.query.fromCart === "true" || cartStore.cartItems.length > 0) {
       router.push("/home/cart");
     } else {
       router.push("/home/categories");
     }
-  } catch (error) {
-    if (error.response) {
-      alert(`Error: ${error.response.data.message}`);
-    } else if (error.request) {
-      alert("Network error. Please try again.");
-    } else {
-      alert("An unexpected error occurred.");
-    }
-  }
-};
-
-const options = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/api/get-towns`);
-    towns.value = response.data.data;
-
-    // Automatically select the first town as default
-    if (towns.value.length > 0) {
-      town.value = towns.value[0].town_name;
-    }
-  } catch (error) {
-    if (error.response) {
-      alert(`Error: ${error.response.data.message}`);
-    } else if (error.request) {
-      alert("Network error. Please try again.");
-    } else {
-      alert("An unexpected error occurred.");
-    }
-  }
-};
-
-onMounted(() => {
-  options();
+  },
+  onError: (error) => {
+    const msg = error.response?.data?.message || error.message || "An error occurred";
+    alert(`Error: ${msg}`);
+  },
 });
+
+const register = () => {
+  addDetailsMutation.mutate({
+    name: name.value,
+    address: address.value,
+    town: town.value,
+  });
+};
 </script>
+

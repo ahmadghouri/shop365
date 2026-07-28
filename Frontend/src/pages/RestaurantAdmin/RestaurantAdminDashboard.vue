@@ -38,6 +38,12 @@
               </div>
             </div>
             <CardDescription class="line-clamp-2" v-html="product.description"></CardDescription>
+            <!-- Sizes -->
+            <div v-if="product.sizes && product.sizes.length" class="mt-2 flex flex-wrap gap-1">
+              <Badge v-for="(size, i) in product.sizes" :key="i" variant="outline" class="text-xs">
+                {{ size.name }} - Rs {{ size.price }}
+              </Badge>
+            </div>
           </CardHeader>
 
           <CardContent class="flex-1 pb-3">
@@ -85,7 +91,7 @@
       <div ref="loadMoreTrigger" class="h-4 my-4"></div>
 
       <EmptyState
-        v-if="!productStore.isLoading && productStore.currentProducts.length === 0"
+        v-if="!productStore.isLoading && (productStore.currentProducts || []).length === 0"
         title="No Products"
         description="Get started by adding your first product."
         :icon="Package"
@@ -140,6 +146,24 @@
               <Label>Type</Label>
               <Input v-model="addForm.type" placeholder="e.g. Veg, Non-Veg" required />
             </div>
+          </div>
+
+          <!-- Sizes/Variants -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <Label>Sizes / Variants</Label>
+              <button type="button" @click="addSize" class="flex items-center gap-1 text-sm text-primary hover:text-primary/80">
+                <Plus class="w-4 h-4" /> Add Size
+              </button>
+            </div>
+            <div v-for="(size, index) in addForm.sizes" :key="index" class="flex items-center gap-2">
+              <Input v-model="size.name" placeholder="e.g. 1 KG, Large" class="flex-1" />
+              <Input v-model.number="size.price" type="number" placeholder="Price" class="w-28" />
+              <button type="button" @click="removeSize(index)" class="text-destructive hover:text-destructive/80 p-1">
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+            <p v-if="addForm.sizes.length === 0" class="text-xs text-muted-foreground">No sizes added. Product will use single price above.</p>
           </div>
           <div class="space-y-2">
             <Label>Image (Max 15KB)</Label>
@@ -245,13 +269,12 @@
 </template>
 
 <script setup>
+import { productApi } from "@/api/modules/product.api";
 import { ref, onMounted, watch, onUnmounted } from "vue";
 import { useProductStore } from "../../store/productStore";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import debounce from "lodash/debounce";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -287,7 +310,7 @@ const currentPage = ref(1);
 
 const showAddDialog = ref(false);
 const addingProduct = ref(false);
-const addForm = ref({ title: "", description: "", price: "", type: "", image: null });
+const addForm = ref({ title: "", description: "", price: "", type: "", image: null, sizes: [] });
 const addImageError = ref("");
 
 const setupIntersectionObserver = () => {
@@ -514,6 +537,14 @@ const handleAddFileChange = (e) => {
   }
 };
 
+const addSize = () => {
+  addForm.value.sizes.push({ name: "", price: "" });
+};
+
+const removeSize = (index) => {
+  addForm.value.sizes.splice(index, 1);
+};
+
 const handleAddProduct = async () => {
   if (!addForm.value.image) {
     addImageError.value = "Please upload a valid image.";
@@ -528,13 +559,14 @@ const handleAddProduct = async () => {
     formData.append("price", addForm.value.price);
     formData.append("type", addForm.value.type);
     formData.append("image", addForm.value.image);
+    if (addForm.value.sizes.length > 0) {
+      formData.append("sizes", JSON.stringify(addForm.value.sizes));
+    }
 
-    await axios.post(`${API_BASE_URL}/api/restaurantAdmin/add-products`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    await productApi.addProduct(formData);
 
     toast.success("Product added successfully");
-    addForm.value = { title: "", description: "", price: "", type: "", image: null };
+    addForm.value = { title: "", description: "", price: "", type: "", image: null, sizes: [] };
     addImageError.value = "";
     showAddDialog.value = false;
     await productStore.getRestaurantProducts();
@@ -609,3 +641,4 @@ onMounted(async () => {
   overflow: hidden;
 }
 </style>
+

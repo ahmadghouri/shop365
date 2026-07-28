@@ -183,7 +183,7 @@
 import { ref, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useBusinessStore } from "@/store/businessStore";
-import useVoucherStore from "@/store/voucherStore";
+import { useVoucherStore } from "@/store/voucherStore";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";

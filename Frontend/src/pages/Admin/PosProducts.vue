@@ -125,7 +125,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchProducts, importProducts } from '@/services/posProductApi'
+import { posProductApi } from '@/api/modules/pos-product.api'
 import debounce from 'lodash.debounce'
 import PageHeader from '@/components/dashboard/PageHeader.vue'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
@@ -156,7 +156,7 @@ const filters = ref({
 async function loadProducts() {
   loading.value = true
   try {
-    const { data } = await fetchProducts(filters.value)
+    const { data } = await posProductApi.getAll(filters.value)
     products.value = data.data
     pagination.value = {
       total: data.total,
@@ -179,7 +179,7 @@ function changePage(page) {
 async function handleImport() {
   loading.value = true
   try {
-    await importProducts(filters.value.locno)
+    await posProductApi.import({ locno: filters.value.locno })
   } catch (e) {
     console.error(e)
   } finally {

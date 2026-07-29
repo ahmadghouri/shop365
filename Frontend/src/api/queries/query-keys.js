@@ -6,6 +6,10 @@ export const QUERY_KEYS = {
   PROFILE: ["profile"],
   REFRESH_USER: ["refreshUser"],
 
+  // Categories
+  CATEGORIES: ["categories"],
+  CATEGORY: (id) => ["category", id],
+
   // Business
   BUSINESSES: ["businesses"],
   BUSINESS: (id) => ["business", id],

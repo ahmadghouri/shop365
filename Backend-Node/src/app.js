@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
 const path = require('path');
 const corsOptions = require('./config/cors');
 const { errorHandler } = require('./middleware/error.middleware');
@@ -10,6 +11,7 @@ const app = express();
 
 // Middleware
 app.use(cors(corsOptions));
+app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -25,6 +27,7 @@ app.get('/health', (req, res) => {
 app.use('/api', require('./modules/auth/auth.routes'));
 app.use('/api', require('./modules/users/user.routes'));
 app.use('/api', require('./modules/businesses/business.routes'));
+app.use('/api', require('./modules/categories/category.routes'));
 app.use('/api', require('./modules/products/product.routes'));
 app.use('/api', require('./modules/cart/cart.routes'));
 app.use('/api', require('./modules/orders/order.routes'));

@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Image, Pressable, ActivityIndicator } from 'react-native';
-import { useBusinesses } from '@/lib/queries/useHomeData';
-import { API_BASE_URL } from '@/lib/api';
+import { useBusinesses } from '@/api/home/useHomeQueries';
+import { API_BASE_URL } from '@/api/client';
 
 type CategoriesProps = {
     onCategoryPress?: (id: number, title: string) => void;

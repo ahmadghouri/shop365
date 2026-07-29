@@ -26,4 +26,8 @@ module.exports = {
   MAIL_FROM_ADDRESS: optional('MAIL_FROM_ADDRESS', 'noreply@shop365.com'),
   MAIL_FROM_NAME: optional('MAIL_FROM_NAME', 'Shop365'),
   POS_PRODUCTS_URL: optional('POS_PRODUCTS_URL', ''),
+  CLOUDINARY_CLOUD_NAME: optional('CLOUDINARY_CLOUD_NAME', ''),
+  CLOUDINARY_API_KEY: optional('CLOUDINARY_API_KEY', ''),
+  CLOUDINARY_API_SECRET: optional('CLOUDINARY_API_SECRET', ''),
+  CLOUDINARY_ROOT_FOLDER: optional('CLOUDINARY_ROOT_FOLDER', 'shop365'),
 };

@@ -6,12 +6,19 @@ module.exports = {
   content: [
     './App.{js,jsx,ts,tsx}',
     './components/**/*.{js,jsx,ts,tsx}',
+    './pages/**/*.{js,jsx,ts,tsx}',
     './app/**/*.{js,jsx,ts,tsx}',
     './lib/**/*.{js,jsx,ts,tsx}',
   ],
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
+      fontFamily: {
+        lufga: ['Lufga-Regular'],
+        'lufga-medium': ['Lufga-Medium'],
+        'lufga-semibold': ['Lufga-SemiBold'],
+        'lufga-bold': ['Lufga-Bold'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

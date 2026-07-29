@@ -4,7 +4,9 @@ import api from '../api';
 import { useAuthStore } from '../authStore';
 
 type RegisterPayload = {
+    name?: string;
     phone_no: string;
+    email?: string;
     password: string;
 };
 

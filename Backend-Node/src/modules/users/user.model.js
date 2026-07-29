@@ -4,6 +4,7 @@ const { UserRole } = require('../../common/enums');
 const userSchema = new mongoose.Schema({
   name: { type: String },
   phone_no: { type: String, required: true, unique: true },
+  email: { type: String },
   password: { type: String, required: true },
   role: { type: String, enum: Object.values(UserRole), default: UserRole.END_USER },
   household_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Household' },

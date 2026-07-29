@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRegisterMutation } from '@/lib/mutations/useRegisterMutation';
 
 type RegisterScreenProps = {
@@ -9,19 +10,17 @@ type RegisterScreenProps = {
 };
 
 export function RegisterScreen({ onSuccess, onLogin }: RegisterScreenProps) {
+    const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [termsAccepted, setTermsAccepted] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [validationError, setValidationError] = useState('');
 
     const registerMutation = useRegisterMutation();
 
-    const handleRegister = async () => {
+    const handleRegister = () => {
         setValidationError('');
-
         if (!phone || phone.length !== 11) {
             setValidationError('Phone number must be 11 digits');
             return;
@@ -34,13 +33,9 @@ export function RegisterScreen({ onSuccess, onLogin }: RegisterScreenProps) {
             setValidationError('Passwords do not match');
             return;
         }
-        if (!termsAccepted) {
-            setValidationError('Please accept Terms and Conditions');
-            return;
-        }
 
         registerMutation.mutate(
-            { phone_no: phone, password },
+            { name, phone_no: phone, email, password },
             {
                 onSuccess: () => { if (onSuccess) onSuccess(); },
                 onError: (err: any) => {
@@ -54,26 +49,44 @@ export function RegisterScreen({ onSuccess, onLogin }: RegisterScreenProps) {
     const apiError = registerMutation.error
         ? (registerMutation.error as any)?.response?.data?.message
         || (registerMutation.error as any)?.message
-        || 'Registration failed. Check your connection.'
+        || 'Registration failed'
         : '';
     const displayError = validationError || apiError;
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-50">
-            <KeyboardAvoidingView
-                className="flex-1"
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-                <ScrollView
-                    contentContainerClassName="flex-grow justify-center px-6 py-8"
-                    keyboardShouldPersistTaps="handled"
+        <LinearGradient colors={['#FFF3C4', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
+            <SafeAreaView className="flex-1" edges={['bottom', 'left', 'right']}>
+                <KeyboardAvoidingView
+                    className="flex-1"
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
-                    {/* Card */}
-                    <View className="bg-white rounded-2xl px-6 py-8 shadow-sm shadow-black/5">
-                        {/* Title */}
-                        <Text className="text-2xl font-bold text-slate-800 text-center mb-6">
-                            Create an Account
+                    <ScrollView
+                        className="flex-1 px-6"
+                        contentContainerStyle={{ paddingTop: 32, paddingBottom: 32 }}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {/* Header */}
+                        <Text className="text-4xl font-bold text-slate-900 mb-2">
+                            Set up your account{'\n'}in seconds.
                         </Text>
+                        <Text className="text-base text-slate-500 mb-8">
+                            Fill in a few quick details to begin.
+                        </Text>
+
+                        {/* Tab Switcher */}
+                        <View className="flex-row bg-white/60 rounded-full p-1 mb-8">
+                            <Pressable
+                                className="flex-1 py-3 rounded-full items-center"
+                                onPress={onLogin}
+                            >
+                                <Text className="font-medium text-slate-500">Login</Text>
+                            </Pressable>
+                            <Pressable
+                                className="flex-1 py-3 rounded-full items-center bg-yellow-400"
+                            >
+                                <Text className="font-semibold text-slate-900">Register</Text>
+                            </Pressable>
+                        </View>
 
                         {/* Error */}
                         {displayError ? (
@@ -82,99 +95,112 @@ export function RegisterScreen({ onSuccess, onLogin }: RegisterScreenProps) {
                             </View>
                         ) : null}
 
-                        {/* Phone */}
-                        <View className="mb-4">
-                            <Text className="text-sm font-semibold text-slate-800 mb-2">Your Phone</Text>
-                            <TextInput
-                                className="w-full h-12 border border-slate-300 rounded-lg px-4 text-base text-slate-800 bg-white"
-                                placeholder="Enter your phone number"
-                                placeholderTextColor="#9ca3af"
-                                keyboardType="phone-pad"
-                                maxLength={11}
-                                value={phone}
-                                onChangeText={setPhone}
-                            />
+                        {/* Name */}
+                        <View className="mb-5">
+                            <Text className="text-sm font-semibold text-slate-800 mb-2">Name</Text>
+                            <View className="bg-white rounded-full px-5 h-14 justify-center shadow-sm">
+                                <TextInput
+                                    className="text-base text-slate-800"
+                                    placeholder="Please type your full name"
+                                    placeholderTextColor="#9ca3af"
+                                    value={name}
+                                    onChangeText={setName}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Phone Number */}
+                        <View className="mb-5">
+                            <Text className="text-sm font-semibold text-slate-800 mb-2">Phone Number</Text>
+                            <View className="bg-white rounded-full px-5 h-14 justify-center shadow-sm">
+                                <TextInput
+                                    className="text-base text-slate-800"
+                                    placeholder="0300-1234567"
+                                    placeholderTextColor="#9ca3af"
+                                    keyboardType="phone-pad"
+                                    maxLength={11}
+                                    value={phone}
+                                    onChangeText={setPhone}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Email */}
+                        <View className="mb-5">
+                            <Text className="text-sm font-semibold text-slate-800 mb-2">
+                                Email  <Text className="text-slate-400 font-normal">(Optional)</Text>
+                            </Text>
+                            <View className="bg-white rounded-full px-5 h-14 justify-center shadow-sm">
+                                <TextInput
+                                    className="text-base text-slate-800"
+                                    placeholder="example@mail.com"
+                                    placeholderTextColor="#9ca3af"
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                />
+                            </View>
                         </View>
 
                         {/* Password */}
-                        <View className="mb-4">
+                        <View className="mb-5">
                             <Text className="text-sm font-semibold text-slate-800 mb-2">Password</Text>
-                            <View className="flex-row items-center border border-slate-300 rounded-lg bg-white px-4 h-12">
+                            <View className="bg-white rounded-full px-5 h-14 justify-center shadow-sm">
                                 <TextInput
-                                    className="flex-1 h-12 text-base text-slate-800"
-                                    placeholder="Enter your password"
+                                    className="text-base text-slate-800"
+                                    placeholder="••••••••"
                                     placeholderTextColor="#9ca3af"
-                                    secureTextEntry={!showPassword}
+                                    secureTextEntry
                                     value={password}
                                     onChangeText={setPassword}
                                 />
-                                <Pressable onPress={() => setShowPassword(!showPassword)}>
-                                    <Text className="text-sm text-slate-500">{showPassword ? 'Hide' : 'Show'}</Text>
-                                </Pressable>
                             </View>
                         </View>
 
-                        {/* Confirm Password */}
-                        <View className="mb-5">
-                            <Text className="text-sm font-semibold text-slate-800 mb-2">Confirm Password</Text>
-                            <View className="flex-row items-center border border-slate-300 rounded-lg bg-white px-4 h-12">
+                        {/* Re-Type Password */}
+                        <View className="mb-8">
+                            <Text className="text-sm font-semibold text-slate-800 mb-2">Re-Type Password</Text>
+                            <View className="bg-white rounded-full px-5 h-14 justify-center shadow-sm">
                                 <TextInput
-                                    className="flex-1 h-12 text-base text-slate-800"
-                                    placeholder="Confirm your password"
+                                    className="text-base text-slate-800"
+                                    placeholder="••••••••"
                                     placeholderTextColor="#9ca3af"
-                                    secureTextEntry={!showConfirmPassword}
+                                    secureTextEntry
                                     value={confirmPassword}
                                     onChangeText={setConfirmPassword}
                                 />
-                                <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                    <Text className="text-sm text-slate-500">{showConfirmPassword ? 'Hide' : 'Show'}</Text>
-                                </Pressable>
                             </View>
                         </View>
 
-                        {/* Terms */}
+                        {/* Register Button */}
                         <Pressable
-                            className="flex-row items-center mb-6"
-                            onPress={() => setTermsAccepted(!termsAccepted)}
-                        >
-                            <View className={`w-5 h-5 rounded border-2 items-center justify-center mr-3 ${termsAccepted ? 'bg-yellow-500 border-yellow-500' : 'border-slate-300 bg-white'}`}>
-                                {termsAccepted && <Text className="text-white text-xs font-bold">✓</Text>}
-                            </View>
-                            <Text className="text-sm text-slate-700">
-                                I accept the <Text className="text-yellow-600 font-semibold">Terms and Conditions</Text>
-                            </Text>
-                        </Pressable>
-
-                        {/* Button */}
-                        <Pressable
-                            className={`w-full rounded-lg h-12 items-center justify-center ${registerMutation.isPending ? 'bg-yellow-400' : 'bg-yellow-500 active:bg-yellow-600'}`}
+                            className={`w-full rounded-full h-14 items-center justify-center shadow-sm ${registerMutation.isPending ? 'bg-yellow-300' : 'bg-yellow-400 active:bg-yellow-500'}`}
                             onPress={handleRegister}
                             disabled={registerMutation.isPending}
                         >
                             {registerMutation.isPending ? (
-                                <ActivityIndicator color="#fff" />
+                                <ActivityIndicator color="#000" />
                             ) : (
-                                <Text className="text-white font-semibold text-base">Create an Account</Text>
+                                <Text className="text-slate-900 font-bold text-base">Register</Text>
                             )}
                         </Pressable>
 
-                        {/* Login link */}
-                        <View className="mt-5 items-center">
-                            <Text className="text-sm text-slate-600">
-                                Already have an account?{' '}
-                                <Text className="text-yellow-600 font-semibold" onPress={onLogin}>Log In</Text>
-                            </Text>
+                        {/* Divider */}
+                        <View className="flex-row items-center my-6">
+                            <View className="flex-1 h-px bg-slate-200" />
+                            <Text className="mx-4 text-sm text-slate-400">Or Register with</Text>
+                            <View className="flex-1 h-px bg-slate-200" />
                         </View>
 
-                        {/* Footer */}
-                        <View className="mt-4 items-center">
-                            <Text className="text-xs text-yellow-600">
-                                Powered by <Text className="font-semibold underline">NBT-HUB</Text>
-                            </Text>
-                        </View>
-                    </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
+                        {/* Google Button */}
+                        <Pressable className="w-full rounded-full h-14 items-center justify-center border border-slate-200 bg-white flex-row">
+                            <Text className="text-lg mr-2">G</Text>
+                            <Text className="text-slate-700 font-medium text-base">Continue with Google</Text>
+                        </Pressable>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </SafeAreaView>
+        </LinearGradient>
     );
 }

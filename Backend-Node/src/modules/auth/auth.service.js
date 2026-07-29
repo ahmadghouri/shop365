@@ -13,7 +13,9 @@ class AuthService {
     }
 
     const user = await User.create({
+      name: data.name || null,
       phone_no: data.phone_no,
+      email: data.email || null,
       password: await hashPassword(data.password),
       role: UserRole.END_USER,
     });

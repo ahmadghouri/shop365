@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Image, Pressable, ActivityIndicator } from 'react-native';
-import { useRandomProducts } from '@/lib/queries/useHomeData';
-import { API_BASE_URL } from '@/lib/api';
+import { useRandomProducts } from '@/api/home/useHomeQueries';
+import { API_BASE_URL } from '@/api/client';
 
 export function DiscountedItems() {
     const { data, isLoading } = useRandomProducts();

@@ -12,7 +12,8 @@ const businessSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 businessSchema.virtual('image_url').get(function () {
-  return this.image ? `/be/uploads/${this.image}` : null;
+  if (!this.image) return null;
+  return /^https?:\/\//.test(this.image) ? this.image : `/be/uploads/${this.image}`;
 });
 
 businessSchema.set('toJSON', {

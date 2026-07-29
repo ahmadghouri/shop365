@@ -38,6 +38,8 @@ async function addDetails(req, res, next) {
     }
 
     user.name = name;
+    user.address = address;
+    user.city = town;
     user.household_id = household._id;
     user.town_id = townDoc._id;
     await user.save();

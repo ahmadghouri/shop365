@@ -82,18 +82,34 @@ async function updateUser(req, res, next) {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+
     if (req.body.name) user.name = req.body.name;
     if (req.body.phone_no) user.phone_no = req.body.phone_no;
-    if (req.body.address) {
-      const Household = require('../households/household.model');
-      let household = await Household.findById(user.household_id);
-      if (!household) {
-        household = new Household({ town_id: 1 });
+
+    const locationFields = ['street', 'area', 'city', 'latitude', 'longitude'];
+    for (const field of locationFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        user[field] = req.body[field];
       }
-      household.address = req.body.address;
-      await household.save();
-      user.household_id = household._id;
     }
+
+    if (req.body.address) {
+      user.address = req.body.address;
+
+      // Keep an existing legacy household address in sync, but never create
+      // one with a numeric town ID. New mobile/web clients use user.address.
+      if (user.household_id && /^[0-9a-fA-F]{24}$/.test(String(user.household_id))) {
+        const Household = require('../households/household.model');
+        const household = await Household.findById(user.household_id);
+        if (household) {
+          household.address = req.body.address;
+          await household.save();
+        }
+      }
+    } else if (req.body.street || req.body.area || req.body.city) {
+      user.address = [...new Set([req.body.street, req.body.area, req.body.city].filter(Boolean))].join(', ');
+    }
+
     await user.save();
     res.json({ message: 'User and address updated successfully', user: user.toJSON() });
   } catch (error) { next(error); }

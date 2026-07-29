@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft } from 'lucide-react-native';
 import { QuantitySelector } from '@/components/product/QuantitySelector';
 import { ExtrasList, type Extra } from '@/components/product/ExtrasList';
+import { useCartStore } from '@/lib/cartStore';
 
 type ProductDetailPageProps = {
     name?: string;
@@ -69,6 +70,36 @@ export function ProductDetailPage({
     };
 
     const payload = { quantity, extras: selectedExtras, total };
+
+    const addItem = useCartStore((s) => s.addItem);
+
+    const handleAddToCart = () => {
+        addItem({
+            id: `${name}-${Date.now()}`,
+            name: name ?? 'Product',
+            store: store ?? '',
+            price,
+            quantity,
+            image,
+            imageUri,
+            extras: selectedExtras,
+        });
+        onAddToCart?.(payload);
+    };
+
+    const handleBuyNow = () => {
+        addItem({
+            id: `${name}-${Date.now()}`,
+            name: name ?? 'Product',
+            store: store ?? '',
+            price,
+            quantity,
+            image,
+            imageUri,
+            extras: selectedExtras,
+        });
+        onBuyNow?.(payload);
+    };
 
     return (
         <LinearGradient colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
@@ -147,7 +178,7 @@ export function ProductDetailPage({
                 <View className="absolute bottom-0 left-0 right-0 flex-row gap-3 border-t border-slate-100 bg-white px-4 pb-7 pt-3">
                     <Pressable
                         className="flex-1 items-center justify-center rounded-full bg-[#FEF3C7] py-4 active:opacity-80"
-                        onPress={() => onAddToCart?.(payload)}
+                        onPress={handleAddToCart}
                     >
                         <Text className="text-[15px] font-lufga-medium text-slate-800">
                             ADD - RS:{total.toLocaleString()}
@@ -156,7 +187,7 @@ export function ProductDetailPage({
 
                     <Pressable
                         className="flex-1 items-center justify-center rounded-full bg-[#EAB308] py-4 active:opacity-80"
-                        onPress={() => onBuyNow?.(payload)}
+                        onPress={handleBuyNow}
                     >
                         <Text className="text-[15px] font-lufga-semibold text-slate-900">Buy Now</Text>
                     </Pressable>

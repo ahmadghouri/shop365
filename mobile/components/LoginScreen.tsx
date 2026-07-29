@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLoginMutation } from '@/lib/mutations/useLoginMutation';
+import { useLoginMutation } from '@/api/auth/useLoginMutation';
 
 type LoginScreenProps = {
     onSuccess?: () => void;

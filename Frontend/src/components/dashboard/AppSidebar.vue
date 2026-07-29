@@ -49,6 +49,7 @@ const isActive = (path) => {
 
 const adminMenuItems = [
   { label: 'Restaurants', to: '/admin/dashboard', icon: LayoutGrid },
+  { label: 'Categories', to: '/admin/categories', icon: ShoppingBasket },
   { label: 'Users', to: '/admin/users', icon: Users },
   { label: 'View Vendors', to: '/admin/vendors', icon: Store },
   { label: 'Stats', to: '/admin/stats', icon: BarChart3 },

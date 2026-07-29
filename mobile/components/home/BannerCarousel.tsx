@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { useHeaderImages } from '@/lib/queries/useHomeData';
-import { API_BASE_URL } from '@/lib/api';
+import { useHeaderImages } from '@/api/home/useHomeQueries';
+import { API_BASE_URL } from '@/api/client';
 
 export function BannerCarousel() {
     const { data, isLoading } = useHeaderImages();

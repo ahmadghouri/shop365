@@ -25,11 +25,18 @@ class AuthService {
   }
 
   async login(data) {
-    const user = await User.findOne({ phone_no: data.phone_no });
+    let user = await User.findOne({ phone_no: data.phone_no });
     if (!user || !(await comparePassword(data.password, user.password))) {
       const error = new Error('Invalid credentials');
       error.statusCode = 401;
       throw error;
+    }
+
+    // Populate household only if household_id is a valid ObjectId
+    if (user.household_id && String(user.household_id).match(/^[0-9a-fA-F]{24}$/)) {
+      try {
+        user = await user.populate('household_id');
+      } catch (_) { /* skip if populate fails */ }
     }
 
     const token = generateToken({ id: user._id.toString(), role: user.role });

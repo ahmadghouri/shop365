@@ -4,7 +4,8 @@ type Category = {
     id: string;
     name: string;
     subtitle: string;
-    image: any;
+    image?: any;
+    imageUri?: string;
 };
 
 type CategoryListProps = {
@@ -26,7 +27,7 @@ export function CategoryList({ categories, onCategoryPress }: CategoryListProps)
                         <Text className="text-10 text-[#6B7280] font-lufga font-light mt-0.5">{cat.subtitle}</Text>
                         <View className="flex-1 items-end justify-end">
                             <Image
-                                source={cat.image}
+                                source={cat.imageUri ? { uri: cat.imageUri } : cat.image}
                                 className="size-20"
                                 resizeMode="contain"
                             />

@@ -23,6 +23,7 @@ import Contact from "../pages/Contact.vue";
 import AdminLayout from "../layout/AdminLayout.vue";
 import Login from "../pages/Admin/Login.vue";
 import Dashboard from "../pages/Admin/Dashboard.vue";
+import AdminCategories from "../pages/Admin/Categories.vue";
 import Product from "../pages/Admin/Products.vue";
 import UserAdmin from "../pages/Admin/User.vue";
 import CarouselImages from "../pages/Admin/CarouselImages.vue";
@@ -236,6 +237,15 @@ const routes = [
         },
       },
       {
+        path: "categories",
+        name: "AdminCategories",
+        component: AdminCategories,
+        meta: {
+          requiresAdminAuth: true,
+          adminOnly: true,
+        },
+      },
+      {
         path: "products/:id",
         name: "Products",
         component: Product,
@@ -410,6 +420,11 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const { isAuthenticated, role } = storeToRefs(authStore);
   const cartStore = useCartStore();
+
+  if (to.meta.adminOnly) {
+    if (!isAuthenticated.value) return next({ name: "AdminLogin" });
+    if (role.value !== "admin") return next({ name: "RestaurantOrders" });
+  }
 
   const publicRoutes = ["Categories", "CategoryPage", "ProductDetailsPage"];
   if (publicRoutes.includes(to.name)) {

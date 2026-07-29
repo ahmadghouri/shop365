@@ -95,7 +95,7 @@
               </label>
               or drag and drop
             </p>
-            <p class="text-xs text-muted-foreground">PNG, JPG up to 15KB</p>
+            <p class="text-xs text-muted-foreground">PNG, JPG up to 2MB</p>
           </div>
 
           <p v-if="imageError" class="mt-2 text-xs text-destructive">
@@ -124,6 +124,7 @@
 import { ref, onMounted } from "vue";
 import { useBusinessStore } from "@/store/businessStore.js";
 import { useRouter } from "vue-router";
+import { uploadApi } from "@/api/modules/upload.api";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -138,7 +139,7 @@ const emit = defineEmits(["close"]);
 const imagePreview = ref(null);
 const imageError = ref(null);
 const submitting = ref(false);
-const MAX_FILE_SIZE = 15 * 1024;
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 const form = ref({
   name: "",

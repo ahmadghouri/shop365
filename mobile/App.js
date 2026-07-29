@@ -19,12 +19,14 @@ import { LoginScreen } from './components/LoginScreen';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
+import { CartPage } from './pages/CartPage';
 import { useAuthStore } from './lib/authStore';
 
 function AppContent() {
   const [screen, setScreen] = useState('Splash');
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeProduct, setActiveProduct] = useState(null);
+  const [showCart, setShowCart] = useState(false);
   const [direction, setDirection] = useState('forward');
   const { isAuthenticated, loadToken } = useAuthStore();
 
@@ -65,6 +67,14 @@ function AppContent() {
 
   // Authenticated screens
   if (isAuthenticated) {
+    if (showCart) {
+      return (
+        <Animated.View key="cart" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+          <CartPage onBack={() => setShowCart(false)} />
+        </Animated.View>
+      );
+    }
+
     if (activeProduct) {
       return (
         <Animated.View key="product" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
@@ -74,6 +84,7 @@ function AppContent() {
             price={activeProduct.price}
             image={activeProduct.image}
             onBack={() => setActiveProduct(null)}
+            onAddToCart={() => setShowCart(true)}
           />
         </Animated.View>
       );
@@ -87,6 +98,7 @@ function AppContent() {
             subtitle={activeCategory.subtitle}
             onBack={() => setActiveCategory(null)}
             onProductPress={(product) => setActiveProduct(product)}
+            onCartPress={() => setShowCart(true)}
           />
         </Animated.View>
       );
@@ -97,6 +109,7 @@ function AppContent() {
         <HomePage
           onCategoryPress={(cat) => setActiveCategory(cat)}
           onProductPress={(product) => setActiveProduct(product)}
+          onCartPress={() => setShowCart(true)}
         />
       </Animated.View>
     );

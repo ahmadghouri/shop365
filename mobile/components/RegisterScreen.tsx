@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRegisterMutation } from '@/lib/mutations/useRegisterMutation';
+import { useRegisterMutation } from '@/api/auth/useRegisterMutation';
 
 type RegisterScreenProps = {
     onSuccess?: () => void;

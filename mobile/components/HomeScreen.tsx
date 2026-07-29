@@ -1,8 +1,8 @@
 import { View, Text, ScrollView, Image, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/lib/authStore';
-import { useBusinesses, useHeaderImages, useRandomProducts } from '@/lib/queries/useHomeData';
-import { API_BASE_URL } from '@/lib/api';
+import { useBusinesses, useHeaderImages, useRandomProducts } from '@/api/home/useHomeQueries';
+import { API_BASE_URL } from '@/api/client';
 
 type HomeScreenProps = {
     onCategoryPress?: (id: number, title: string) => void;

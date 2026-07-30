@@ -13,6 +13,7 @@ router.delete('/voucher/:id/delete', ctrl.deleteVoucher);
 router.get('/business-orders/:id', ctrl.superAdminOrders);
 router.get('/grocery/:id', ctrl.getGroceryOrders);
 router.get('/business-stats', ctrl.getBusinessStats);
+router.post('/providers', ctrl.createProvider);
 router.post('/createAdmins', ctrl.createTownAdmin);
 router.get('/internship-applications', ctrl.internshipApplications);
 router.get('/users/previous-two-days', ctrl.usersPreviousTwoDays);

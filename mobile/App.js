@@ -18,7 +18,7 @@ import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
-import { ProductDetailPage } from './pages/ProductDetailPage';
+import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
 import { CartPage } from './pages/CartPage';
 import { useAuthStore } from './lib/authStore';
 
@@ -56,7 +56,6 @@ function AppContent() {
   const entering = direction === 'forward' ? SlideInRight.duration(300) : SlideInLeft.duration(300);
   const exiting = direction === 'forward' ? SlideOutLeft.duration(300) : SlideOutRight.duration(300);
 
-  // Splash — fades out
   if (screen === 'Splash') {
     return (
       <Animated.View exiting={FadeOut.duration(400)} style={{ flex: 1 }}>
@@ -65,7 +64,6 @@ function AppContent() {
     );
   }
 
-  // Authenticated screens
   if (isAuthenticated) {
     if (showCart) {
       return (
@@ -78,13 +76,12 @@ function AppContent() {
     if (activeProduct) {
       return (
         <Animated.View key="product" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
-          <ProductDetailPage
-            name={activeProduct.name}
-            store={activeProduct.store}
-            price={activeProduct.price}
-            image={activeProduct.image}
+          <BackendProductDetailPage
+            productId={String(activeProduct.id || activeProduct._id)}
+            previewImage={activeProduct.image}
             onBack={() => setActiveProduct(null)}
             onAddToCart={() => setShowCart(true)}
+            onBuyNow={() => setShowCart(true)}
           />
         </Animated.View>
       );
@@ -94,6 +91,7 @@ function AppContent() {
       return (
         <Animated.View key="category" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
           <CategoryDetailPage
+            categoryId={activeCategory.id}
             title={activeCategory.name}
             subtitle={activeCategory.subtitle}
             onBack={() => setActiveCategory(null)}
@@ -107,7 +105,7 @@ function AppContent() {
     return (
       <Animated.View key="home" entering={FadeIn.duration(300)} style={{ flex: 1 }}>
         <HomePage
-          onCategoryPress={(cat) => setActiveCategory(cat)}
+          onCategoryPress={(category) => setActiveCategory(category)}
           onProductPress={(product) => setActiveProduct(product)}
           onCartPress={() => setShowCart(true)}
         />
@@ -115,7 +113,6 @@ function AppContent() {
     );
   }
 
-  // Auth screens
   const renderScreen = () => {
     switch (screen) {
       case 'Register':

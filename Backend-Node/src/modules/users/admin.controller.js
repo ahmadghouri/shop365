@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('./user.model');
 const Business = require('../businesses/business.model');
 const { successResponse } = require('../../utils/api-response');
@@ -6,12 +7,23 @@ const { UserRole } = require('../../common/enums');
 
 async function createTownAdmin(req, res, next) {
   try {
-    const { name, phone_no, password, business } = req.body;
-    const businessDoc = await Business.findOne({ name: business });
-    if (!businessDoc) return res.status(404).json({ status: false, message: 'Business not found' });
+    const { name, phone_no, email, password, business, business_id } = req.body;
+    let businessDoc;
+
+    if (business_id && mongoose.isValidObjectId(business_id)) {
+      businessDoc = await Business.findById(business_id);
+    }
+    if (!businessDoc && business) {
+      businessDoc = await Business.findOne({ name: business });
+    }
+    if (!businessDoc) {
+      return res.status(404).json({ status: false, message: 'Business not found' });
+    }
 
     const admin = await User.create({
-      name, phone_no,
+      name,
+      phone_no,
+      email: email ? String(email).trim().toLowerCase() : undefined,
       password: await hashPassword(password),
       role: UserRole.RESTAURANT_ADMIN,
       business_id: businessDoc._id,

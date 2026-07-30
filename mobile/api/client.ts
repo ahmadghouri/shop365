@@ -14,7 +14,7 @@ const getBaseUrl = () => {
     // Option 1: If using ngrok, paste ngrok URL here (e.g., https://abc123.ngrok-free.app)
     // Option 2: If both phone & PC on same WiFi, use PC's WiFi IP
     // Option 3: For emulator only, use http://10.0.2.2:8000
-    return 'http://192.168.79.28:8000';
+    return 'http://192.168.79.96:8000';
     // return 'https://theshop365.com';
 };
 

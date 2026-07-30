@@ -5,6 +5,7 @@ const { successResponse } = require('../../utils/api-response');
 const ALLOWED_FOLDERS = new Set([
   'categories',
   'restaurants',
+  'providers',
   'products',
   'carousel',
   'prescriptions',

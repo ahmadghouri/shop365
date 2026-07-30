@@ -1,20 +1,20 @@
 <template>
   <div class="container mx-auto px-4 py-6">
-    <PageHeader title="Restaurants" description="Manage your restaurants">
+    <PageHeader title="Providers" description="Manage your service providers">
       <template #actions>
         <Button @click="showForm = true">
           <Plus class="w-4 h-4 mr-2" />
-          Add Restaurant
+          Add Provider
         </Button>
       </template>
     </PageHeader>
 
     <div class="mb-6">
       <StatCard
-        title="Total Restaurants"
+        title="Total Providers"
         :value="businessStore.businesses.length"
         :icon="Store"
-        description="All registered restaurants"
+        description="All registered providers"
         :loading="businessStore.loading"
       />
     </div>
@@ -36,10 +36,10 @@
 
     <EmptyState
       v-else-if="businessStore.businesses.length === 0"
-      title="No Restaurants"
-      description="Get started by adding your first restaurant."
+      title="No Providers"
+      description="Get started by adding your first provider."
       :icon="Store"
-      actionLabel="Add Restaurant"
+      actionLabel="Add Provider"
       @action="showForm = true"
     />
 
@@ -54,22 +54,13 @@
         }"
       >
         <Card class="h-full transition-shadow hover:shadow-md cursor-pointer">
+          <div v-if="restaurant.image_url" class="flex h-40 items-center justify-center bg-muted/50 p-3">
+            <img :src="restaurant.image_url" :alt="restaurant.name" class="h-full w-full object-contain" />
+          </div>
           <CardHeader>
             <CardTitle class="truncate">{{ restaurant.name }}</CardTitle>
             <CardDescription>{{ restaurant.type }}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div class="space-y-1 text-sm text-muted-foreground">
-              <p class="flex items-center gap-2">
-                <Clock class="w-4 h-4" />
-                Opens: {{ restaurant.opening_time }}
-              </p>
-              <p class="flex items-center gap-2">
-                <Clock class="w-4 h-4" />
-                Closes: {{ restaurant.closing_time }}
-              </p>
-            </div>
-          </CardContent>
           <CardFooter class="flex gap-2">
             <Button
               variant="outline"
@@ -94,25 +85,27 @@
       </router-link>
     </div>
 
-    <Dialog v-model:open="showForm">
-      <DialogContent class="sm:max-w-2xl">
+    <Dialog :open="showForm" @update:open="showForm = $event">
+      <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Restaurant</DialogTitle>
-          <DialogDescription>Create a new restaurant entry.</DialogDescription>
+          <DialogTitle>Add Provider</DialogTitle>
+          <DialogDescription>Create a new service provider entry.</DialogDescription>
         </DialogHeader>
         <AddRestaurantForm @close="showForm = false" />
       </DialogContent>
     </Dialog>
 
-    <Dialog v-model:open="showEditForm">
-      <DialogContent class="sm:max-w-2xl">
+    <Dialog :open="showEditForm" @update:open="handleEditDialogChange">
+      <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Edit Restaurant</DialogTitle>
-          <DialogDescription>Update restaurant details.</DialogDescription>
+          <DialogTitle>Edit Provider</DialogTitle>
+          <DialogDescription>Update provider details.</DialogDescription>
         </DialogHeader>
         <EditRestaurantForm
+          v-if="selectedRestaurant"
+          :key="selectedRestaurant.id || selectedRestaurant._id"
           :restaurant="selectedRestaurant"
-          @close="showEditForm = false"
+          @close="handleEditDialogChange(false)"
         />
       </DialogContent>
     </Dialog>
@@ -122,7 +115,7 @@
         <AlertDialogHeader>
           <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete this restaurant? This action cannot be undone.
+            Are you sure you want to delete this provider? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -147,7 +140,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Clock, Store } from "lucide-vue-next";
+import { Plus, Pencil, Trash2, Store } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
 const showForm = ref(false);
@@ -159,6 +152,11 @@ const restaurantToDeleteId = ref(null);
 const editRestaurant = (restaurant) => {
   selectedRestaurant.value = restaurant;
   showEditForm.value = true;
+};
+
+const handleEditDialogChange = (open) => {
+  showEditForm.value = open;
+  if (!open) selectedRestaurant.value = null;
 };
 
 const showDeleteConfirmation = (id) => {

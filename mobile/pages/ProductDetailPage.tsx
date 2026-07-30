@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,7 +7,21 @@ import { QuantitySelector } from '@/components/product/QuantitySelector';
 import { ExtrasList, type Extra } from '@/components/product/ExtrasList';
 import { useCartStore } from '@/lib/cartStore';
 
+type Variant = {
+    id: string;
+    name: string;
+    price: number;
+};
+
+type ProductDetailPayload = {
+    quantity: number;
+    extras: Extra[];
+    total: number;
+    variant?: Variant;
+};
+
 type ProductDetailPageProps = {
+    productId?: string;
     name?: string;
     store?: string;
     price?: number;
@@ -16,9 +30,10 @@ type ProductDetailPageProps = {
     image?: any;
     imageUri?: string;
     extras?: Extra[];
+    variants?: Variant[];
     onBack?: () => void;
-    onAddToCart?: (payload: { quantity: number; extras: Extra[]; total: number }) => void;
-    onBuyNow?: (payload: { quantity: number; extras: Extra[]; total: number }) => void;
+    onAddToCart?: (payload: ProductDetailPayload) => void;
+    onBuyNow?: (payload: ProductDetailPayload) => void;
 };
 
 const DEFAULT_EXTRAS: Extra[] = [
@@ -29,6 +44,7 @@ const DEFAULT_EXTRAS: Extra[] = [
 ];
 
 export function ProductDetailPage({
+    productId = 'preview-product',
     name = 'Cheese Beef Burger',
     store = '365 Fast Food',
     price = 390,
@@ -37,67 +53,83 @@ export function ProductDetailPage({
     image = require('@/assets/product/product.png'),
     imageUri,
     extras = DEFAULT_EXTRAS,
+    variants = [],
     onBack,
     onAddToCart,
     onBuyNow,
 }: ProductDetailPageProps) {
     const [quantity, setQuantity] = useState(1);
     const [selectedExtraIds, setSelectedExtraIds] = useState<string[]>([]);
+    const [selectedVariantId, setSelectedVariantId] = useState('');
 
+    useEffect(() => {
+        setQuantity(1);
+        setSelectedExtraIds([]);
+        setSelectedVariantId(variants[0]?.id || '');
+    }, [productId, variants]);
+
+    const selectedVariant = useMemo(
+        () => variants.find((variant) => variant.id === selectedVariantId),
+        [variants, selectedVariantId],
+    );
+    const unitPrice = selectedVariant?.price ?? price;
+    const effectiveOldPrice = selectedVariant ? undefined : oldPrice;
     const source = imageUri ? { uri: imageUri } : image;
 
     const discount = useMemo(() => {
-        if (!oldPrice || oldPrice <= price) return null;
-        return Math.round(((oldPrice - price) / oldPrice) * 100);
-    }, [oldPrice, price]);
+        if (!effectiveOldPrice || effectiveOldPrice <= unitPrice) return null;
+        return Math.round(((effectiveOldPrice - unitPrice) / effectiveOldPrice) * 100);
+    }, [effectiveOldPrice, unitPrice]);
 
     const selectedExtras = useMemo(
         () => extras.filter((extra) => selectedExtraIds.includes(extra.id)),
-        [extras, selectedExtraIds]
+        [extras, selectedExtraIds],
     );
 
     const total = useMemo(() => {
         const extrasTotal = selectedExtras.reduce((sum, extra) => sum + extra.price, 0);
-        return (price + extrasTotal) * quantity;
-    }, [price, selectedExtras, quantity]);
+        return (unitPrice + extrasTotal) * quantity;
+    }, [unitPrice, selectedExtras, quantity]);
 
     const toggleExtra = (extraId: string) => {
         setSelectedExtraIds((current) =>
             current.includes(extraId)
                 ? current.filter((id) => id !== extraId)
-                : [...current, extraId]
+                : [...current, extraId],
         );
     };
 
-    const payload = { quantity, extras: selectedExtras, total };
+    const payload: ProductDetailPayload = {
+        quantity,
+        extras: selectedExtras,
+        total,
+        variant: selectedVariant,
+    };
 
-    const addItem = useCartStore((s) => s.addItem);
+    const addItem = useCartStore((state) => state.addItem);
 
-    const handleAddToCart = () => {
+    const addCurrentSelection = () => {
+        const extrasKey = selectedExtras.map((extra) => extra.id).sort().join('-') || 'no-extras';
         addItem({
-            id: `${name}-${Date.now()}`,
+            id: `${productId}:${selectedVariant?.id || 'default'}:${extrasKey}`,
             name: name ?? 'Product',
             store: store ?? '',
-            price,
+            price: unitPrice,
             quantity,
             image,
             imageUri,
             extras: selectedExtras,
+            variant: selectedVariant,
         });
+    };
+
+    const handleAddToCart = () => {
+        addCurrentSelection();
         onAddToCart?.(payload);
     };
 
     const handleBuyNow = () => {
-        addItem({
-            id: `${name}-${Date.now()}`,
-            name: name ?? 'Product',
-            store: store ?? '',
-            price,
-            quantity,
-            image,
-            imageUri,
-            extras: selectedExtras,
-        });
+        addCurrentSelection();
         onBuyNow?.(payload);
     };
 
@@ -105,7 +137,6 @@ export function ProductDetailPage({
         <LinearGradient colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    {/* Image card */}
                     <View className="mx-4 mt-2 rounded-3xl bg-white/70 p-3">
                         <View className="h-64 items-center justify-center overflow-hidden rounded-2xl bg-[#F0F0F0]">
                             {source ? (
@@ -130,13 +161,14 @@ export function ProductDetailPage({
                         <Text className="text-xs font-lufga text-slate-400">{store}</Text>
                         <Text className="mt-1 text-2xl font-lufga-bold text-slate-900">{name}</Text>
 
-                        {/* Price row */}
                         <View className="mt-3 flex-row items-center">
-                            <Text className="text-3xl font-lufga-bold text-slate-900">{price}</Text>
+                            <Text className="text-3xl font-lufga-bold text-slate-900">
+                                Rs {unitPrice.toLocaleString()}
+                            </Text>
 
-                            {oldPrice && oldPrice > price && (
+                            {effectiveOldPrice && effectiveOldPrice > unitPrice && (
                                 <Text className="ml-3 text-lg font-lufga text-slate-400 line-through">
-                                    {oldPrice}
+                                    Rs {effectiveOldPrice.toLocaleString()}
                                 </Text>
                             )}
 
@@ -149,13 +181,40 @@ export function ProductDetailPage({
                             )}
                         </View>
 
-                        {/* Quantity */}
+                        {variants.length > 0 && (
+                            <View className="mt-6">
+                                <Text className="text-base font-lufga-semibold text-slate-900">
+                                    Sizes / Variants
+                                </Text>
+                                <View className="mt-3 flex-row flex-wrap gap-2">
+                                    {variants.map((variant) => {
+                                        const isSelected = variant.id === selectedVariantId;
+                                        return (
+                                            <Pressable
+                                                key={variant.id}
+                                                className={isSelected
+                                                    ? 'rounded-full border border-[#EAB308] bg-[#FEF3C7] px-4 py-2.5'
+                                                    : 'rounded-full border border-slate-200 bg-white px-4 py-2.5'}
+                                                onPress={() => setSelectedVariantId(variant.id)}
+                                            >
+                                                <Text className={isSelected
+                                                    ? 'font-lufga-medium text-slate-900'
+                                                    : 'font-lufga text-slate-600'}
+                                                >
+                                                    {variant.name} · Rs {variant.price.toLocaleString()}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        )}
+
                         <View className="mt-6 flex-row items-center justify-between">
                             <Text className="text-base font-lufga-semibold text-slate-900">Quantity</Text>
                             <QuantitySelector quantity={quantity} onChange={setQuantity} />
                         </View>
 
-                        {/* Description */}
                         <View className="mt-6">
                             <Text className="text-base font-lufga-semibold text-slate-900">Description</Text>
                             <Text className="mt-2 text-[15px] font-lufga leading-6 text-slate-400">
@@ -163,18 +222,18 @@ export function ProductDetailPage({
                             </Text>
                         </View>
 
-                        {/* Extras */}
-                        <ExtrasList
-                            extras={extras}
-                            selectedIds={selectedExtraIds}
-                            onToggle={toggleExtra}
-                        />
+                        {extras.length > 0 && (
+                            <ExtrasList
+                                extras={extras}
+                                selectedIds={selectedExtraIds}
+                                onToggle={toggleExtra}
+                            />
+                        )}
                     </View>
 
                     <View className="h-32" />
                 </ScrollView>
 
-                {/* Sticky bottom bar */}
                 <View className="absolute bottom-0 left-0 right-0 flex-row gap-3 border-t border-slate-100 bg-white px-4 pb-7 pt-3">
                     <Pressable
                         className="flex-1 items-center justify-center rounded-full bg-[#FEF3C7] py-4 active:opacity-80"

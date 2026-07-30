@@ -12,12 +12,15 @@ const reviewCtrl = require('../reviews/review.controller');
 const complaintCtrl = require('../complaints/complaint.controller');
 const productCtrl = require('../products/product.controller');
 const orderCtrl = require('../orders/order.controller');
+const businessCtrl = require('../businesses/business.controller');
 
+router.get('/business', businessCtrl.showOwn);
+router.put('/business', businessCtrl.updateOwn);
 router.get('/get-reviews', reviewCtrl.index);
 router.post('/review/:review_id/reply', reviewCtrl.reply);
 router.put('/complaint-status', complaintCtrl.update);
 router.get('/complaints', complaintCtrl.complaintsOfTown);
-router.get('/allproducts', productCtrl.index);
+router.get('/allproducts', productCtrl.getProducts);
 router.get('/orders', orderCtrl.viewRestaurantOrders);
 router.post('/products/discount', productCtrl.updateDiscount);
 router.get('/products/removeDiscount', productCtrl.removeDiscount);

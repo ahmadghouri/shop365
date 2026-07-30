@@ -1,12 +1,14 @@
 const { Router } = require('express');
 const router = Router();
 const ctrl = require('./product.controller');
+const { upload } = require('../../middleware/upload.middleware');
 
 // Laravel: Route::apiResource('/products', ProductController::class);
+router.get('/categories/:categoryId/products', ctrl.categoryProducts);
 router.get('/products', ctrl.index);
 router.post('/products', ctrl.store);
 router.get('/products/:id', ctrl.show);
-router.put('/products/:id', ctrl.update);
+router.put('/products/:id', upload.single('image'), ctrl.update);
 router.delete('/products/:id', ctrl.destroy);
 
 // Additional product routes matching Laravel

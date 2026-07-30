@@ -218,7 +218,7 @@
                     </label>
                     <p class="pl-1">or drag and drop</p>
                   </div>
-                  <p class="text-xs text-gray-500">PNG, JPG, GIF up to 15KB</p>
+                  <p class="text-xs text-gray-500">PNG, JPG, GIF</p>
                 </div>
                 <div v-else class="relative w-full">
                   <img
@@ -366,11 +366,7 @@ const insertTable = () => {
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];
-  if (file && file.size > 50 * 1024) {
-    imageError.value = "Image size must be less than 15KB";
-    form.value.image = "";
-    imagePreview.value = "";
-  } else {
+  if (file) {
     imageError.value = "";
     form.value.image = file;
     imagePreview.value = URL.createObjectURL(file);

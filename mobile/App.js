@@ -21,6 +21,7 @@ import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
 import { CartPage } from './pages/CartPage';
 import { useAuthStore } from './lib/authStore';
+import { useCartStore } from './lib/cartStore';
 
 function AppContent() {
   const [screen, setScreen] = useState('Splash');
@@ -29,10 +30,17 @@ function AppContent() {
   const [showCart, setShowCart] = useState(false);
   const [direction, setDirection] = useState('forward');
   const { isAuthenticated, loadToken } = useAuthStore();
+  const loadCart = useCartStore((s) => s.loadCart);
 
   useEffect(() => {
     loadToken();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCart();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (screen === 'Splash') {

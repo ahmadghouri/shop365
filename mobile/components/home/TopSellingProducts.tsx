@@ -7,6 +7,7 @@ type Product = {
     store: string;
     price: number;
     image?: any;
+    imageUri?: string;
 };
 
 type TopSellingProductsProps = {
@@ -27,6 +28,7 @@ export function TopSellingProducts({ products, onProductPress, onAddToCart }: To
                         store={product.store}
                         price={product.price}
                         image={product.image}
+                        imageUri={product.imageUri}
                         onPress={() => onProductPress?.(product)}
                         onAddToCart={() => onAddToCart?.(product)}
                     />

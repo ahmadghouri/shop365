@@ -112,9 +112,11 @@ const filteredProducts = computed(() =>
 );
 
 const isOpen = (openingTime, closingTime) => {
+  if (!openingTime || !closingTime) return true;
+
   const timezone = "Asia/Karachi";
   const currentTime = moment().tz(timezone);
-  const parseTime = (time) => moment.tz(time, "hh:mm:ssA", timezone);
+  const parseTime = (time) => moment.tz(time, ["HH:mm", "HH:mm:ss", "hh:mm:ssA"], timezone);
 
   const open = parseTime(openingTime);
   let close = parseTime(closingTime);

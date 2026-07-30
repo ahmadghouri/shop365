@@ -1,4 +1,6 @@
+const mongoose = require('mongoose');
 const Business = require('./business.model');
+const Category = require('../categories/category.model');
 const Product = require('../products/product.model');
 const Review = require('../reviews/review.model');
 const Cart = require('../cart/cart.model');
@@ -34,9 +36,20 @@ async function index(req, res, next) {
 async function store(req, res, next) {
   try {
     const data = { ...req.body };
-    // Sanitize: empty string/object should be null
     if (!data.parent_id || data.parent_id === '') delete data.parent_id;
     if (!data.image || typeof data.image === 'object') delete data.image;
+
+    if (data.category_id) {
+      if (!mongoose.isValidObjectId(data.category_id)) {
+        return res.status(422).json({ status: false, message: 'Please select a valid provider type' });
+      }
+      const category = await Category.findOne({ _id: data.category_id, status: 'active' });
+      if (!category) {
+        return res.status(422).json({ status: false, message: 'Selected provider type is not available' });
+      }
+      data.type = category.name;
+    }
+
     const business = await Business.create(data);
     successResponse(res, business, 'Business added successfully');
   } catch (error) { next(error); }
@@ -63,15 +76,60 @@ async function update(req, res, next) {
   try {
     const business = await Business.findById(req.params.id);
     if (!business) return res.status(404).json({ message: 'Business not found' });
-    const allowed = ['type', 'name', 'opening_time', 'closing_time'];
-    allowed.forEach(f => { if (req.body[f] !== undefined) business[f] = req.body[f]; });
-    // Handle image - only set if it's a valid string
+
+    if (req.body.name !== undefined) business.name = String(req.body.name).trim();
+    if (req.body.category_id !== undefined) {
+      if (!mongoose.isValidObjectId(req.body.category_id)) {
+        return res.status(422).json({ message: 'Please select a valid provider type' });
+      }
+      const category = await Category.findOne({ _id: req.body.category_id, status: 'active' });
+      if (!category) return res.status(422).json({ message: 'Selected provider type is not available' });
+      business.category_id = category._id;
+      business.type = category.name;
+    } else if (req.body.type !== undefined) {
+      business.type = String(req.body.type).trim();
+    }
+
     if (req.body.image && typeof req.body.image === 'string') business.image = req.body.image;
-    // Handle parent_id - only set if valid ObjectId
     if (req.body.parent_id && req.body.parent_id !== '') business.parent_id = req.body.parent_id;
     else if (req.body.parent_id === '' || req.body.parent_id === null) business.parent_id = null;
     await business.save();
     successResponse(res, business, 'Updated');
+  } catch (error) { next(error); }
+}
+
+async function showOwn(req, res, next) {
+  try {
+    if (!req.user.business_id) return res.status(404).json({ message: 'Provider business not found' });
+    const business = await Business.findById(req.user.business_id);
+    if (!business) return res.status(404).json({ message: 'Provider business not found' });
+    successResponse(res, business, 'Provider business retrieved successfully');
+  } catch (error) { next(error); }
+}
+
+async function updateOwn(req, res, next) {
+  try {
+    if (!req.user.business_id) return res.status(404).json({ message: 'Provider business not found' });
+    const business = await Business.findById(req.user.business_id);
+    if (!business) return res.status(404).json({ message: 'Provider business not found' });
+
+    const openingTime = String(req.body.opening_time || '').trim();
+    const closingTime = String(req.body.closing_time || '').trim();
+    if (!openingTime || !closingTime) {
+      return res.status(422).json({ message: 'Opening time and closing time are required' });
+    }
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(openingTime) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(closingTime)) {
+      return res.status(422).json({ message: 'Opening and closing times must be valid' });
+    }
+    if (req.body.image !== undefined && (typeof req.body.image !== 'string' || !req.body.image.trim())) {
+      return res.status(422).json({ message: 'Business image is not valid' });
+    }
+
+    business.opening_time = openingTime;
+    business.closing_time = closingTime;
+    if (req.body.image) business.image = req.body.image.trim();
+    await business.save();
+    successResponse(res, business, 'Business settings updated successfully');
   } catch (error) { next(error); }
 }
 
@@ -109,4 +167,7 @@ async function getNumber(req, res, next) {
   } catch (error) { next(error); }
 }
 
-module.exports = { index, store, show, update, destroy, getChildBusiness, getBusinessStats, getNumber };
+module.exports = {
+  index, store, show, update, showOwn, updateOwn, destroy,
+  getChildBusiness, getBusinessStats, getNumber,
+};

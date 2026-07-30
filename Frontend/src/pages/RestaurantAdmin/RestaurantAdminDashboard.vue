@@ -25,6 +25,13 @@
     <div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card v-for="product in productStore.currentProducts" :key="product.id" class="overflow-hidden flex flex-col">
+          <div v-if="productImageUrl(product)" class="flex h-44 items-center justify-center bg-muted/40 p-3">
+            <img
+              :src="productImageUrl(product)"
+              :alt="product.title"
+              class="h-full w-full object-contain"
+            />
+          </div>
           <CardHeader class="pb-3">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0 flex-1">
@@ -37,11 +44,19 @@
                 </Badge>
               </div>
             </div>
+            <div v-if="product.type" class="mt-2">
+              <Badge variant="secondary" class="text-xs">{{ product.type }}</Badge>
+            </div>
             <CardDescription class="line-clamp-2" v-html="product.description"></CardDescription>
-            <!-- Sizes -->
+            <!-- Sizes / Extras -->
             <div v-if="product.sizes && product.sizes.length" class="mt-2 flex flex-wrap gap-1">
-              <Badge v-for="(size, i) in product.sizes" :key="i" variant="outline" class="text-xs">
+              <Badge v-for="(size, i) in product.sizes" :key="`size-${i}`" variant="outline" class="text-xs">
                 {{ size.name }} - Rs {{ size.price }}
+              </Badge>
+            </div>
+            <div v-if="product.extras && product.extras.length" class="mt-2 flex flex-wrap gap-1">
+              <Badge v-for="(extra, i) in product.extras" :key="`extra-${i}`" variant="outline" class="text-xs">
+                {{ extra.name }} + Rs {{ extra.price }}
               </Badge>
             </div>
           </CardHeader>
@@ -54,7 +69,7 @@
                   <input
                     type="checkbox"
                     class="sr-only peer"
-                    :checked="product.status === 1"
+                    :checked="!!product.status"
                     @change="() => handleStatusToggle(product)"
                   />
                   <div class="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-foreground after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
@@ -66,7 +81,7 @@
                   <input
                     type="checkbox"
                     class="sr-only peer"
-                    :checked="product.is_active === 1"
+                    :checked="!!product.is_active"
                     @change="() => handleActiveToggle(product)"
                   />
                   <div class="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-foreground after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
@@ -118,7 +133,7 @@
     </AlertDialog>
 
     <Dialog v-model:open="showAddDialog">
-      <DialogContent class="sm:max-w-md">
+      <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Product</DialogTitle>
           <DialogDescription>Create a new product entry.</DialogDescription>
@@ -137,19 +152,24 @@
               required
             ></textarea>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label>Price</Label>
-              <Input v-model="addForm.price" type="number" placeholder="0.00" required />
-            </div>
-            <div class="space-y-2">
-              <Label>Type</Label>
-              <Input v-model="addForm.type" placeholder="e.g. Veg, Non-Veg" required />
-            </div>
+          <div class="space-y-2">
+            <Label>Price</Label>
+            <Input v-model="addForm.price" type="number" placeholder="0.00" required />
           </div>
 
-          <!-- Sizes/Variants -->
-          <div class="space-y-2">
+          <div class="space-y-2 rounded-md border border-border p-3">
+            <Label for="add-product-type">Product Type</Label>
+            <Input
+              id="add-product-type"
+              v-model="addForm.type"
+              placeholder="e.g. Burger, Pizza, Veg"
+              required
+            />
+            <p class="text-xs text-muted-foreground">Enter the category/type shown for this product.</p>
+          </div>
+
+          <!-- Provider-specific options -->
+          <div v-if="isGroceryProvider" class="space-y-2">
             <div class="flex items-center justify-between">
               <Label>Sizes / Variants</Label>
               <button type="button" @click="addSize" class="flex items-center gap-1 text-sm text-primary hover:text-primary/80">
@@ -158,15 +178,34 @@
             </div>
             <div v-for="(size, index) in addForm.sizes" :key="index" class="flex items-center gap-2">
               <Input v-model="size.name" placeholder="e.g. 1 KG, Large" class="flex-1" />
-              <Input v-model.number="size.price" type="number" placeholder="Price" class="w-28" />
+              <Input v-model.number="size.price" type="number" min="0" step="0.01" placeholder="Absolute price" class="w-28" />
               <button type="button" @click="removeSize(index)" class="text-destructive hover:text-destructive/80 p-1">
                 <X class="w-4 h-4" />
               </button>
             </div>
             <p v-if="addForm.sizes.length === 0" class="text-xs text-muted-foreground">No sizes added. Product will use single price above.</p>
           </div>
+          <div v-else-if="isFoodProvider" class="space-y-2">
+            <div class="flex items-center justify-between">
+              <Label>Extra Items</Label>
+              <button type="button" @click="addExtra" class="flex items-center gap-1 text-sm text-primary hover:text-primary/80">
+                <Plus class="w-4 h-4" /> Add Extra
+              </button>
+            </div>
+            <div v-for="(extra, index) in addForm.extras" :key="index" class="flex items-center gap-2">
+              <Input v-model="extra.name" placeholder="e.g. Extra Cheese" class="flex-1" />
+              <Input v-model.number="extra.price" type="number" min="0" step="0.01" placeholder="Add-on price" class="w-28" />
+              <button type="button" @click="removeExtra(index)" class="text-destructive hover:text-destructive/80 p-1">
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+            <p v-if="addForm.extras.length === 0" class="text-xs text-muted-foreground">No extra items added.</p>
+          </div>
+          <p v-else class="rounded-md border border-border p-3 text-xs text-muted-foreground">
+            Provider type could not be identified. Sizes and extra items are unavailable.
+          </p>
           <div class="space-y-2">
-            <Label>Image (Max 15KB)</Label>
+            <Label>Image</Label>
             <Input type="file" accept="image/*" @change="handleAddFileChange" required />
             <p v-if="addImageError" class="text-sm text-destructive">{{ addImageError }}</p>
           </div>
@@ -183,7 +222,7 @@
     </Dialog>
 
     <Dialog v-model:open="selectedProduct">
-      <DialogContent class="sm:max-w-lg">
+      <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
           <DialogDescription>Update product details below.</DialogDescription>
@@ -210,15 +249,95 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-2">
-              <Label>Type</Label>
+              <Label>Product Type</Label>
               <Input v-model="form.type" placeholder="e.g. Veg, Non-Veg" />
             </div>
             <div class="space-y-2">
-              <Label>Image (Max 15KB)</Label>
+              <Label>Image</Label>
               <Input type="file" accept="image/*" @change="handleFileChange" />
               <p v-if="imageError" class="text-sm text-destructive">{{ imageError }}</p>
             </div>
           </div>
+
+          <div v-if="isGroceryProvider" class="space-y-2">
+            <div class="flex items-center justify-between">
+              <Label>Sizes / Variants</Label>
+              <button
+                type="button"
+                class="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
+                @click="addEditSize"
+              >
+                <Plus class="h-4 w-4" /> Add Size
+              </button>
+            </div>
+            <div
+              v-for="(size, index) in form.sizes"
+              :key="index"
+              class="flex items-center gap-2"
+            >
+              <Input v-model="size.name" placeholder="e.g. 1 KG, Large" class="flex-1" />
+              <Input
+                v-model.number="size.price"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Absolute price"
+                class="w-28"
+              />
+              <button
+                type="button"
+                class="p-1 text-destructive hover:text-destructive/80"
+                @click="removeEditSize(index)"
+              >
+                <X class="h-4 w-4" />
+              </button>
+            </div>
+            <p v-if="form.sizes.length === 0" class="text-xs text-muted-foreground">
+              No sizes added. Product will use the single price above.
+            </p>
+          </div>
+
+          <div v-else-if="isFoodProvider" class="space-y-2">
+            <div class="flex items-center justify-between">
+              <Label>Extra Items</Label>
+              <button
+                type="button"
+                class="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
+                @click="addEditExtra"
+              >
+                <Plus class="h-4 w-4" /> Add Extra
+              </button>
+            </div>
+            <div
+              v-for="(extra, index) in form.extras"
+              :key="index"
+              class="flex items-center gap-2"
+            >
+              <Input v-model="extra.name" placeholder="e.g. Extra Cheese" class="flex-1" />
+              <Input
+                v-model.number="extra.price"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Add-on price"
+                class="w-28"
+              />
+              <button
+                type="button"
+                class="p-1 text-destructive hover:text-destructive/80"
+                @click="removeEditExtra(index)"
+              >
+                <X class="h-4 w-4" />
+              </button>
+            </div>
+            <p v-if="form.extras.length === 0" class="text-xs text-muted-foreground">
+              No extra items added.
+            </p>
+          </div>
+
+          <p v-else class="rounded-md border border-border p-3 text-xs text-muted-foreground">
+            Provider type could not be identified. Sizes and extra items are unavailable.
+          </p>
 
           <Separator />
 
@@ -270,7 +389,9 @@
 
 <script setup>
 import { productApi } from "@/api/modules/product.api";
-import { ref, onMounted, watch, onUnmounted } from "vue";
+import { businessApi } from "@/api/modules/business.api";
+import { API_BASE_URL } from "@/config/api";
+import { computed, ref, onMounted, watch, onUnmounted } from "vue";
 import { useProductStore } from "../../store/productStore";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
@@ -290,7 +411,21 @@ import { RefreshCw, Plus, Pencil, X, Search, Save, Percent, Package, Loader2 } f
 const router = useRouter();
 const productStore = useProductStore();
 
+const productImageUrl = (product) => {
+  const image = product?.image || product?.image_url;
+  if (!image) return "";
+  if (/^https?:\/\//.test(image)) return image;
+
+  let path = String(image).replace(/^\/be\/uploads\//, "/uploads/");
+  path = path.replace(/^\/uploads\/uploads\//, "/uploads/");
+  if (!path.startsWith("/")) path = `/uploads/${path}`;
+  return `${API_BASE_URL}${path}`;
+};
+
 const selectedProduct = ref(null);
+const providerType = ref("");
+const isFoodProvider = computed(() => providerType.value === "food");
+const isGroceryProvider = computed(() => providerType.value === "grocery");
 const imageError = ref("");
 const form = ref({
   title: "",
@@ -298,6 +433,8 @@ const form = ref({
   description: "",
   type: "",
   image: null,
+  sizes: [],
+  extras: [],
 });
 const discount = ref(0);
 const discountType = ref("percentage");
@@ -310,8 +447,19 @@ const currentPage = ref(1);
 
 const showAddDialog = ref(false);
 const addingProduct = ref(false);
-const addForm = ref({ title: "", description: "", price: "", type: "", image: null, sizes: [] });
+const addForm = ref({ title: "", description: "", price: "", type: "", image: null, sizes: [], extras: [] });
 const addImageError = ref("");
+
+const loadProviderType = async () => {
+  try {
+    const response = await businessApi.getOwn();
+    providerType.value = String(response?.data?.data?.type || "").trim().toLowerCase();
+  } catch (error) {
+    providerType.value = "";
+    console.error("Error loading provider type:", error);
+    toast.error("Unable to load provider type. Product options are hidden, but products can still be managed.");
+  }
+};
 
 const setupIntersectionObserver = () => {
   const options = {
@@ -353,18 +501,25 @@ const refreshProducts = async () => {
 
 const handleStatusToggle = async (product) => {
   try {
-    const newStatus = product.status === 1 ? 0 : 1;
-    await productStore.updateProductStatus(product.id, newStatus);
+    const newStatus = product.status ? false : true;
+    await productStore.updateProductStatus(product.id || product._id, newStatus);
+    product.status = newStatus;
+    toast.success(newStatus ? "Product status enabled" : "Product status disabled");
   } catch (error) {
     console.error("Error updating status:", error);
+    toast.error("Failed to update product status");
   }
 };
 
 const handleActiveToggle = async (product) => {
   try {
-    await productStore.updateProductActive(product.id);
+    await productStore.updateProductActive(product.id || product._id);
+    // Optimistically flip local card state
+    product.is_active = product.is_active ? false : true;
+    toast.success(product.is_active ? "Product activated" : "Product deactivated");
   } catch (error) {
     console.error("Error updating active status:", error);
+    toast.error("Failed to update active status");
   }
 };
 
@@ -385,14 +540,8 @@ const loadMoreProducts = async () => {
 };
 
 const handleFileChange = (e) => {
-  const file = e.target.files[0];
-  if (file && file.size > 15 * 1024) {
-    imageError.value = "Image Size must be less than 15KB";
-    form.value.image = "";
-  } else {
-    imageError.value = "";
-    form.value.image = file;
-  }
+  imageError.value = "";
+  form.value.image = e.target.files[0] || null;
 };
 
 const searchProducts = async () => {
@@ -423,7 +572,11 @@ const closeForm = () => {
     price: "",
     description: "",
     type: "",
+    image: null,
+    sizes: [],
+    extras: [],
   };
+  imageError.value = "";
   discount.value = 0;
   router.push({ path: router.currentRoute.value.fullPath });
 };
@@ -440,9 +593,54 @@ const loadProductDetails = () => {
     description: selectedProduct.value.description,
     type: selectedProduct.value.type,
     image: null,
+    sizes: (selectedProduct.value.sizes || []).map((size) => ({
+      name: size.name || "",
+      price: size.price ?? "",
+    })),
+    extras: (selectedProduct.value.extras || []).map((extra) => ({
+      name: extra.name || "",
+      price: extra.price ?? "",
+    })),
   };
   discount.value = selectedProduct.value.discount || 0;
   discountType.value = selectedProduct.value.discount_type || "percentage";
+};
+
+const addEditSize = () => {
+  form.value.sizes.push({ name: "", price: "" });
+};
+
+const removeEditSize = (index) => {
+  form.value.sizes.splice(index, 1);
+};
+
+const addEditExtra = () => {
+  form.value.extras.push({ name: "", price: "" });
+};
+
+const removeEditExtra = (index) => {
+  form.value.extras.splice(index, 1);
+};
+
+const cleanOptionRows = (rows, label) => {
+  const cleaned = [];
+  for (const row of rows) {
+    const name = String(row.name || "").trim();
+    const hasPrice = row.price !== "" && row.price !== null && row.price !== undefined;
+    if (!name && !hasPrice) continue;
+    if (!name || !hasPrice) {
+      toast.error(`Please enter both name and price for every ${label}.`);
+      return null;
+    }
+
+    const price = Number(row.price);
+    if (!Number.isFinite(price) || price < 0) {
+      toast.error(`Every ${label} price must be a finite, nonnegative number.`);
+      return null;
+    }
+    cleaned.push({ name, price });
+  }
+  return cleaned;
 };
 
 const submitForm = async () => {
@@ -451,17 +649,22 @@ const submitForm = async () => {
     return;
   }
 
-  if (form.value.image && form.value.image.size > 15 * 1024) {
-    imageError.value = "Image size must be less than 15KB.";
-    toast.error("Image size exceeds the limit.");
-    return;
-  }
+  const sizes = isGroceryProvider.value
+    ? cleanOptionRows(form.value.sizes, "size")
+    : [];
+  if (sizes === null) return;
+  const extras = isFoodProvider.value
+    ? cleanOptionRows(form.value.extras, "extra item")
+    : [];
+  if (extras === null) return;
 
   const formData = new FormData();
   formData.append("title", form.value.title);
   formData.append("description", form.value.description);
   formData.append("price", form.value.price.toString());
   formData.append("type", form.value.type);
+  formData.append("sizes", JSON.stringify(sizes));
+  formData.append("extras", JSON.stringify(extras));
 
   if (form.value.image) {
     formData.append("image", form.value.image);
@@ -470,7 +673,10 @@ const submitForm = async () => {
   formData.append("_method", "PUT");
 
   try {
-    await productStore.updateProduct(formData, selectedProduct.value.id);
+    await productStore.updateProduct(
+      formData,
+      selectedProduct.value.id || selectedProduct.value._id
+    );
     closeForm();
     toast.success("Product updated successfully");
     await productStore.getRestaurantProducts();
@@ -527,14 +733,8 @@ const deleteProduct = async (productId) => {
 };
 
 const handleAddFileChange = (e) => {
-  const file = e.target.files[0];
-  if (file && file.size > 15 * 1024) {
-    addImageError.value = "Image size must be less than 15KB.";
-    addForm.value.image = null;
-  } else {
-    addImageError.value = "";
-    addForm.value.image = file;
-  }
+  addImageError.value = "";
+  addForm.value.image = e.target.files[0] || null;
 };
 
 const addSize = () => {
@@ -545,11 +745,28 @@ const removeSize = (index) => {
   addForm.value.sizes.splice(index, 1);
 };
 
+const addExtra = () => {
+  addForm.value.extras.push({ name: "", price: "" });
+};
+
+const removeExtra = (index) => {
+  addForm.value.extras.splice(index, 1);
+};
+
 const handleAddProduct = async () => {
   if (!addForm.value.image) {
     addImageError.value = "Please upload a valid image.";
     return;
   }
+
+  const sizes = isGroceryProvider.value
+    ? cleanOptionRows(addForm.value.sizes, "size")
+    : [];
+  if (sizes === null) return;
+  const extras = isFoodProvider.value
+    ? cleanOptionRows(addForm.value.extras, "extra item")
+    : [];
+  if (extras === null) return;
 
   addingProduct.value = true;
   try {
@@ -559,14 +776,13 @@ const handleAddProduct = async () => {
     formData.append("price", addForm.value.price);
     formData.append("type", addForm.value.type);
     formData.append("image", addForm.value.image);
-    if (addForm.value.sizes.length > 0) {
-      formData.append("sizes", JSON.stringify(addForm.value.sizes));
-    }
+    formData.append("sizes", JSON.stringify(sizes));
+    formData.append("extras", JSON.stringify(extras));
 
     await productApi.addProduct(formData);
 
     toast.success("Product added successfully");
-    addForm.value = { title: "", description: "", price: "", type: "", image: null, sizes: [] };
+    addForm.value = { title: "", description: "", price: "", type: "", image: null, sizes: [], extras: [] };
     addImageError.value = "";
     showAddDialog.value = false;
     await productStore.getRestaurantProducts();
@@ -580,6 +796,7 @@ const handleAddProduct = async () => {
 
 onMounted(async () => {
   currentPage.value = 1;
+  loadProviderType();
   try {
     await productStore.getRestaurantProducts();
     const observer = setupIntersectionObserver();

@@ -47,15 +47,39 @@ export const useProductStore = defineStore("products", {
 
     async getRestaurantProducts(search = "", page = 1) {
       this.isLoading = true;
+      if (page === 1) this.products = [];
+
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const rawBusinessId = storedUser.business_id?._id || storedUser.business_id?.id || storedUser.business_id;
+      const providerBusinessId = rawBusinessId ? String(rawBusinessId) : "";
+
+      if (!providerBusinessId) {
+        this.products = [];
+        this.currentPage = 1;
+        this.totalPages = 1;
+        this.isLoading = false;
+        console.error("Logged-in provider does not have a business_id");
+        return [];
+      }
+
       try {
-        const response = await productApi.getRestaurantProducts({ search, page });
+        const response = await productApi.getRestaurantProducts({
+          search,
+          page,
+          business_id: providerBusinessId,
+        });
         const resData = response.data.data || response.data;
         const data = resData.data || resData || [];
+        const scopedProducts = data.filter((product) => {
+          const rawProductBusinessId =
+            product.business_id?._id || product.business_id?.id || product.business_id;
+          return rawProductBusinessId && String(rawProductBusinessId) === providerBusinessId;
+        });
         const current_page = resData.current_page || 1;
         const last_page = resData.last_page || 1;
-        const total = resData.total || 0;
+        const total = resData.total || scopedProducts.length;
 
-        this.products = page === 1 ? data : [...this.products, ...data];
+        this.products = page === 1 ? scopedProducts : [...this.products, ...scopedProducts];
         this.currentPage = current_page;
         this.totalPages = last_page;
         this.total = total;
@@ -141,11 +165,13 @@ export const useProductStore = defineStore("products", {
     async updateProduct(productInfo, id) {
       try {
         const response = await productApi.update(id, productInfo);
-        const index = this.products.findIndex((p) => p.id === id);
+        const index = this.products.findIndex((p) => (p.id || p._id) === id);
         if (index !== -1) this.products[index] = { ...this.products[index], ...response.data.data };
         queryClient.invalidateQueries({ queryKey: ["products"] });
+        return response.data.data;
       } catch (error) {
         console.error("Error updating product:", error);
+        throw error;
       }
     },
 

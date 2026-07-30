@@ -9,3 +9,11 @@ export function useCategoriesQuery(options = {}) {
     ...options,
   })
 }
+
+export function useActiveCategoriesQuery(options = {}) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.CATEGORIES, 'active'],
+    queryFn: () => categoryApi.getAll().then((response) => response.data.data),
+    ...options,
+  })
+}

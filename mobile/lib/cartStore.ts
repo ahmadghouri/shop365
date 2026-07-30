@@ -6,6 +6,12 @@ export type CartExtra = {
     price: number;
 };
 
+export type CartVariant = {
+    id: string;
+    name: string;
+    price: number;
+};
+
 export type CartItem = {
     id: string;
     name: string;
@@ -15,6 +21,7 @@ export type CartItem = {
     image?: any;
     imageUri?: string;
     extras: CartExtra[];
+    variant?: CartVariant;
 };
 
 type CartState = {
@@ -35,16 +42,15 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     addItem: (newItem) => {
         set((state) => {
-            // Check if same product with same extras already in cart
             const existingIndex = state.items.findIndex(
                 (item) =>
                     item.id === newItem.id &&
-                    JSON.stringify(item.extras.map((e) => e.id).sort()) ===
-                    JSON.stringify((newItem.extras || []).map((e) => e.id).sort())
+                    item.variant?.id === newItem.variant?.id &&
+                    JSON.stringify(item.extras.map((extra) => extra.id).sort()) ===
+                    JSON.stringify((newItem.extras || []).map((extra) => extra.id).sort()),
             );
 
             if (existingIndex >= 0) {
-                // Increase quantity
                 const updated = [...state.items];
                 updated[existingIndex] = {
                     ...updated[existingIndex],
@@ -53,7 +59,6 @@ export const useCartStore = create<CartState>((set, get) => ({
                 return { items: updated };
             }
 
-            // Add new item
             return {
                 items: [
                     ...state.items,
@@ -71,7 +76,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         if (quantity < 1) return;
         set((state) => ({
             items: state.items.map((item) =>
-                item.id === id ? { ...item, quantity } : item
+                item.id === id ? { ...item, quantity } : item,
             ),
         }));
     },
@@ -80,8 +85,8 @@ export const useCartStore = create<CartState>((set, get) => ({
         set((state) => ({
             items: state.items.map((item) =>
                 item.id === itemId
-                    ? { ...item, extras: item.extras.filter((e) => e.id !== extraId) }
-                    : item
+                    ? { ...item, extras: item.extras.filter((extra) => extra.id !== extraId) }
+                    : item,
             ),
         }));
     },
@@ -90,7 +95,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     getSubtotal: () => {
         return get().items.reduce((sum, item) => {
-            const extrasTotal = item.extras.reduce((s, e) => s + e.price, 0);
+            const extrasTotal = item.extras.reduce((extraSum, extra) => extraSum + extra.price, 0);
             return sum + (item.price + extrasTotal) * item.quantity;
         }, 0);
     },

@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
 const businessSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  type: { type: String, required: true },
+  name: { type: String, required: true, trim: true },
+  type: { type: String, required: true, trim: true },
+  category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   image: { type: String },
   opening_time: { type: String },
   closing_time: { type: String },
@@ -23,5 +24,6 @@ businessSchema.set('toJSON', {
 
 businessSchema.index({ parent_id: 1 });
 businessSchema.index({ type: 1 });
+businessSchema.index({ category_id: 1 });
 
 module.exports = mongoose.model('Business', businessSchema);

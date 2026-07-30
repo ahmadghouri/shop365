@@ -64,6 +64,11 @@ export function CartPage({ onBack, onCheckout }: CartPageProps) {
                                                 <Text className="text-xs font-lufga text-slate-400 mt-0.5" numberOfLines={1}>
                                                     {item.store}
                                                 </Text>
+                                                {item.variant && (
+                                                    <Text className="mt-1 text-xs font-lufga-medium text-amber-700" numberOfLines={1}>
+                                                        {item.variant.name}
+                                                    </Text>
+                                                )}
                                                 <Text className="mt-2 text-base font-lufga-semibold text-slate-900">
                                                     Rs {itemTotal.toLocaleString()}
                                                 </Text>

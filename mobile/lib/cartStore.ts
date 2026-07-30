@@ -1,4 +1,12 @@
 import { create } from 'zustand';
+import { API_BASE_URL } from '@/api/client';
+import {
+    addToCart as apiAddToCart,
+    getCart as apiGetCart,
+    removeCartItem as apiRemoveCartItem,
+    updateCartQuantity as apiUpdateCartQuantity,
+    clearCart as apiClearCart,
+} from '@/api/cart/cart.service';
 
 export type CartExtra = {
     id: string;
@@ -13,7 +21,8 @@ export type CartVariant = {
 };
 
 export type CartItem = {
-    id: string;
+    id: string;          // backend cart item _id
+    productId: string;   // product _id
     name: string;
     store: string;
     price: number;
@@ -26,11 +35,22 @@ export type CartItem = {
 
 type CartState = {
     items: CartItem[];
-    addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
-    removeItem: (id: string) => void;
-    updateQuantity: (id: string, quantity: number) => void;
-    removeExtra: (itemId: string, extraId: string) => void;
-    clearCart: () => void;
+    loading: boolean;
+    addItem: (item: {
+        productId: string;
+        name: string;
+        store: string;
+        price: number;
+        quantity: number;
+        image?: any;
+        imageUri?: string;
+        extras: CartExtra[];
+        variant?: CartVariant;
+    }) => Promise<void>;
+    removeItem: (id: string) => Promise<void>;
+    updateQuantity: (id: string, quantity: number) => Promise<void>;
+    clearCart: () => Promise<void>;
+    loadCart: () => Promise<void>;
     getSubtotal: () => number;
     getTotal: () => number;
 };
@@ -39,59 +59,125 @@ const DELIVERY_FEE = 150;
 
 export const useCartStore = create<CartState>((set, get) => ({
     items: [],
+    loading: false,
 
-    addItem: (newItem) => {
-        set((state) => {
-            const existingIndex = state.items.findIndex(
-                (item) =>
-                    item.id === newItem.id &&
-                    item.variant?.id === newItem.variant?.id &&
-                    JSON.stringify(item.extras.map((extra) => extra.id).sort()) ===
-                    JSON.stringify((newItem.extras || []).map((extra) => extra.id).sort()),
-            );
-
-            if (existingIndex >= 0) {
-                const updated = [...state.items];
-                updated[existingIndex] = {
-                    ...updated[existingIndex],
-                    quantity: updated[existingIndex].quantity + (newItem.quantity || 1),
-                };
-                return { items: updated };
-            }
-
-            return {
+    addItem: async (newItem) => {
+        try {
+            await apiAddToCart({
+                product_id: newItem.productId,
+                quantity: newItem.quantity,
+                variant: newItem.variant,
+                extras: newItem.extras,
+            });
+            // Reload cart from backend to get accurate state
+            await get().loadCart();
+        } catch (error) {
+            console.log('Cart addItem error (adding locally):', error);
+            // Fallback: add locally if not authenticated or network error
+            set((state) => ({
                 items: [
                     ...state.items,
-                    { ...newItem, quantity: newItem.quantity || 1, extras: newItem.extras || [] },
+                    {
+                        id: `local-${Date.now()}`,
+                        productId: newItem.productId,
+                        name: newItem.name,
+                        store: newItem.store,
+                        price: newItem.price,
+                        quantity: newItem.quantity,
+                        image: newItem.image,
+                        imageUri: newItem.imageUri,
+                        extras: newItem.extras || [],
+                        variant: newItem.variant,
+                    },
                 ],
-            };
-        });
+            }));
+        }
     },
 
-    removeItem: (id) => {
+    removeItem: async (id) => {
+        // Optimistic removal
         set((state) => ({ items: state.items.filter((item) => item.id !== id) }));
+        try {
+            await apiRemoveCartItem(id);
+        } catch (error) {
+            console.log('Cart removeItem error:', error);
+            // Reload to get real state
+            await get().loadCart();
+        }
     },
 
-    updateQuantity: (id, quantity) => {
+    updateQuantity: async (id, quantity) => {
         if (quantity < 1) return;
+        // Optimistic update
         set((state) => ({
             items: state.items.map((item) =>
                 item.id === id ? { ...item, quantity } : item,
             ),
         }));
+        try {
+            await apiUpdateCartQuantity(id, quantity);
+        } catch (error) {
+            console.log('Cart updateQuantity error:', error);
+            await get().loadCart();
+        }
     },
 
-    removeExtra: (itemId, extraId) => {
-        set((state) => ({
-            items: state.items.map((item) =>
-                item.id === itemId
-                    ? { ...item, extras: item.extras.filter((extra) => extra.id !== extraId) }
-                    : item,
-            ),
-        }));
+    clearCart: async () => {
+        set({ items: [] });
+        try {
+            await apiClearCart();
+        } catch (error) {
+            console.log('Cart clearCart error:', error);
+        }
     },
 
-    clearCart: () => set({ items: [] }),
+    loadCart: async () => {
+        try {
+            set({ loading: true });
+            const data = await apiGetCart();
+            const cartItems: CartItem[] = (data?.cartItems || []).map((item: any) => {
+                const product = item.product_id;
+                const business = product?.business_id;
+                const rawImage = product?.image_url || product?.image || '';
+
+                let imageUri: string | undefined;
+                if (rawImage) {
+                    if (/^https?:\/\//.test(rawImage)) {
+                        imageUri = rawImage;
+                    } else {
+                        let path = String(rawImage).replace(/^\/be\/uploads\//, '/uploads/');
+                        path = path.replace(/^\/uploads\/uploads\//, '/uploads/');
+                        if (!path.startsWith('/')) path = `/uploads/${path}`;
+                        imageUri = `${API_BASE_URL}${path}`;
+                    }
+                }
+
+                return {
+                    id: String(item._id || item.id),
+                    productId: String(product?._id || product?.id || ''),
+                    name: product?.title || 'Product',
+                    store: business?.name || '',
+                    price: item.variant?.price || product?.final_price || product?.price || 0,
+                    quantity: item.quantity || 1,
+                    imageUri,
+                    extras: (item.extras || []).map((extra: any) => ({
+                        id: extra.id || extra._id || extra.name,
+                        name: extra.name || '',
+                        price: Number(extra.price || 0),
+                    })),
+                    variant: item.variant ? {
+                        id: item.variant.id || '',
+                        name: item.variant.name || '',
+                        price: Number(item.variant.price || 0),
+                    } : undefined,
+                };
+            });
+            set({ items: cartItems, loading: false });
+        } catch (error) {
+            console.log('Cart loadCart error:', error);
+            set({ loading: false });
+        }
+    },
 
     getSubtotal: () => {
         return get().items.reduce((sum, item) => {

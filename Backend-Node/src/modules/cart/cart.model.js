@@ -4,10 +4,21 @@ const cartSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
   quantity: { type: Number, default: 1 },
+  variant: {
+    id: { type: String },
+    name: { type: String },
+    price: { type: Number },
+  },
+  extras: [{
+    id: { type: String },
+    name: { type: String },
+    price: { type: Number },
+  }],
 }, { timestamps: true });
 
 cartSchema.index({ user_id: 1, product_id: 1 });
 cartSchema.set('toJSON', {
+  virtuals: true,
   transform: (doc, ret) => { delete ret.__v; return ret; },
 });
 

@@ -109,9 +109,8 @@ export function ProductDetailPage({
     const addItem = useCartStore((state) => state.addItem);
 
     const addCurrentSelection = () => {
-        const extrasKey = selectedExtras.map((extra) => extra.id).sort().join('-') || 'no-extras';
         addItem({
-            id: `${productId}:${selectedVariant?.id || 'default'}:${extrasKey}`,
+            productId: productId,
             name: name ?? 'Product',
             store: store ?? '',
             price: unitPrice,

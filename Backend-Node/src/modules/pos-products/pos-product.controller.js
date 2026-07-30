@@ -53,7 +53,7 @@ async function show(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const product = await PosProduct.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const product = await PosProduct.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
     successResponse(res, { product }, 'POS product updated successfully');
   } catch (error) { next(error); }
 }

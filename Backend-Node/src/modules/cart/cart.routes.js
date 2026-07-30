@@ -5,6 +5,7 @@ const { authenticate } = require('../../middleware/auth.middleware');
 
 router.post('/cart', authenticate, ctrl.addToCart);
 router.get('/cart', authenticate, ctrl.viewCart);
+router.delete('/cart', authenticate, ctrl.clearCart);
 router.delete('/cart/:id', authenticate, ctrl.removeCart);
 router.delete('/cart/product/:id', authenticate, ctrl.removeProduct);
 router.patch('/cart/update/:id', authenticate, ctrl.updateQuantity);

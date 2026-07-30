@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Trash2, Plus, Minus, X } from 'lucide-react-native';
+import { ChevronLeft, Trash2, Plus, Minus } from 'lucide-react-native';
 import { useCartStore, DELIVERY_FEE_AMOUNT } from '@/lib/cartStore';
 
 type CartPageProps = {
@@ -10,7 +10,7 @@ type CartPageProps = {
 };
 
 export function CartPage({ onBack, onCheckout }: CartPageProps) {
-    const { items, updateQuantity, removeItem, removeExtra, getSubtotal, getTotal } = useCartStore();
+    const { items, updateQuantity, removeItem, getSubtotal, getTotal, loadCart, loading } = useCartStore();
 
     const subtotal = getSubtotal();
     const total = getTotal();
@@ -112,18 +112,9 @@ export function CartPage({ onBack, onCheckout }: CartPageProps) {
                                                         <Text className="text-xs font-lufga text-slate-500">
                                                             + {extra.name}
                                                         </Text>
-                                                        <View className="flex-row items-center gap-2">
-                                                            <Text className="text-xs font-lufga-medium text-slate-700">
-                                                                Rs {extra.price}
-                                                            </Text>
-                                                            <Pressable
-                                                                accessibilityLabel={`Remove ${extra.name}`}
-                                                                className="active:opacity-60"
-                                                                onPress={() => removeExtra(item.id, extra.id)}
-                                                            >
-                                                                <X size={14} color="#94a3b8" />
-                                                            </Pressable>
-                                                        </View>
+                                                        <Text className="text-xs font-lufga-medium text-slate-700">
+                                                            Rs {extra.price}
+                                                        </Text>
                                                     </View>
                                                 ))}
                                             </View>

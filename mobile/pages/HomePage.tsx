@@ -8,6 +8,7 @@ import { useAuthStore } from '@/lib/authStore';
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { CategoryList } from '@/components/home/CategoryList';
 import { PromoBanner } from '@/components/home/PromoBanner';
+import { MonthlyGroceryHomeCard } from '@/components/home/MonthlyGroceryHomeCard';
 import { TopSellingProducts } from '@/components/home/TopSellingProducts';
 import { BottomTabBar } from '@/components/home/BottomTabBar';
 
@@ -32,6 +33,7 @@ type HomePageProps = {
     onCategoryPress?: (category: Category) => void;
     onProductPress?: (product: Product) => void;
     onCartPress?: () => void;
+    onListPress?: () => void;
 };
 
 function backendImageUri(product: any) {
@@ -53,7 +55,7 @@ function productPrice(product: any) {
     return Math.max(0, basePrice - (basePrice * discount) / 100);
 }
 
-export function HomePage({ onCategoryPress, onProductPress, onCartPress }: HomePageProps) {
+export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress }: HomePageProps) {
     const { logout } = useAuthStore();
     const { data: categoryData } = useCategories();
     const { data: randomProductData } = useRandomProducts();
@@ -106,11 +108,12 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress }: HomeP
                     <HomeHeader onCartPress={onCartPress} />
                     <CategoryList categories={categories} onCategoryPress={onCategoryPress} />
                     <PromoBanner discount="10%" storeName="SHOP365 Mart" />
+                    <MonthlyGroceryHomeCard onPress={onListPress} />
                     <TopSellingProducts products={products} onProductPress={onProductPress} />
                     <View className="h-20" />
                 </ScrollView>
 
-                <BottomTabBar onProfilePress={logout} onCartPress={onCartPress} />
+                <BottomTabBar onProfilePress={logout} onListPress={onListPress} />
             </SafeAreaView>
         </LinearGradient>
     );

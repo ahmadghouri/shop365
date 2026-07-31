@@ -32,6 +32,7 @@ app.use('/api', require('./modules/businesses/business.routes'));
 app.use('/api', require('./modules/categories/category.routes'));
 app.use('/api', require('./modules/products/product.routes'));
 app.use('/api', require('./modules/cart/cart.routes'));
+app.use('/api', require('./modules/monthly-grocery-cards/monthly-grocery-card.routes'));
 app.use('/api', require('./modules/orders/order.routes'));
 app.use('/api', require('./modules/towns/town.routes'));
 app.use('/api', require('./modules/households/household.routes'));

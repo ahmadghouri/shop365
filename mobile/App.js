@@ -16,10 +16,12 @@ import { SplashScreen } from './components/SplashScreen';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
+import { FloatingCartBar } from './components/FloatingCartBar';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
 import { CartPage } from './pages/CartPage';
+import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
 import { useAuthStore } from './lib/authStore';
 import { useCartStore } from './lib/cartStore';
 
@@ -28,6 +30,8 @@ function AppContent() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeProduct, setActiveProduct] = useState(null);
   const [showCart, setShowCart] = useState(false);
+  const [showMonthlyGrocery, setShowMonthlyGrocery] = useState(false);
+  const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
   const [direction, setDirection] = useState('forward');
   const { isAuthenticated, loadToken } = useAuthStore();
   const loadCart = useCartStore((s) => s.loadCart);
@@ -73,10 +77,34 @@ function AppContent() {
   }
 
   if (isAuthenticated) {
+    if (showMonthlyGrocery) {
+      return (
+        <Animated.View key="monthly-grocery" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+          <MonthlyGroceryPage
+            onBack={() => {
+              setShowMonthlyGrocery(false);
+              if (monthlyReturnToCart) setShowCart(true);
+            }}
+            onGoToCart={() => {
+              setShowMonthlyGrocery(false);
+              setShowCart(true);
+            }}
+          />
+        </Animated.View>
+      );
+    }
+
     if (showCart) {
       return (
         <Animated.View key="cart" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
-          <CartPage onBack={() => setShowCart(false)} />
+          <CartPage
+            onBack={() => setShowCart(false)}
+            onMonthlyGrocery={() => {
+              setShowCart(false);
+              setMonthlyReturnToCart(true);
+              setShowMonthlyGrocery(true);
+            }}
+          />
         </Animated.View>
       );
     }
@@ -88,9 +116,10 @@ function AppContent() {
             productId={String(activeProduct.id || activeProduct._id)}
             previewImage={activeProduct.image}
             onBack={() => setActiveProduct(null)}
-            onAddToCart={() => setShowCart(true)}
+            onAddToCart={() => { }}
             onBuyNow={() => setShowCart(true)}
           />
+          <FloatingCartBar onPress={() => setShowCart(true)} bottom={104} />
         </Animated.View>
       );
     }
@@ -106,6 +135,7 @@ function AppContent() {
             onProductPress={(product) => setActiveProduct(product)}
             onCartPress={() => setShowCart(true)}
           />
+          <FloatingCartBar onPress={() => setShowCart(true)} />
         </Animated.View>
       );
     }
@@ -116,7 +146,12 @@ function AppContent() {
           onCategoryPress={(category) => setActiveCategory(category)}
           onProductPress={(product) => setActiveProduct(product)}
           onCartPress={() => setShowCart(true)}
+          onListPress={() => {
+            setMonthlyReturnToCart(false);
+            setShowMonthlyGrocery(true);
+          }}
         />
+        <FloatingCartBar onPress={() => setShowCart(true)} bottom={88} />
       </Animated.View>
     );
   }

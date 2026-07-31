@@ -25,6 +25,7 @@ export type CartItem = {
     productId: string;   // product _id
     name: string;
     store: string;
+    providerType?: string;
     price: number;
     quantity: number;
     image?: any;
@@ -157,6 +158,7 @@ export const useCartStore = create<CartState>((set, get) => ({
                     productId: String(product?._id || product?.id || ''),
                     name: product?.title || 'Product',
                     store: business?.name || '',
+                    providerType: business?.type || business?.category_id?.name || '',
                     price: item.variant?.price || product?.final_price || product?.price || 0,
                     quantity: item.quantity || 1,
                     imageUri,

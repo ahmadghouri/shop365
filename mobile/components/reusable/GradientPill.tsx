@@ -8,13 +8,13 @@ type GradientPillProps = React.ComponentProps<typeof View> & {
 };
 
 /**
- * Reusable gradient pill/button component
- * - border-radius: 100px
+ * Reusable gradient container component
  * - background: linear-gradient(180deg, #FCD34D 0%, #EAB308 100%)
+ *
+ * Border radius is controlled via className (e.g. rounded-full, rounded-3xl)
  */
 export function GradientPill({ className, style, colors = ['#FCD34D', '#EAB308'], children, ...props }: GradientPillProps) {
     const containerStyle: ViewStyle = {
-        borderRadius: 100,
         overflow: 'hidden',
     };
 

@@ -3,6 +3,7 @@ import { LocateFixed, MapPin, ShoppingCart } from 'lucide-react-native';
 import { useUpdateLocationMutation } from '@/api/users/useUpdateLocationMutation';
 import { useAuthStore } from '@/lib/authStore';
 import { useLocation } from '@/lib/useLocation';
+import { GlassCard } from '../reusable/GlassCard';
 
 type HomeHeaderProps = {
     onCartPress?: () => void;
@@ -27,36 +28,40 @@ export function HomeHeader({ onCartPress }: HomeHeaderProps) {
 
     return (
         <View className="flex-row items-center justify-between px-5 pb-3 pt-4">
-            <View className="flex-1 flex-row items-center">
-                <Pressable
-                    className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-amber-100 active:opacity-70"
-                    disabled={isLocating}
-                    onPress={handleDetectLocation}
-                >
-                    {isLocating ? (
-                        <ActivityIndicator size="small" color="#1e293b" />
-                    ) : (
-                        <MapPin size={22} color="#1e293b" />
-                    )}
-                </Pressable>
+            <View className="flex-1 flex-row items-center gap-4">
+                <GlassCard className='rounded-full'>
+                    <Pressable
+                        className="h-12 w-12 items-center justify-center active:opacity-70"
+                        disabled={isLocating}
+                        onPress={handleDetectLocation}
+                    >
+                        {isLocating ? (
+                            <ActivityIndicator size="small" color="#111827" />
+                        ) : (
+                            <MapPin size={20} color="#111827" />
+                        )}
+                    </Pressable>
+                </GlassCard>
 
                 <View className="flex-1">
-                    <Text className="text-lg font-bold text-slate-900">Hey, {user?.name || 'User'}</Text>
+                    <Text className="text-[16px] font-normal font-lufga text-app-dark">Hey, {user?.name || 'User'}</Text>
                     <View className="flex-row items-center">
-                        <LocateFixed size={13} color="#64748b" />
-                        <Text className="ml-1 flex-1 text-sm text-slate-500" numberOfLines={1}>
+                        {/* <LocateFixed size={13} color="#64748b" /> */}
+                        <Text className="flex-1 text-sm font-lufga font-light text-app-muted" numberOfLines={1}>
                             {isLocating ? 'Detecting location...' : displayAddress}
                         </Text>
                     </View>
                 </View>
             </View>
 
-            <Pressable
-                className="h-12 w-12 items-center justify-center rounded-full bg-slate-200"
-                onPress={onCartPress}
-            >
-                <ShoppingCart size={22} color="#1e293b" />
-            </Pressable>
+            <GlassCard className='rounded-full'>
+                <Pressable
+                    className="h-12 w-12 items-center justify-center"
+                    onPress={onCartPress}
+                >
+                    <ShoppingCart size={20} color="#111827" />
+                </Pressable>
+            </GlassCard>
         </View>
     );
 }

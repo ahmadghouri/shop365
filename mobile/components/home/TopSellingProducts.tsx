@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import { ProductCard } from './ProductCard';
+import { ProductCard } from '@/components/reusable/ProductCard';
 
 type Product = {
     id: string;
@@ -20,10 +20,11 @@ export function TopSellingProducts({ products, onProductPress, onAddToCart }: To
     return (
         <View className="px-5 mt-6">
             <Text className="text-2xl font-medium font-lufga text-[#111827] mb-4">Top Selling products</Text>
-            <View className="flex-row flex-wrap justify-between">
+            <View className="flex-row flex-wrap gap-2 justify-between">
                 {products.map((product) => (
                     <ProductCard
                         key={product.id}
+                        productId={product.id}
                         name={product.name}
                         store={product.store}
                         price={product.price}

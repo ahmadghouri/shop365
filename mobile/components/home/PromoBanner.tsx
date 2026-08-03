@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { GradientPill } from '@/components/reusable/GradientPill';
 
 type PromoBannerProps = {
     discount?: string;
@@ -8,15 +8,12 @@ type PromoBannerProps = {
 
 export function PromoBanner({ discount = '10%', storeName = 'SHOP365 Mart' }: PromoBannerProps) {
     return (
-        <View className="px-5 mt-5">
-            <LinearGradient
-                colors={['#FCD34D', '#EAB308']}
-                style={{ borderRadius: 24, padding: 24 }}
-            >
-                <Text className="text-slate-900 text-sm font-bold tracking-wide">UPTO</Text>
-                <Text className="text-slate-900 text-5xl font-bold mt-1">{discount} OFF</Text>
-                <Text className="text-slate-900/70 text-base mt-1">On {storeName}</Text>
-            </LinearGradient>
-        </View>
+        <GradientPill className="mx-5 mt-5 rounded-3xl">
+            <View className="p-6 text-app-dark">
+                <Text className="text-app-dark text-2xl font-medium tracking-wide">UPTO</Text>
+                <Text className="text-app-dark text-5xl font-medium mt-1">{discount} OFF</Text>
+                <Text className="text-app-dark font-light font-lufga text-base mt-1">On {storeName}</Text>
+            </View>
+        </GradientPill>
     );
 }

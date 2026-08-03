@@ -39,6 +39,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "~57.0.8",
+    "expo-blur": "~57.0.2",
     "expo-linear-gradient": "~57.0.1",
     "expo-location": "~57.0.6",
     "expo-router": "~57.0.8",

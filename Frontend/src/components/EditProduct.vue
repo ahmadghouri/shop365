@@ -185,7 +185,7 @@
                     />
                   </label>
                 </div>
-                <p class="text-xs text-gray-500">PNG, JPG, GIF up to 15KB</p>
+                <p class="text-xs text-gray-500">PNG, JPG, GIF</p>
               </div>
               <div v-else class="relative w-full">
                 <img
@@ -306,11 +306,7 @@ const form = ref({
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];
-  if (file && file.size > 15 * 1024) {
-    imageError.value = "Image size must be less than 15KB";
-    form.value.image = null;
-    imagePreview.value = "";
-  } else {
+  if (file) {
     imageError.value = "";
     form.value.image = file;
     imagePreview.value = URL.createObjectURL(file);

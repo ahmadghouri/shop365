@@ -16,23 +16,37 @@ import { SplashScreen } from './components/SplashScreen';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
+import { FloatingCartBar } from './components/FloatingCartBar';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
-import { ProductDetailPage } from './pages/ProductDetailPage';
+import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
 import { CartPage } from './pages/CartPage';
+import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { useAuthStore } from './lib/authStore';
+import { useCartStore } from './lib/cartStore';
 
 function AppContent() {
   const [screen, setScreen] = useState('Splash');
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeProduct, setActiveProduct] = useState(null);
   const [showCart, setShowCart] = useState(false);
+  const [showMonthlyGrocery, setShowMonthlyGrocery] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
   const [direction, setDirection] = useState('forward');
   const { isAuthenticated, loadToken } = useAuthStore();
+  const loadCart = useCartStore((s) => s.loadCart);
 
   useEffect(() => {
     loadToken();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCart();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (screen === 'Splash') {
@@ -56,7 +70,6 @@ function AppContent() {
   const entering = direction === 'forward' ? SlideInRight.duration(300) : SlideInLeft.duration(300);
   const exiting = direction === 'forward' ? SlideOutLeft.duration(300) : SlideOutRight.duration(300);
 
-  // Splash — fades out
   if (screen === 'Splash') {
     return (
       <Animated.View exiting={FadeOut.duration(400)} style={{ flex: 1 }}>
@@ -65,12 +78,35 @@ function AppContent() {
     );
   }
 
-  // Authenticated screens
   if (isAuthenticated) {
+    if (showMonthlyGrocery) {
+      return (
+        <Animated.View key="monthly-grocery" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+          <MonthlyGroceryPage
+            onBack={() => {
+              setShowMonthlyGrocery(false);
+              if (monthlyReturnToCart) setShowCart(true);
+            }}
+            onGoToCart={() => {
+              setShowMonthlyGrocery(false);
+              setShowCart(true);
+            }}
+          />
+        </Animated.View>
+      );
+    }
+
     if (showCart) {
       return (
         <Animated.View key="cart" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
-          <CartPage onBack={() => setShowCart(false)} />
+          <CartPage
+            onBack={() => setShowCart(false)}
+            onMonthlyGrocery={() => {
+              setShowCart(false);
+              setMonthlyReturnToCart(true);
+              setShowMonthlyGrocery(true);
+            }}
+          />
         </Animated.View>
       );
     }
@@ -78,14 +114,14 @@ function AppContent() {
     if (activeProduct) {
       return (
         <Animated.View key="product" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
-          <ProductDetailPage
-            name={activeProduct.name}
-            store={activeProduct.store}
-            price={activeProduct.price}
-            image={activeProduct.image}
+          <BackendProductDetailPage
+            productId={String(activeProduct.id || activeProduct._id)}
+            previewImage={activeProduct.image}
             onBack={() => setActiveProduct(null)}
-            onAddToCart={() => setShowCart(true)}
+            onAddToCart={() => { }}
+            onBuyNow={() => setShowCart(true)}
           />
+          <FloatingCartBar onPress={() => setShowCart(true)} bottom={104} />
         </Animated.View>
       );
     }
@@ -94,12 +130,22 @@ function AppContent() {
       return (
         <Animated.View key="category" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
           <CategoryDetailPage
+            categoryId={activeCategory.id}
             title={activeCategory.name}
             subtitle={activeCategory.subtitle}
             onBack={() => setActiveCategory(null)}
             onProductPress={(product) => setActiveProduct(product)}
             onCartPress={() => setShowCart(true)}
           />
+          <FloatingCartBar onPress={() => setShowCart(true)} />
+        </Animated.View>
+      );
+    }
+
+    if (showProfile) {
+      return (
+        <Animated.View key="profile" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+          <ProfilePage onLogout={() => setShowProfile(false)} onBack={() => setShowProfile(false)} />
         </Animated.View>
       );
     }
@@ -107,15 +153,20 @@ function AppContent() {
     return (
       <Animated.View key="home" entering={FadeIn.duration(300)} style={{ flex: 1 }}>
         <HomePage
-          onCategoryPress={(cat) => setActiveCategory(cat)}
+          onCategoryPress={(category) => setActiveCategory(category)}
           onProductPress={(product) => setActiveProduct(product)}
           onCartPress={() => setShowCart(true)}
+          onListPress={() => {
+            setMonthlyReturnToCart(false);
+            setShowMonthlyGrocery(true);
+          }}
+          onProfilePress={() => setShowProfile(true)}
         />
+        <FloatingCartBar onPress={() => setShowCart(true)} bottom={88} />
       </Animated.View>
     );
   }
 
-  // Auth screens
   const renderScreen = () => {
     switch (screen) {
       case 'Register':

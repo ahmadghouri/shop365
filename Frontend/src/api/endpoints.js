@@ -69,6 +69,7 @@ export const ENDPOINTS = {
   ADMIN_DELETE_VOUCHER: (id) => `/admin/voucher/${id}/delete`,
   ADMIN_INTERNSHIP_APPS: "/admin/internship-applications",
   RESTAURANT_REVIEWS: "/restaurantAdmin/get-reviews",
+  RESTAURANT_BUSINESS: "/restaurantAdmin/business",
   RESTAURANT_REPLY_REVIEW: (id) => `/restaurantAdmin/review/${id}/reply`,
   RESTAURANT_COMPLAINT_STATUS: "/restaurantAdmin/complaint-status",
   RESTAURANT_COMPLAINTS: "/restaurantAdmin/complaints",

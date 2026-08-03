@@ -12,7 +12,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   LayoutGrid, Users, Store, BarChart3, ShoppingBag, Ticket,
   GraduationCap, Image, Package, ShoppingCart, Building2, Zap,
-  Percent, Star, LogOut, ChevronLeft, ChevronRight, ShoppingBasket
+  Percent, Star, LogOut, ChevronLeft, ChevronRight, ShoppingBasket,
+  Settings
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -48,7 +49,7 @@ const isActive = (path) => {
 }
 
 const adminMenuItems = [
-  { label: 'Restaurants', to: '/admin/dashboard', icon: LayoutGrid },
+  { label: 'Providers', to: '/admin/dashboard', icon: LayoutGrid },
   { label: 'Categories', to: '/admin/categories', icon: ShoppingBasket },
   { label: 'Users', to: '/admin/users', icon: Users },
   { label: 'View Vendors', to: '/admin/vendors', icon: Store },
@@ -63,6 +64,7 @@ const adminMenuItems = [
 const restaurantAdminMenuItems = computed(() => {
   const items = [
     { label: 'Orders', to: '/admin/restaurantOrders', icon: ShoppingCart },
+    { label: 'Business Settings', to: '/admin/provider-settings', icon: Settings },
     { label: 'Sub Businesses', to: '/admin/sub-business', icon: Building2 },
     { label: 'Products', to: '/admin/restaurantAdminDashboard', icon: Package },
   ]

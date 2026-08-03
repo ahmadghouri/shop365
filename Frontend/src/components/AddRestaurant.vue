@@ -1,42 +1,64 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div class="space-y-2 md:col-span-2">
-        <Label for="name">Business Name</Label>
-        <Input
-          id="name"
-          v-model="form.name"
-          placeholder="Enter business name"
-          required
-        />
+        <Label for="name">Provider Name</Label>
+        <Input id="name" v-model="form.name" placeholder="Enter provider name" required />
       </div>
 
-      <div class="space-y-2 md:col-span-2">
-        <Label for="type">Business Type</Label>
+      <div class="space-y-2">
+        <Label>Provider Type</Label>
+        <Select
+          v-model="form.category_id"
+          :disabled="categoriesLoading || categories.length === 0"
+          :placeholder="categoriesLoading ? 'Loading categories...' : 'Select a category'"
+        >
+          <SelectItem
+            v-for="category in categories"
+            :key="category.id || category._id"
+            :value="category.id || category._id"
+          >
+            {{ category.name }}
+          </SelectItem>
+        </Select>
+        <p v-if="categoriesError" class="text-xs text-destructive">
+          Unable to load provider categories.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <Label for="phone_no">Phone Number</Label>
         <Input
-          id="type"
-          v-model="form.type"
-          placeholder="e.g. Restaurant, Grocery, Cafe"
+          id="phone_no"
+          v-model="form.phone_no"
+          type="tel"
+          placeholder="Enter login phone number"
+          autocomplete="tel"
           required
         />
       </div>
 
       <div class="space-y-2">
-        <Label for="opening_time">Opening Time</Label>
+        <Label for="email">Email</Label>
         <Input
-          id="opening_time"
-          v-model="form.opening_time"
-          type="time"
+          id="email"
+          v-model="form.email"
+          type="email"
+          placeholder="provider@example.com"
+          autocomplete="email"
           required
         />
       </div>
 
       <div class="space-y-2">
-        <Label for="closing_time">Closing Time</Label>
+        <Label for="password">Password</Label>
         <Input
-          id="closing_time"
-          v-model="form.closing_time"
-          type="time"
+          id="password"
+          v-model="form.password"
+          type="password"
+          placeholder="Minimum 6 characters"
+          autocomplete="new-password"
+          minlength="6"
           required
         />
       </div>
@@ -44,163 +66,93 @@
       <div class="space-y-2 md:col-span-2">
         <Label>Parent Business</Label>
         <Select v-model="form.parent_id" placeholder="No Parent Business">
-          <SelectItem value="">No Parent Business</SelectItem>
+          <SelectItem value="none">No Parent Business</SelectItem>
           <SelectItem
             v-for="business in businessStore.businesses"
-            :key="business.id"
-            :value="business.id"
+            :key="business.id || business._id"
+            :value="business.id || business._id"
           >
             {{ business.name }}
           </SelectItem>
         </Select>
       </div>
-
-      <div class="space-y-2 md:col-span-2">
-        <Label>Business Image</Label>
-        <div
-          class="relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 transition-colors"
-          :class="imagePreview ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50'"
-        >
-          <div v-if="imagePreview" class="mb-3">
-            <img
-              :src="imagePreview"
-              alt="Preview"
-              class="h-28 w-auto rounded-md object-contain"
-            />
-            <button
-              type="button"
-              @click="removeImage"
-              class="absolute top-2 right-2 rounded-full bg-destructive/10 p-1 text-destructive hover:bg-destructive/20 transition-colors"
-            >
-              <X class="h-4 w-4" />
-            </button>
-          </div>
-
-          <div v-else class="text-center">
-            <Upload class="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-            <p class="text-sm text-muted-foreground mb-1">
-              <label
-                for="image"
-                class="relative cursor-pointer font-medium text-primary hover:underline"
-              >
-                Click to upload
-                <input
-                  @change="handleFileChange"
-                  id="image"
-                  type="file"
-                  class="sr-only"
-                  accept="image/*"
-                  required
-                />
-              </label>
-              or drag and drop
-            </p>
-            <p class="text-xs text-muted-foreground">PNG, JPG up to 2MB</p>
-          </div>
-
-          <p v-if="imageError" class="mt-2 text-xs text-destructive">
-            {{ imageError }}
-          </p>
-        </div>
-      </div>
     </div>
+
+    <p v-if="formError" class="text-sm text-destructive" role="alert">{{ formError }}</p>
 
     <Separator />
 
     <div class="flex justify-end gap-3">
-      <Button type="button" variant="outline" @click="$emit('close')">
-        Cancel
-      </Button>
-      <Button type="submit" :disabled="submitting">
+      <Button type="button" variant="outline" @click="$emit('close')">Cancel</Button>
+      <Button type="submit" :disabled="submitting || categoriesLoading">
         <Loader2 v-if="submitting" class="mr-2 h-4 w-4 animate-spin" />
         <Store v-else class="mr-2 h-4 w-4" />
-        Create Business
+        Create Provider
       </Button>
     </div>
   </form>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useBusinessStore } from "@/store/businessStore.js";
-import { useRouter } from "vue-router";
-import { uploadApi } from "@/api/modules/upload.api";
+import { useActiveCategoriesQuery } from "@/api/queries/category.queries";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectItem } from "@/components/ui/select";
-import { Upload, X, Store, Loader2 } from "lucide-vue-next";
+import { Loader2, Store } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
-const router = useRouter();
 const emit = defineEmits(["close"]);
+const { data: categoryData, isLoading: categoriesLoading, isError: categoriesError } = useActiveCategoriesQuery();
 
-const imagePreview = ref(null);
-const imageError = ref(null);
+const categories = computed(() => categoryData.value || []);
+const formError = ref("");
 const submitting = ref(false);
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
-
 const form = ref({
   name: "",
-  type: "",
-  image: null,
-  opening_time: "",
-  closing_time: "",
-  parent_id: "",
+  category_id: "",
+  phone_no: "",
+  email: "",
+  password: "",
+  parent_id: "none",
 });
 
-const handleFileChange = (event) => {
-  const file = event.target.files[0];
-  imageError.value = null;
-  form.value.image = null;
-  imagePreview.value = null;
-
-  if (!file) return;
-
-  if (!file.type.startsWith("image/")) {
-    imageError.value = "Please select a valid image file.";
-    return;
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    imageError.value = `Image size must be less than 15KB. Current size: ${(
-      file.size / 1024
-    ).toFixed(1)}KB`;
-    return;
-  }
-
-  form.value.image = file;
-  imagePreview.value = URL.createObjectURL(file);
-};
-
-const removeImage = () => {
-  form.value.image = null;
-  imagePreview.value = null;
-  imageError.value = null;
-};
-
 const handleSubmit = async () => {
+  formError.value = "";
+  if (!form.value.category_id) {
+    formError.value = "Please select a provider type.";
+    return;
+  }
+
   submitting.value = true;
   try {
-    const formData = new FormData();
-    formData.append("name", form.value.name);
-    formData.append("type", form.value.type);
-    formData.append("image", form.value.image);
-    formData.append("opening_time", form.value.opening_time);
-    formData.append("closing_time", form.value.closing_time);
-    formData.append("parent_id", form.value.parent_id);
+    const selectedCategory = categories.value.find(
+      (category) => (category.id || category._id) === form.value.category_id
+    );
+    if (!selectedCategory) {
+      formError.value = "Please select a valid provider type.";
+      return;
+    }
 
-    await businessStore.addBusiness(formData);
-    router.push("/admin/restaurantAdmin");
+    await businessStore.addProvider({
+      name: form.value.name.trim(),
+      type: selectedCategory.name,
+      category_id: form.value.category_id,
+      phone_no: form.value.phone_no.trim(),
+      email: form.value.email.trim(),
+      password: form.value.password,
+      parent_id: form.value.parent_id === "none" ? undefined : form.value.parent_id,
+    });
+    emit("close");
   } catch (error) {
-    console.error("Error submitting form:", error);
+    formError.value = error?.response?.data?.message || error?.message || "Unable to create provider.";
   } finally {
     submitting.value = false;
   }
 };
 
-onMounted(async () => {
-  await businessStore.getBusinesses();
-});
+onMounted(() => businessStore.getBusinesses());
 </script>

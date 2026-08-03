@@ -43,12 +43,6 @@ const debounceSearch = debounce(async () => {
 const handleFileChange = (event) => {
   const file = event.target.files[0];
   if (file) {
-    if (file.size > 15 * 1024) {
-      // 15KB limit
-      imageError.value = "Image size must be less than 15KB";
-      event.target.value = "";
-      return;
-    }
     imageError.value = "";
     form.value.image = file;
   }
@@ -78,11 +72,6 @@ const submitForm = async () => {
     return;
   }
 
-  if (form.value.image && form.value.image.size > 15 * 1024) {
-    imageError.value = "Image size must be less than 15KB.";
-    toast.error("Image size exceeds the limit.");
-    return; // Prevent submission if the image is too large
-  }
   if (selectedProduct.value) {
     const formData = new FormData();
     Object.keys(form.value).forEach((key) => {
@@ -242,7 +231,7 @@ onMounted(() => {
 
         <div>
           <label for="image" class="block text-sm font-medium text-muted-foreground">
-            Image (Max 15KB)
+            Image
           </label>
           <input
             @change="handleFileChange"

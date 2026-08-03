@@ -311,7 +311,6 @@ const isLoading = ref(false);
 const imagePreview = ref(null);
 const imageError = ref(null);
 const description = ref("");
-const MAX_FILE_SIZE = 50 * 1024; // 50KB in bytes
 
 const form = ref({
   image: null, // This will now store base64 instead of a File object
@@ -336,14 +335,6 @@ const handleFileChange = (event) => {
     imageError.value = "Please select a valid image file.";
     return;
   }
-
-  // Optional: size limit
-  // if (file.size > MAX_FILE_SIZE) {
-  //   imageError.value = `Image size must be less than 50KB. Current size: ${(
-  //     file.size / 1024
-  //   ).toFixed(1)}KB`;
-  //   return;
-  // }
 
   // Convert to base64
   // const reader = new FileReader();

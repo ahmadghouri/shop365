@@ -20,6 +20,11 @@ module.exports = {
         'lufga-bold': ['Lufga-Bold'],
       },
       colors: {
+        app: {
+          dark: '#111827',
+          yellow: '#EAB308',
+          muted: '#6B7280',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

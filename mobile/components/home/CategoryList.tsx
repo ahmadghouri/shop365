@@ -24,8 +24,8 @@ export function CategoryList({ categories, onCategoryPress }: CategoryListProps)
                         className="mr-3"
                         onPress={() => onCategoryPress?.(cat)}
                     >
-                        <GlassCard className="min-w-36 min-h-30">
-                            <View className="pt-4 pl-4 flex-1">
+                        <GlassCard variant="light" className="min-w-36 min-h-30 rounded-xl">
+                            <View className="pt-4 pl-4 flex-1 ">
                                 <Text className="text-[16px] font-lufga font-normal text-slate-900">{cat.name}</Text>
                                 <Text className="text-10 text-[#6B7280] font-lufga font-light mt-0.5">{cat.subtitle}</Text>
                                 <View className="flex-1 items-end justify-end">

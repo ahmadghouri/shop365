@@ -60,7 +60,7 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
     const { data: randomProductData } = useRandomProducts();
 
     const categories = useMemo<Category[]>(() => {
-        const backendCategories = (categoryData ?? [])
+        return (categoryData ?? [])
             .filter((category: any) => category.status !== 'inactive')
             .map((category: any) => {
                 const path = category.image_url || (category.image ? `/uploads/${category.image}` : '');
@@ -75,14 +75,6 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
                     imageUri,
                 };
             });
-
-        if (backendCategories.length > 0) return backendCategories;
-
-        return [
-            { id: '1', name: 'Grocery', subtitle: 'Daily Essentials', image: require('@/assets/category/grocery.png') },
-            { id: '2', name: 'Food', subtitle: 'Providers', image: require('@/assets/category/food.png') },
-            { id: '3', name: 'Hospital', subtitle: 'Pharmacy', image: require('@/assets/category/hospital.png') },
-        ];
     }, [categoryData]);
 
     const products = useMemo<Product[]>(() => {

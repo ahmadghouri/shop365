@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLoginMutation } from '@/api/auth/useLoginMutation';
+import { AppBackground } from '@/components/AppBackground';
 
 type LoginScreenProps = {
     onSuccess?: () => void;
@@ -48,7 +48,7 @@ export function LoginScreen({ onSuccess, onRegister, onForgotPassword }: LoginSc
     const displayError = validationError || apiError;
 
     return (
-        <LinearGradient colors={['#FFF3C4', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
+        <AppBackground>
             <SafeAreaView className="flex-1" edges={['bottom', 'left', 'right']}>
                 <KeyboardAvoidingView
                     className="flex-1"
@@ -154,6 +154,6 @@ export function LoginScreen({ onSuccess, onRegister, onForgotPassword }: LoginSc
                     </ScrollView>
                 </KeyboardAvoidingView>
             </SafeAreaView>
-        </LinearGradient>
+        </AppBackground>
     );
 }

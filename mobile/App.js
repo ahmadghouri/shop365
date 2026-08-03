@@ -22,6 +22,7 @@ import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
 import { CartPage } from './pages/CartPage';
 import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { useAuthStore } from './lib/authStore';
 import { useCartStore } from './lib/cartStore';
 
@@ -31,6 +32,7 @@ function AppContent() {
   const [activeProduct, setActiveProduct] = useState(null);
   const [showCart, setShowCart] = useState(false);
   const [showMonthlyGrocery, setShowMonthlyGrocery] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
   const [direction, setDirection] = useState('forward');
   const { isAuthenticated, loadToken } = useAuthStore();
@@ -140,6 +142,14 @@ function AppContent() {
       );
     }
 
+    if (showProfile) {
+      return (
+        <Animated.View key="profile" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+          <ProfilePage onLogout={() => setShowProfile(false)} onBack={() => setShowProfile(false)} />
+        </Animated.View>
+      );
+    }
+
     return (
       <Animated.View key="home" entering={FadeIn.duration(300)} style={{ flex: 1 }}>
         <HomePage
@@ -150,6 +160,7 @@ function AppContent() {
             setMonthlyReturnToCart(false);
             setShowMonthlyGrocery(true);
           }}
+          onProfilePress={() => setShowProfile(true)}
         />
         <FloatingCartBar onPress={() => setShowCart(true)} bottom={88} />
       </Animated.View>

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { CategoryHeader } from '@/components/category/CategoryHeader';
+import { AppBackground } from '@/components/AppBackground';
 import { SearchBar } from '@/components/category/SearchBar';
 import { FilterChips } from '@/components/category/FilterChips';
 import { ProductCard } from '@/components/home/ProductCard';
@@ -89,7 +89,7 @@ export function CategoryDetailPage({
     );
 
     return (
-        <LinearGradient colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
+        <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 <CategoryHeader
                     title={title}
@@ -147,6 +147,6 @@ export function CategoryDetailPage({
                     <View className="h-6" />
                 </ScrollView>
             </SafeAreaView>
-        </LinearGradient>
+        </AppBackground>
     );
 }

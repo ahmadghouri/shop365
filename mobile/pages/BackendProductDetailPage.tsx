@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft } from 'lucide-react-native';
+import { AppBackground } from '@/components/AppBackground';
 import { API_BASE_URL } from '@/api/client';
 import { useProductQuery } from '@/api/products/useProductQuery';
 import { ProductDetailPage } from './ProductDetailPage';
@@ -42,18 +42,18 @@ export function BackendProductDetailPage({
     const { data: product, isLoading, isError, refetch } = useProductQuery(productId);
     if (isLoading) {
         return (
-            <LinearGradient colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
+            <AppBackground>
                 <SafeAreaView className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" color="#EAB308" />
                     <Text className="mt-3 font-lufga text-slate-600">Loading product...</Text>
                 </SafeAreaView>
-            </LinearGradient>
+            </AppBackground>
         );
     }
 
     if (isError || !product) {
         return (
-            <LinearGradient colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
+            <AppBackground>
                 <SafeAreaView className="flex-1 items-center justify-center px-6">
                     {onBack && (
                         <Pressable
@@ -70,7 +70,7 @@ export function BackendProductDetailPage({
                         <Text className="font-lufga-medium text-slate-900">Try Again</Text>
                     </Pressable>
                 </SafeAreaView>
-            </LinearGradient>
+            </AppBackground>
         );
     }
 

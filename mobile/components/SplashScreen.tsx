@@ -1,11 +1,9 @@
 import { View, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { AppBackground } from '@/components/AppBackground';
 
 export function SplashScreen() {
     return (
-        <LinearGradient
-          colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}
-        >
+        <AppBackground>
             <View className="flex-1 items-center justify-center">
                 {/* App Icon */}
                 <Image
@@ -20,6 +18,6 @@ export function SplashScreen() {
                     resizeMode="contain"
                 />
             </View>
-        </LinearGradient>
+        </AppBackground>
     );
 }

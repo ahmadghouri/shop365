@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft } from 'lucide-react-native';
+import { AppBackground } from '@/components/AppBackground';
 import { QuantitySelector } from '@/components/product/QuantitySelector';
 import { ExtrasList, type Extra } from '@/components/product/ExtrasList';
 import { useCartStore } from '@/lib/cartStore';
@@ -133,7 +133,7 @@ export function ProductDetailPage({
     };
 
     return (
-        <LinearGradient colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
+        <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                     <View className="mx-4 mt-2 rounded-3xl bg-white/70 p-3">
@@ -251,6 +251,6 @@ export function ProductDetailPage({
                     </Pressable>
                 </View>
             </SafeAreaView>
-        </LinearGradient>
+        </AppBackground>
     );
 }

@@ -1,10 +1,9 @@
 import { useMemo } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { API_BASE_URL } from '@/api/client';
+import { AppBackground } from '@/components/AppBackground';
 import { useCategories, useRandomProducts } from '@/api/home/useHomeQueries';
-import { useAuthStore } from '@/lib/authStore';
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { CategoryList } from '@/components/home/CategoryList';
 import { PromoBanner } from '@/components/home/PromoBanner';
@@ -34,6 +33,7 @@ type HomePageProps = {
     onProductPress?: (product: Product) => void;
     onCartPress?: () => void;
     onListPress?: () => void;
+    onProfilePress?: () => void;
 };
 
 function backendImageUri(product: any) {
@@ -55,8 +55,7 @@ function productPrice(product: any) {
     return Math.max(0, basePrice - (basePrice * discount) / 100);
 }
 
-export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress }: HomePageProps) {
-    const { logout } = useAuthStore();
+export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress, onProfilePress }: HomePageProps) {
     const { data: categoryData } = useCategories();
     const { data: randomProductData } = useRandomProducts();
 
@@ -102,7 +101,7 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
     }, [randomProductData]);
 
     return (
-        <LinearGradient colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
+        <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                     <HomeHeader onCartPress={onCartPress} />
@@ -113,8 +112,8 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
                     <View className="h-20" />
                 </ScrollView>
 
-                <BottomTabBar onProfilePress={logout} onListPress={onListPress} />
+                <BottomTabBar onProfilePress={onProfilePress} onListPress={onListPress} />
             </SafeAreaView>
-        </LinearGradient>
+        </AppBackground>
     );
 }

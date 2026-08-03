@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, ListPlus, Minus, Plus, ShoppingBasket, Trash2 } from 'lucide-react-native';
+import { AppBackground } from '@/components/AppBackground';
 import { MonthlyCardSelector } from '@/components/MonthlyCardSelector';
 import {
     useAddMonthlyGroceryItem,
@@ -52,7 +52,7 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
     };
 
     return (
-        <LinearGradient colors={['#FFD54F', '#FFF9E6', '#FFFFFF']} style={{ flex: 1 }}>
+        <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 <View className="flex-row items-center px-5 pb-3 pt-2">
                     {onBack && (
@@ -210,6 +210,6 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
                     </View>
                 )}
             </SafeAreaView>
-        </LinearGradient>
+        </AppBackground>
     );
 }

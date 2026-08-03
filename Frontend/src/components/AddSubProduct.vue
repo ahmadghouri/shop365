@@ -26,12 +26,6 @@ const form = ref({
 const handleFileChange = (event) => {
   const file = event.target.files[0];
   if (file) {
-    if (file.size > 15 * 1024) {
-      // 15KB limit
-      imageError.value = "Image size must be less than 15KB";
-      event.target.value = "";
-      return;
-    }
     imageError.value = "";
     form.value.image = file;
   }
@@ -127,7 +121,7 @@ const submitForm = async () => {
 
       <div>
         <label class="block text-sm font-medium text-gray-700"
-          >Image (Max 15KB)</label
+          >Image</label
         >
         <input
           type="file"

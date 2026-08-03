@@ -1,10 +1,10 @@
 import { View, Text, Pressable } from 'react-native';
-import { Home, ShoppingCart, ClipboardList, User } from 'lucide-react-native';
+import { Home, ListChecks, ClipboardList, User } from 'lucide-react-native';
 
 type BottomTabBarProps = {
     activeTab?: string;
     onHomePress?: () => void;
-    onCartPress?: () => void;
+    onListPress?: () => void;
     onOrdersPress?: () => void;
     onProfilePress?: () => void;
 };
@@ -12,7 +12,7 @@ type BottomTabBarProps = {
 export function BottomTabBar({
     activeTab = 'home',
     onHomePress,
-    onCartPress,
+    onListPress,
     onOrdersPress,
     onProfilePress,
 }: BottomTabBarProps) {
@@ -22,9 +22,9 @@ export function BottomTabBar({
                 <Home size={22} color={activeTab === 'home' ? '#EAB308' : '#94a3b8'} />
                 <Text className={`text-xs mt-1 ${activeTab === 'home' ? 'text-yellow-500 font-medium' : 'text-slate-400'}`}>Home</Text>
             </Pressable>
-            <Pressable className="flex-1 items-center" onPress={onCartPress}>
-                <ShoppingCart size={22} color={activeTab === 'cart' ? '#EAB308' : '#94a3b8'} />
-                <Text className={`text-xs mt-1 ${activeTab === 'cart' ? 'text-yellow-500 font-medium' : 'text-slate-400'}`}>Cart</Text>
+            <Pressable className="flex-1 items-center" onPress={onListPress}>
+                <ListChecks size={22} color={activeTab === 'list' ? '#EAB308' : '#94a3b8'} />
+                <Text className={`text-xs mt-1 ${activeTab === 'list' ? 'text-yellow-500 font-medium' : 'text-slate-400'}`}>List</Text>
             </Pressable>
             <Pressable className="flex-1 items-center" onPress={onOrdersPress}>
                 <ClipboardList size={22} color={activeTab === 'orders' ? '#EAB308' : '#94a3b8'} />

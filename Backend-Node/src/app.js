@@ -16,7 +16,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Static files
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+const uploadRoot = path.join(__dirname, '..', 'uploads');
+app.use('/uploads', express.static(path.join(uploadRoot, 'uploads')));
+app.use('/uploads', express.static(uploadRoot));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -30,6 +32,7 @@ app.use('/api', require('./modules/businesses/business.routes'));
 app.use('/api', require('./modules/categories/category.routes'));
 app.use('/api', require('./modules/products/product.routes'));
 app.use('/api', require('./modules/cart/cart.routes'));
+app.use('/api', require('./modules/monthly-grocery-cards/monthly-grocery-card.routes'));
 app.use('/api', require('./modules/orders/order.routes'));
 app.use('/api', require('./modules/towns/town.routes'));
 app.use('/api', require('./modules/households/household.routes'));

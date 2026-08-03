@@ -63,6 +63,18 @@ export const useBusinessStore = defineStore("business", {
       }
     },
 
+    async addProvider(provider) {
+      try {
+        const response = await businessApi.createProvider(provider);
+        this.businesses.push(response.data.data);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BUSINESSES });
+        return response.data;
+      } catch (error) {
+        console.error("Failed to add provider", error);
+        throw error;
+      }
+    },
+
     async editBusiness(id, editBusiness) {
       try {
         const response = await businessApi.update(id, editBusiness);

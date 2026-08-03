@@ -1,8 +1,48 @@
+const mongoose = require('mongoose');
 const Product = require('./product.model');
 const Business = require('../businesses/business.model');
+const Category = require('../categories/category.model');
 const User = require('../users/user.model');
 const { successResponse } = require('../../utils/api-response');
 const { getPaginationParams, paginateResponse } = require('../../utils/pagination');
+
+function normalizeProductOptions(input, label) {
+  let options = input;
+  if (typeof options === 'string') {
+    try {
+      options = JSON.parse(options);
+    } catch (error) {
+      return { error: `${label} must be a valid list` };
+    }
+  }
+
+  if (!Array.isArray(options)) {
+    return { error: `${label} must be a valid list` };
+  }
+
+  const normalized = [];
+  for (const option of options) {
+    if (
+      !option ||
+      typeof option !== 'object' ||
+      Array.isArray(option) ||
+      typeof option.name !== 'string' ||
+      !['string', 'number'].includes(typeof option.price)
+    ) {
+      return { error: `Every ${label.toLowerCase()} item requires a valid name and price` };
+    }
+
+    const name = option.name.trim();
+    const hasPrice = typeof option.price === 'number' || option.price.trim() !== '';
+    const price = hasPrice ? Number(option.price) : Number.NaN;
+    if (!name || !Number.isFinite(price) || price < 0) {
+      return { error: `Every ${label.toLowerCase()} item requires a valid name and price` };
+    }
+    normalized.push({ name, price });
+  }
+
+  return { value: normalized };
+}
 
 async function index(req, res, next) {
   try {
@@ -33,7 +73,15 @@ async function store(req, res, next) {
 
 async function show(req, res, next) {
   try {
-    const product = await Product.findById(req.params.id);
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(422).json({ status: false, message: 'Invalid product id' });
+    }
+    const product = await Product.findOne({
+      _id: req.params.id,
+      deleted_at: null,
+      is_active: true,
+      status: true,
+    }).populate('business_id', 'name image status');
     if (!product) return res.status(404).json({ message: 'Product not found' });
     successResponse(res, product, 'Product details');
   } catch (error) { next(error); }
@@ -43,7 +91,24 @@ async function update(req, res, next) {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
-    Object.assign(product, req.body);
+
+    const data = { ...(req.body || {}) };
+    delete data._method;
+    delete data.business_id;
+
+    for (const [field, label] of [['sizes', 'Sizes'], ['extras', 'Extras']]) {
+      if (data[field] === undefined) continue;
+      const result = normalizeProductOptions(data[field], label);
+      if (result.error) {
+        return res.status(422).json({ message: result.error });
+      }
+      data[field] = result.value;
+    }
+
+    if (data.price !== undefined) data.price = Number(data.price);
+    if (req.file) data.image = `/uploads/${req.file.filename}`;
+
+    Object.assign(product, data);
     await product.save();
     successResponse(res, product, 'Updated Product');
   } catch (error) { next(error); }
@@ -69,12 +134,7 @@ async function getProducts(req, res, next) {
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * perPage;
 
-    // Include child businesses too
-    const Business = require('../businesses/business.model');
-    const childBusinesses = await Business.find({ parent_id: businessId }).select('_id');
-    const businessIds = [businessId, ...childBusinesses.map(b => b._id)];
-
-    const filter = { business_id: { $in: businessIds }, deleted_at: null, type: { $ne: 'easy_buy' } };
+    const filter = { business_id: businessId, deleted_at: null, type: { $ne: 'easy_buy' } };
     if (search) filter.title = { $regex: search, $options: 'i' };
 
     const [products, total] = await Promise.all([
@@ -184,10 +244,23 @@ async function updateStatus(req, res, next) {
 
 async function addProduct(req, res, next) {
   try {
-    const data = { ...req.body, business_id: req.user.business_id, price: parseFloat(req.body.price) };
-    // Parse sizes if sent as JSON string (from FormData)
-    if (data.sizes && typeof data.sizes === 'string') {
-      try { data.sizes = JSON.parse(data.sizes); } catch (e) { data.sizes = []; }
+    const type = String(req.body.type || '').trim();
+    if (!type) {
+      return res.status(422).json({ status: false, message: 'Product type is required' });
+    }
+
+    const data = {
+      ...req.body,
+      type,
+      business_id: req.user.business_id,
+      price: parseFloat(req.body.price),
+    };
+    for (const [field, label] of [['sizes', 'Sizes'], ['extras', 'Extras']]) {
+      const result = normalizeProductOptions(data[field] ?? [], label);
+      if (result.error) {
+        return res.status(422).json({ message: result.error });
+      }
+      data[field] = result.value;
     }
     // Handle image from multer
     if (req.file) {
@@ -245,6 +318,88 @@ async function toggleActive(req, res, next) {
   } catch (error) { next(error); }
 }
 
+async function categoryProducts(req, res, next) {
+  try {
+    const { categoryId } = req.params;
+    if (!mongoose.isValidObjectId(categoryId)) {
+      return res.status(422).json({ status: false, message: 'Invalid category id' });
+    }
+
+    const category = await Category.findOne({ _id: categoryId, status: 'active' });
+    if (!category) {
+      return res.status(404).json({ status: false, message: 'Category not found' });
+    }
+
+    const categoryBusinesses = await Business.find({
+      status: 'active',
+      $or: [
+        { category_id: category._id },
+        { category_id: null, type: category.name },
+      ],
+    }).select('_id');
+    const categoryBusinessIds = categoryBusinesses.map((business) => business._id);
+    const childBusinesses = await Business.find({
+      status: 'active',
+      parent_id: { $in: categoryBusinessIds },
+    }).select('_id');
+    const businessIds = [
+      ...categoryBusinessIds,
+      ...childBusinesses.map((business) => business._id),
+    ];
+
+    const baseFilter = {
+      business_id: { $in: businessIds },
+      deleted_at: null,
+      is_active: true,
+      status: true,
+      type: { $ne: 'easy_buy' },
+    };
+
+    const rawTypes = await Product.distinct('type', baseFilter);
+    const types = [...new Set(
+      rawTypes
+        .map((type) => String(type || '').trim())
+        .filter((type) => type && type.toLowerCase() !== 'all')
+    )].sort((first, second) => first.localeCompare(second));
+
+    const productFilter = { ...baseFilter };
+    const selectedType = String(req.query.type || '').trim();
+    if (selectedType && selectedType.toLowerCase() !== 'all') {
+      productFilter.type = selectedType;
+    }
+
+    const search = String(req.query.search || '').trim();
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      productFilter.$or = [
+        { title: { $regex: escapedSearch, $options: 'i' } },
+        { type: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    }
+
+    const productDocs = await Product.find(productFilter)
+      .populate('business_id', 'name image status')
+      .sort({ createdAt: -1 });
+
+    const products = productDocs.map((product) => {
+      const item = product.toJSON();
+      const image = item.image;
+      if (!image) item.image_url = null;
+      else if (/^https?:\/\//.test(image)) item.image_url = image;
+      else if (image.startsWith('/be/uploads/')) item.image_url = image.replace('/be/uploads/', '/uploads/');
+      else if (image.startsWith('/uploads/')) item.image_url = image;
+      else item.image_url = `/uploads/${image}`;
+      return item;
+    });
+
+    successResponse(
+      res,
+      { types, products },
+      'Category products retrieved successfully'
+    );
+  } catch (error) { next(error); }
+}
+
 async function updateGroceryBusinessId(req, res, next) {
   try {
     await Product.updateMany({ business_id: req.body.business_id }, { business_id: req.body.grocery_business_id });
@@ -262,7 +417,7 @@ async function deleteTodayProductsByBusinessId(req, res, next) {
 }
 
 module.exports = {
-  index, store, show, update, destroy, getProducts,
+  index, store, show, update, destroy, getProducts, categoryProducts,
   businessProducts, businessAdminsProducts, randomProductsByBusiness,
   businessProductsDiscount, businessProductsTypes, businessProductsFiltered,
   updateStatus, addProduct, updateDiscount, removeDiscount, applyDiscountToProduct,

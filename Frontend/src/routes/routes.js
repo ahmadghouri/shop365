@@ -28,6 +28,7 @@ import Product from "../pages/Admin/Products.vue";
 import UserAdmin from "../pages/Admin/User.vue";
 import CarouselImages from "../pages/Admin/CarouselImages.vue";
 import RestaurantAdminDashboard from "../pages/RestaurantAdmin/RestaurantAdminDashboard.vue";
+import ProviderSettings from "../pages/RestaurantAdmin/ProviderSettings.vue";
 import OurStoreUsers from "../pages/Admin/OurStoreUsers.vue";
 import RestaurantOrder from "../pages/RestaurantAdmin/RestaurantOrder.vue";
 import BusinessReviews from "../pages/RestaurantAdmin/BusinessReviews.vue";
@@ -353,6 +354,14 @@ const routes = [
         path: "restaurantAdminDashboard",
         name: "RestaurantAdminDashboard",
         component: RestaurantAdminDashboard,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "provider-settings",
+        name: "ProviderSettings",
+        component: ProviderSettings,
         meta: {
           requiresAdminAuth: true,
         },

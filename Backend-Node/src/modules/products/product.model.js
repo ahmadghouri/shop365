@@ -12,13 +12,17 @@ const productSchema = new mongoose.Schema({
   status: { type: Boolean, default: true },
   is_active: { type: Boolean, default: true },
   sizes: [{ name: { type: String }, price: { type: Number } }],
+  extras: [{ name: { type: String }, price: { type: Number } }],
   prescription_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Perscription' },
   easy_buy_id: { type: mongoose.Schema.Types.ObjectId, ref: 'EasyBuy' },
   deleted_at: { type: Date },
 }, { timestamps: true });
 
 productSchema.virtual('image_url').get(function () {
-  return this.image ? `/be/uploads/${this.image}` : null;
+  if (!this.image) return null;
+  if (/^https?:\/\//.test(this.image)) return this.image;
+  if (this.image.startsWith('/uploads/')) return this.image;
+  return `/uploads/${this.image}`;
 });
 
 productSchema.virtual('final_price').get(function () {

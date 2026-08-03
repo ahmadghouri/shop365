@@ -17,7 +17,7 @@
 
                 <!-- Image Upload -->
                 <div>
-                    <label for="image" class="text-sm font-medium text-gray-700">Image (Max 15KB)</label>
+                    <label for="image" class="text-sm font-medium text-gray-700">Image</label>
                     <input type="file" id="image" @change="handleFileUpload"
                         class="block text-sm border border-gray-300 rounded p-2 focus:border-blue-500 focus:ring-blue-500"
                         required />
@@ -112,13 +112,8 @@ const brands = ref([
 
 const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    if (file && file.size > 15 * 1024) {
-        imageError.value = "Image size must be less than 15KB.";
-        image.value = null;
-    } else {
-        imageError.value = "";
-        image.value = file;
-    }
+    imageError.value = "";
+    image.value = file;
 };
 
 const addBrand = () => {

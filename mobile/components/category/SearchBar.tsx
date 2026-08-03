@@ -9,7 +9,15 @@ type SearchBarProps = {
 
 export function SearchBar({ value, placeholder = 'Search', onChangeText }: SearchBarProps) {
     return (
-        <View className="mx-5 mt-1 h-12 flex-row items-center rounded-full bg-white/80 px-4">
+        <View
+            className="mx-5 mt-1 h-12 flex-row items-center px-4"
+            style={{
+                borderRadius: 50,
+                borderWidth: 1,
+                borderColor: 'white',
+                backgroundColor: 'rgba(255, 255, 255, 0.35)',
+            }}
+        >
             <Search size={20} color="#94a3b8" />
             <TextInput
                 className="ml-3 flex-1 font-lufga text-base text-slate-800"

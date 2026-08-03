@@ -5,7 +5,7 @@ import { CategoryHeader } from '@/components/category/CategoryHeader';
 import { AppBackground } from '@/components/AppBackground';
 import { SearchBar } from '@/components/category/SearchBar';
 import { FilterChips } from '@/components/category/FilterChips';
-import { ProductCard } from '@/components/home/ProductCard';
+import { ProductCard } from '@/components/reusable/ProductCard';
 import { useCategoryProducts } from '@/api/home/useHomeQueries';
 import { API_BASE_URL } from '@/api/client';
 

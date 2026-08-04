@@ -118,13 +118,13 @@ export function CategoryDetailPage({
                     ) : isError ? (
                         <View className="items-center px-5 py-12">
                             <Text className="font-lufga text-center text-red-600" onPress={() => refetch()}>
-                                Products load nahi ho sake. Dobara try karne ke liye tap karein.
+                                Failed to load products. Tap to try again.
                             </Text>
                         </View>
                     ) : products.length === 0 ? (
                         <View className="items-center px-5 py-12">
                             <Text className="font-lufga text-center text-slate-500">
-                                Is category ya filter mein koi product nahi mila.
+                                No products found in this category or filter.
                             </Text>
                         </View>
                     ) : (

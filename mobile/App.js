@@ -180,12 +180,12 @@ function AppContent() {
         return (
           <LoginScreen
             onSuccess={() => { }}
-            onRegister={() => navigateBack('Register')}
+            onRegister={() => navigateForward('Register')}
             onForgotPassword={() => console.log('Forgot password')}
           />
         );
       default:
-        return <WelcomeScreen onRegister={() => navigateForward('Register')} />;
+        return <WelcomeScreen onRegister={() => navigateForward('Register')} onLogin={() => navigateForward('Login')} />;
     }
   };
 

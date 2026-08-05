@@ -91,10 +91,16 @@
           </CardContent>
 
           <CardFooter>
-            <Button variant="outline" class="w-full" @click="openFormForUpdate(product)">
-              <Pencil class="w-4 h-4 mr-2" />
-              Edit Product
-            </Button>
+            <div class="grid w-full grid-cols-2 gap-2">
+              <Button variant="outline" @click="openFormForUpdate(product)">
+                <Pencil class="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+              <Button variant="destructive" @click="confirmDelete(product.id || product._id)">
+                <Trash2 class="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </div>
@@ -406,7 +412,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { RefreshCw, Plus, Pencil, X, Search, Save, Percent, Package, Loader2 } from "lucide-vue-next";
+import { RefreshCw, Plus, Pencil, X, Search, Save, Percent, Package, Loader2, Trash2 } from "lucide-vue-next";
 
 const router = useRouter();
 const productStore = useProductStore();

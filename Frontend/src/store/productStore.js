@@ -144,8 +144,8 @@ export const useProductStore = defineStore("products", {
     async deleteProduct(id) {
       try {
         await productApi.delete(id);
-        this.products = this.products.filter((p) => p.id !== id);
-        this.adminProducts = this.adminProducts.filter((p) => p.id !== id);
+        this.products = this.products.filter((p) => (p.id || p._id) !== id);
+        this.adminProducts = this.adminProducts.filter((p) => (p.id || p._id) !== id);
         queryClient.invalidateQueries({ queryKey: ["products"] });
       } catch (error) {
         console.error("Failed to delete product", error);

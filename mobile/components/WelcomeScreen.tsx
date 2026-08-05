@@ -4,9 +4,10 @@ import { AppBackground } from '@/components/AppBackground';
 
 type WelcomeScreenProps = {
     onRegister?: () => void;
+    onLogin?: () => void;
 };
 
-export function WelcomeScreen({ onRegister }: WelcomeScreenProps) {
+export function WelcomeScreen({ onRegister, onLogin }: WelcomeScreenProps) {
     return (
         <AppBackground>
             <SafeAreaView className="flex-1">
@@ -40,6 +41,14 @@ export function WelcomeScreen({ onRegister }: WelcomeScreenProps) {
                         >
                             <RNText className="text-white font-semibold text-base">
                                 Register Now
+                            </RNText>
+                        </Pressable>
+
+                        {/* Login Link */}
+                        <Pressable className="mt-4 items-center" onPress={onLogin}>
+                            <RNText className="text-slate-600 text-base">
+                                Already have an account?{' '}
+                                <RNText className="text-yellow-500 font-semibold">Login</RNText>
                             </RNText>
                         </Pressable>
                     </View>

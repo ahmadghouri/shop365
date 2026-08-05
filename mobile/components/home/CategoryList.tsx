@@ -24,10 +24,14 @@ export function CategoryList({ categories, onCategoryPress }: CategoryListProps)
                         className="mr-3"
                         onPress={() => onCategoryPress?.(cat)}
                     >
-                        <GlassCard variant="light" className="min-w-36 min-h-30 rounded-xl">
+                        <GlassCard variant="light" className="w-36 min-h-30 rounded-xl">
                             <View className="pt-4 pl-4 flex-1 ">
                                 <Text className="text-[16px] font-lufga font-normal text-slate-900">{cat.name}</Text>
-                                <Text className="text-10 text-[#6B7280] font-lufga font-light mt-0.5">{cat.subtitle}</Text>
+                                <Text className="text-10 text-[#6B7280] font-lufga font-light mt-0.5">
+                                    {cat.subtitle?.length > 16
+                                        ? `${cat.subtitle.slice(0, 16)}...`
+                                        : cat.subtitle}
+                                </Text>
                                 <View className="flex-1 items-end justify-end">
                                     <Image
                                         source={cat.imageUri ? { uri: cat.imageUri } : cat.image}

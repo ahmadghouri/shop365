@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { queryClient } from './lib/queryClient';
 import { SplashScreen } from './components/SplashScreen';
+import { LocationPermissionScreen } from './components/LocationPermissionScreen';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
@@ -51,7 +52,7 @@ function AppContent() {
   useEffect(() => {
     if (screen === 'Splash') {
       const timer = setTimeout(() => {
-        setScreen('Welcome');
+        setScreen('Location');
       }, 2500);
       return () => clearTimeout(timer);
     }
@@ -169,6 +170,10 @@ function AppContent() {
 
   const renderScreen = () => {
     switch (screen) {
+      case 'Location':
+        return (
+          <LocationPermissionScreen onDone={() => navigateForward('Welcome')} />
+        );
       case 'Register':
         return (
           <RegisterScreen
@@ -180,12 +185,12 @@ function AppContent() {
         return (
           <LoginScreen
             onSuccess={() => { }}
-            onRegister={() => navigateBack('Register')}
+            onRegister={() => navigateForward('Register')}
             onForgotPassword={() => console.log('Forgot password')}
           />
         );
       default:
-        return <WelcomeScreen onRegister={() => navigateForward('Register')} />;
+        return <WelcomeScreen onRegister={() => navigateForward('Register')} onLogin={() => navigateForward('Login')} />;
     }
   };
 

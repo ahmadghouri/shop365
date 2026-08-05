@@ -5,6 +5,7 @@ const Category = require('../categories/category.model');
 const User = require('../users/user.model');
 const { successResponse } = require('../../utils/api-response');
 const { getPaginationParams, paginateResponse } = require('../../utils/pagination');
+const { uploadToCloudinary } = require('../../utils/cloudinary-upload');
 
 function normalizeProductOptions(input, label) {
   let options = input;
@@ -106,7 +107,10 @@ async function update(req, res, next) {
     }
 
     if (data.price !== undefined) data.price = Number(data.price);
-    if (req.file) data.image = `/uploads/${req.file.filename}`;
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file, 'products');
+      data.image = result.secure_url;
+    }
 
     Object.assign(product, data);
     await product.save();
@@ -264,7 +268,8 @@ async function addProduct(req, res, next) {
     }
     // Handle image from multer
     if (req.file) {
-      data.image = `/uploads/${req.file.filename}`;
+      const result = await uploadToCloudinary(req.file, 'products');
+      data.image = result.secure_url;
     }
     const product = await Product.create(data);
     successResponse(res, product, 'Product Created');

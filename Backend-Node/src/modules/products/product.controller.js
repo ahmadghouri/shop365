@@ -45,6 +45,12 @@ function normalizeProductOptions(input, label) {
   return { value: normalized };
 }
 
+function normalizeImageField(data) {
+  if (data.image !== undefined && (typeof data.image !== 'string' || !data.image.trim())) {
+    delete data.image;
+  }
+}
+
 async function index(req, res, next) {
   try {
     const filter = { deleted_at: null };
@@ -67,7 +73,9 @@ async function store(req, res, next) {
   try {
     const business = await Business.findOne({ name: req.body.business });
     if (!business) return res.status(404).json({ message: 'Business not found' });
-    const product = await Product.create({ ...req.body, business_id: business._id, price: parseFloat(req.body.price) });
+    const data = { ...req.body, business_id: business._id, price: parseFloat(req.body.price) };
+    normalizeImageField(data);
+    const product = await Product.create(data);
     successResponse(res, product, 'Product created');
   } catch (error) { next(error); }
 }
@@ -110,6 +118,8 @@ async function update(req, res, next) {
     if (req.file) {
       const result = await uploadToCloudinary(req.file, 'products');
       data.image = result.secure_url;
+    } else {
+      normalizeImageField(data);
     }
 
     Object.assign(product, data);
@@ -270,6 +280,8 @@ async function addProduct(req, res, next) {
     if (req.file) {
       const result = await uploadToCloudinary(req.file, 'products');
       data.image = result.secure_url;
+    } else {
+      normalizeImageField(data);
     }
     const product = await Product.create(data);
     successResponse(res, product, 'Product Created');

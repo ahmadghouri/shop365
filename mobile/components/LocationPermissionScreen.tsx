@@ -1,17 +1,30 @@
-import { View, Text, Pressable, Image } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { AppBackground } from '@/components/AppBackground';
 import { GradientPill } from '@/components/reusable/GradientPill';
+import { LocationPickerModal } from '@/components/LocationPickerModal';
 
 type LocationPermissionScreenProps = {
     onDone: () => void;
 };
 
 export function LocationPermissionScreen({ onDone }: LocationPermissionScreenProps) {
+    const [showPicker, setShowPicker] = useState(false);
+
     const handleAllow = async () => {
-        await Location.requestForegroundPermissionsAsync();
-        // Regardless of allow/deny, move forward
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status === 'granted') {
+                // Permission granted — open picker so user can confirm exact pin
+                setShowPicker(true);
+                return;
+            }
+        } catch (err) {
+            console.log('Location permission error:', err);
+        }
+        // Permission denied or error — move forward anyway
         onDone();
     };
 
@@ -54,6 +67,12 @@ export function LocationPermissionScreen({ onDone }: LocationPermissionScreenPro
 
                 </View>
             </SafeAreaView>
+
+            {/* Location picker — opens after permission granted */}
+            <LocationPickerModal
+                visible={showPicker}
+                onClose={onDone}
+            />
         </AppBackground>
     );
 }

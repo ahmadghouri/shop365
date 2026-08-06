@@ -18,7 +18,7 @@
     <!-- Existing Navigation -->
     <nav class="mobile-spacing sticky top-0 flex justify-between bg-white items-center lg:mt-0 lg:px-32 lg:border-b lg:border-gray-200">
       <div @click.stop="toggleSidebar" class="cursor-pointer lg:hidden">
-        <img src="/public/Menu Icon.png" alt="Menu Icon" />
+        <img src="/Menu Icon.png" alt="Menu Icon" />
       </div>
 
       <div class="cursor-pointer flex-1 text-center lg:flex-none lg:text-left">

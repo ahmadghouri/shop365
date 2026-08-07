@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -10,6 +11,7 @@ import {
     History,
     LogOut,
     Mail,
+    Map,
     MapPin,
     Pencil,
     Phone,
@@ -20,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import { useAuthStore } from '@/lib/authStore';
 import { AppBackground } from '@/components/AppBackground';
+import { LocationPickerModal } from '@/components/LocationPickerModal';
 
 type ProfilePageProps = {
     onLogout?: () => void;
@@ -28,6 +31,7 @@ type ProfilePageProps = {
 
 export function ProfilePage({ onLogout, onBack }: ProfilePageProps) {
     const { user, logout } = useAuthStore();
+    const [showMapPicker, setShowMapPicker] = useState(false);
 
     const handleLogout = () => {
         Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -84,7 +88,21 @@ export function ProfilePage({ onLogout, onBack }: ProfilePageProps) {
 
                         <ProfileRow icon={<Phone size={18} color="#b77900" />} label="Phone" value={phone} />
                         <ProfileRow icon={<Mail size={18} color="#b77900" />} label="Email" value={email} />
-                        <ProfileRow icon={<MapPin size={18} color="#b77900" />} label="Address" value={address} last />
+                        <ProfileRow
+                            icon={<MapPin size={18} color="#b77900" />}
+                            label="Address"
+                            value={address}
+                            last
+                            action={
+                                <Pressable
+                                    className="flex-row items-center rounded-full bg-amber-50 px-3 py-1.5 active:opacity-70"
+                                    onPress={() => setShowMapPicker(true)}
+                                >
+                                    <Map size={14} color="#b77900" />
+                                    <Text className="ml-1 text-xs font-lufga-semibold text-amber-700">Map</Text>
+                                </Pressable>
+                            }
+                        />
                     </View>
 
                     {/* Quick Actions */}
@@ -124,11 +142,25 @@ export function ProfilePage({ onLogout, onBack }: ProfilePageProps) {
                     </View>
                 </ScrollView>
             </SafeAreaView>
+
+            <LocationPickerModal visible={showMapPicker} onClose={() => setShowMapPicker(false)} />
         </AppBackground>
     );
 }
 
-function ProfileRow({ icon, label, value, last }: { icon: React.ReactNode; label: string; value: string; last?: boolean }) {
+function ProfileRow({
+    icon,
+    label,
+    value,
+    last,
+    action,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+    last?: boolean;
+    action?: React.ReactNode;
+}) {
     return (
         <View className={`flex-row items-center px-4 py-4 ${last ? '' : 'border-b border-slate-100'}`}>
             <View className="h-10 w-10 items-center justify-center rounded-2xl bg-amber-50">
@@ -138,6 +170,7 @@ function ProfileRow({ icon, label, value, last }: { icon: React.ReactNode; label
                 <Text className="text-xs font-lufga text-slate-400">{label}</Text>
                 <Text className="mt-0.5 font-lufga-semibold text-slate-950" numberOfLines={2}>{value}</Text>
             </View>
+            {action}
         </View>
     );
 }

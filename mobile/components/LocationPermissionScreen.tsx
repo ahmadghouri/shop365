@@ -1,31 +1,27 @@
 import { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { AppBackground } from '@/components/AppBackground';
 import { GradientPill } from '@/components/reusable/GradientPill';
-import { LocationPickerModal } from '@/components/LocationPickerModal';
 
 type LocationPermissionScreenProps = {
     onDone: () => void;
 };
 
 export function LocationPermissionScreen({ onDone }: LocationPermissionScreenProps) {
-    const [showPicker, setShowPicker] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleAllow = async () => {
+        setLoading(true);
         try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status === 'granted') {
-                // Permission granted — open picker so user can confirm exact pin
-                setShowPicker(true);
-                return;
-            }
+            await Location.requestForegroundPermissionsAsync();
         } catch (err) {
             console.log('Location permission error:', err);
+        } finally {
+            setLoading(false);
+            onDone();
         }
-        // Permission denied or error — move forward anyway
-        onDone();
     };
 
     return (
@@ -51,15 +47,17 @@ export function LocationPermissionScreen({ onDone }: LocationPermissionScreenPro
                         <Pressable
                             className="flex-1 items-center justify-center"
                             onPress={handleAllow}
+                            disabled={loading}
                         >
-                            <Text className="text-slate-900 font-medium font-lufga text-base">
-                                Allow Location
-                            </Text>
+                            {loading
+                                ? <ActivityIndicator color="#111827" />
+                                : <Text className="text-slate-900 font-medium font-lufga text-base">Allow Location</Text>
+                            }
                         </Pressable>
                     </GradientPill>
 
                     {/* Skip */}
-                    <Pressable onPress={onDone} className="py-3">
+                    <Pressable onPress={onDone} className="py-3" disabled={loading}>
                         <Text className="text-base font-lufga font-light text-app-muted">
                             Skip for now
                         </Text>
@@ -67,12 +65,6 @@ export function LocationPermissionScreen({ onDone }: LocationPermissionScreenPro
 
                 </View>
             </SafeAreaView>
-
-            {/* Location picker — opens after permission granted */}
-            <LocationPickerModal
-                visible={showPicker}
-                onClose={onDone}
-            />
         </AppBackground>
     );
 }

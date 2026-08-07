@@ -1,0 +1,128 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+#  services-project — root .gitignore
+#  Covers: Laravel (Backend-Apis), Node.js (Backend-Node), Vue (Frontend),
+#          React Native / Expo (mobile)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
+vendor/
+
+# ─── Environment / Secrets ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.staging
+.env.test
+# keep example files
+!.env.example
+!*.env.example
+
+# ─── OS generated ────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ─── Editor / IDE ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# ─── Build outputs ───────────────────────────────────────────────────────────
+dist/
+build/
+out/
+web-build/
+
+# ─── Cache & temp ────────────────────────────────────────────────────────────
+.cache/
+tmp/
+temp/
+*.tsbuildinfo
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  LARAVEL  (Backend/Backend-Apis)
+# ══════════════════════════════════════════════════════════════════════════════
+Backend/Backend-Apis/vendor/
+Backend/Backend-Apis/.env
+Backend/Backend-Apis/storage/logs/*.log
+Backend/Backend-Apis/storage/framework/cache/
+Backend/Backend-Apis/storage/framework/sessions/
+Backend/Backend-Apis/storage/framework/views/
+Backend/Backend-Apis/storage/app/public/
+Backend/Backend-Apis/bootstrap/cache/*.php
+Backend/Backend-Apis/public/storage
+Backend/Backend-Apis/public/hot
+Backend/Backend-Apis/.phpunit.result.cache
+Backend/Backend-Apis/coverage/
+Backend/Backend-Apis/node_modules/
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  NODE BACKEND  (Backend-Node)
+# ══════════════════════════════════════════════════════════════════════════════
+Backend-Node/node_modules/
+Backend-Node/.env
+Backend-Node/uploads/
+Backend-Node/dist/
+Backend-Node/logs/
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  VUE FRONTEND  (Frontend)
+# ══════════════════════════════════════════════════════════════════════════════
+Frontend/node_modules/
+Frontend/.env
+Frontend/dist/
+Frontend/android/
+Frontend/ios/
+Frontend/cordova-app/
+Frontend/.vscode/
+Frontend/vite.config.js.timestamp-*
+Frontend/local.env
+Frontend/web.env
+Frontend/cordova.env
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  REACT NATIVE / EXPO  (mobile)
+# ══════════════════════════════════════════════════════════════════════════════
+mobile/node_modules/
+mobile/.env
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/expo-env.d.ts
+mobile/.metro-health-check*
+mobile/.claude/
+mobile/.kotlin/
+
+# Generated native folders
+mobile/ios/
+mobile/android/
+
+# Certificates & signing
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+*.pem
+
+# ─── Testing & Coverage ──────────────────────────────────────────────────────
+coverage/
+.nyc_output/

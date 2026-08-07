@@ -2,21 +2,19 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// Auto-detect base URL based on platform
-// Web: localhost works directly
-// Android Emulator: 10.0.2.2 maps to host machine's localhost
-// Physical Device: Use your PC's WiFi IP (run 'ipconfig' in CMD)
+// Reads from .env → EXPO_PUBLIC_API_URL
+// Falls back to local dev URLs if not set
 const getBaseUrl = () => {
+    // Production: set in .env as EXPO_PUBLIC_API_URL=https://pakmovie.online
+    if (process.env.EXPO_PUBLIC_API_URL) {
+        return process.env.EXPO_PUBLIC_API_URL;
+    }
+
+    // Local development fallback
     if (Platform.OS === 'web') {
         return 'http://localhost:8000';
     }
-    // IMPORTANT: Replace with your actual reachable URL
-    // Option 1: If using ngrok, paste ngrok URL here (e.g., https://abc123.ngrok-free.app)
-    // Option 2: If both phone & PC on same WiFi, use PC's WiFi IP
-    // Option 3: For emulator only, use http://10.0.2.2:8000
     return 'http://192.168.79.96:8000';
-    // return 'http://192.168.79.28:8000';
-    // return 'https://theshop365.com';
 };
 
 export const API_BASE_URL = getBaseUrl();

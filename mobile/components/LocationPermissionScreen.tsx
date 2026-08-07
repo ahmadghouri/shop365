@@ -1,4 +1,5 @@
-import { View, Text, Pressable, Image } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { AppBackground } from '@/components/AppBackground';
@@ -9,10 +10,18 @@ type LocationPermissionScreenProps = {
 };
 
 export function LocationPermissionScreen({ onDone }: LocationPermissionScreenProps) {
+    const [loading, setLoading] = useState(false);
+
     const handleAllow = async () => {
-        await Location.requestForegroundPermissionsAsync();
-        // Regardless of allow/deny, move forward
-        onDone();
+        setLoading(true);
+        try {
+            await Location.requestForegroundPermissionsAsync();
+        } catch (err) {
+            console.log('Location permission error:', err);
+        } finally {
+            setLoading(false);
+            onDone();
+        }
     };
 
     return (
@@ -38,15 +47,17 @@ export function LocationPermissionScreen({ onDone }: LocationPermissionScreenPro
                         <Pressable
                             className="flex-1 items-center justify-center"
                             onPress={handleAllow}
+                            disabled={loading}
                         >
-                            <Text className="text-slate-900 font-medium font-lufga text-base">
-                                Allow Location
-                            </Text>
+                            {loading
+                                ? <ActivityIndicator color="#111827" />
+                                : <Text className="text-slate-900 font-medium font-lufga text-base">Allow Location</Text>
+                            }
                         </Pressable>
                     </GradientPill>
 
                     {/* Skip */}
-                    <Pressable onPress={onDone} className="py-3">
+                    <Pressable onPress={onDone} className="py-3" disabled={loading}>
                         <Text className="text-base font-lufga font-light text-app-muted">
                             Skip for now
                         </Text>

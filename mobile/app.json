@@ -5,29 +5,49 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/Appicon.png",
+    "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/shop365logo.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFF9E6"
     },
-    "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.nbthub.shop365",
+      "buildNumber": "1"
     },
     "android": {
+      "package": "com.nbthub.shop365",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#FFF9E6",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundColor": "#FFF9E6"
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-status-bar",
-      "expo-router"
-    ]
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Shop365 to use your location for accurate delivery."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2e520031-0fd8-46a2-893c-086a739857aa"
+      }
+    }
   }
 }

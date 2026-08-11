@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
-import { QuantitySelector } from '@/components/product/QuantitySelector';
+import { QuantitySelector } from '@/components/reusable/QuantitySelector';
 import { ExtrasList, type Extra } from '@/components/product/ExtrasList';
 import { useCartStore } from '@/lib/cartStore';
 
@@ -139,7 +139,7 @@ export function ProductDetailPage({
                     <View className="mx-4 mt-2 rounded-3xl bg-white/70 p-3">
                         <View className="h-64 items-center justify-center overflow-hidden rounded-2xl bg-[#F0F0F0]">
                             {source ? (
-                                <Image source={source} className="h-full w-full" resizeMode="contain" />
+                                <Image source={source} className="h-full w-full" resizeMode="center" />
                             ) : (
                                 <Text className="text-5xl">🍔</Text>
                             )}

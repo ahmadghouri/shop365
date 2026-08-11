@@ -3,7 +3,7 @@ import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE_URL } from '@/api/client';
 import { AppBackground } from '@/components/AppBackground';
-import { useCategories, useRandomProducts } from '@/api/home/useHomeQueries';
+import { useCategories, useRandomProducts, useBusinesses } from '@/api/home/useHomeQueries';
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { CategoryList } from '@/components/home/CategoryList';
 import { PromoBanner } from '@/components/home/PromoBanner';
@@ -58,6 +58,17 @@ function productPrice(product: any) {
 export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress, onProfilePress }: HomePageProps) {
     const { data: categoryData } = useCategories();
     const { data: randomProductData } = useRandomProducts();
+    const { data: businessData } = useBusinesses();
+
+    // Build a businessId → name map for quick lookup
+    const businessMap = useMemo<Record<string, string>>(() => {
+        const map: Record<string, string> = {};
+        (Array.isArray(businessData) ? businessData : []).forEach((b: any) => {
+            const id = String(b._id || b.id || '');
+            if (id) map[id] = b.name || 'Provider';
+        });
+        return map;
+    }, [businessData]);
 
     const categories = useMemo<Category[]>(() => {
         return (categoryData ?? [])
@@ -79,18 +90,29 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
 
     const products = useMemo<Product[]>(() => {
         const groups = Array.isArray(randomProductData) ? randomProductData : [];
-        return groups.flatMap((group: any) => group.products || []).map((product: any) => {
-            const imageUri = backendImageUri(product);
-            return {
-                id: String(product.id || product._id),
-                name: product.title || 'Product',
-                store: product.business_id?.name || 'SHOP365 Provider',
-                price: productPrice(product),
-                imageUri,
-                image: imageUri ? { uri: imageUri } : undefined,
-            };
+        return groups.flatMap((group: any) => {
+            const groupBusinessId = String(group._id || group.id || '');
+            return (group.products || []).map((product: any) => {
+                const imageUri = backendImageUri(product);
+                const businessId = String(
+                    product.business_id?._id || product.business_id?.id || product.business_id || groupBusinessId
+                );
+                const storeName =
+                    product.business_id?.name ||
+                    businessMap[businessId] ||
+                    businessMap[groupBusinessId] ||
+                    'SHOP365 Provider';
+                return {
+                    id: String(product.id || product._id),
+                    name: product.title || 'Product',
+                    store: storeName,
+                    price: productPrice(product),
+                    imageUri,
+                    image: imageUri ? { uri: imageUri } : undefined,
+                };
+            });
         });
-    }, [randomProductData]);
+    }, [randomProductData, businessMap]);
 
     return (
         <AppBackground>

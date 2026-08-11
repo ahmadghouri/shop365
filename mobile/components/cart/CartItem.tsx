@@ -1,5 +1,6 @@
 import { Image, Pressable, Text, View } from 'react-native';
-import { ListPlus, Minus, Plus, Trash2 } from 'lucide-react-native';
+import { ListPlus, Trash2 } from 'lucide-react-native';
+import { QuantitySelector } from '@/components/reusable/QuantitySelector';;
 
 type Extra = {
     id: string;
@@ -50,7 +51,7 @@ export function CartItem({
     const isGroceryProvider = item.providerType?.trim().toLowerCase() === 'grocery';
 
     return (
-        <View className="rounded-3xl bg-white/85 p-3">
+        <View className="rounded-xl bg-white/50 border border-white p-3">
             {/* Main row */}
             <View className="flex-row items-center">
                 {/* Image */}
@@ -92,23 +93,10 @@ export function CartItem({
                     </Pressable>
 
                     {/* Quantity stepper */}
-                    <View className="flex-row items-center rounded-full bg-slate-100 p-1">
-                        <Pressable
-                            className="h-7 w-7 items-center justify-center rounded-full bg-white"
-                            onPress={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                        >
-                            <Minus size={14} color="#1e293b" strokeWidth={2.5} />
-                        </Pressable>
-                        <Text className="mx-2 min-w-4 text-center text-sm font-lufga-medium text-slate-900">
-                            {item.quantity}
-                        </Text>
-                        <Pressable
-                            className="h-7 w-7 items-center justify-center rounded-full bg-[#EAB308]"
-                            onPress={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                        >
-                            <Plus size={14} color="#111827" strokeWidth={2.5} />
-                        </Pressable>
-                    </View>
+                    <QuantitySelector
+                        quantity={item.quantity}
+                        onChange={(q) => onUpdateQuantity(item.id, q)}
+                    />
                 </View>
             </View>
 

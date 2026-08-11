@@ -185,22 +185,22 @@ export function ProductDetailPage({
                                 <Text className="text-base font-lufga-semibold text-slate-900">
                                     Sizes / Variants
                                 </Text>
-                                <View className="mt-3 flex-row flex-wrap gap-2">
+                                <View className="mt-3 flex-row flex-wrap gap-3">
                                     {variants.map((variant) => {
                                         const isSelected = variant.id === selectedVariantId;
                                         return (
                                             <Pressable
                                                 key={variant.id}
                                                 className={isSelected
-                                                    ? 'rounded-full border border-[#EAB308] bg-[#FEF3C7] px-4 py-2.5'
-                                                    : 'rounded-full border border-slate-200 bg-white px-4 py-2.5'}
+                                                    ? 'rounded-xl border border-[#FCD34D] bg-[rgba(253,230,138,0.35)] px-5 py-3'
+                                                    : 'rounded-xl border border-slate-200 bg-white/80 px-5 py-3'}
                                                 onPress={() => setSelectedVariantId(variant.id)}
                                             >
-                                                <Text className={isSelected
-                                                    ? 'font-lufga-medium text-slate-900'
-                                                    : 'font-lufga text-slate-600'}
-                                                >
-                                                    {variant.name} · Rs {variant.price.toLocaleString()}
+                                                <Text className={`text-base font-lufga text-center ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
+                                                    {variant.name}
+                                                </Text>
+                                                <Text className={`text-base font-lufga-bold text-center ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
+                                                    RS: {variant.price.toLocaleString()}
                                                 </Text>
                                             </Pressable>
                                         );

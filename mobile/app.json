@@ -6,11 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/Appicon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFF9E6"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.nbthub.shop365",
@@ -20,9 +15,7 @@
       "package": "com.nbthub.shop365",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "foregroundImage": "./assets/Appicon.png",
         "backgroundColor": "#FFF9E6"
       },
       "permissions": [
@@ -42,7 +35,9 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow Shop365 to use your location for accurate delivery."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-splash-screen"
     ],
     "extra": {
       "eas": {

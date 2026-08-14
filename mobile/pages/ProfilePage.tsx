@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Bell,
@@ -23,15 +23,18 @@ import {
 import { useAuthStore } from '@/lib/authStore';
 import { AppBackground } from '@/components/AppBackground';
 import { LocationPickerModal } from '@/components/LocationPickerModal';
+import { LocationAddressManager } from '@/components/LocationAddressManager';
 
 type ProfilePageProps = {
     onLogout?: () => void;
     onBack?: () => void;
+    onOrderHistory?: () => void;
 };
 
-export function ProfilePage({ onLogout, onBack }: ProfilePageProps) {
+export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePageProps) {
     const { user, logout } = useAuthStore();
     const [showMapPicker, setShowMapPicker] = useState(false);
+    const [showAddressManager, setShowAddressManager] = useState(false);
 
     const handleLogout = () => {
         Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -96,10 +99,10 @@ export function ProfilePage({ onLogout, onBack }: ProfilePageProps) {
                             action={
                                 <Pressable
                                     className="flex-row items-center rounded-full bg-amber-50 px-3 py-1.5 active:opacity-70"
-                                    onPress={() => setShowMapPicker(true)}
+                                    onPress={() => setShowAddressManager(true)}
                                 >
                                     <Map size={14} color="#b77900" />
-                                    <Text className="ml-1 text-xs font-lufga-semibold text-amber-700">Map</Text>
+                                    <Text className="ml-1 text-xs font-lufga-semibold text-amber-700">Manage</Text>
                                 </Pressable>
                             }
                         />
@@ -109,7 +112,7 @@ export function ProfilePage({ onLogout, onBack }: ProfilePageProps) {
                     <View className="mx-5 mt-5 rounded-[28px] bg-white p-1 shadow-sm shadow-slate-100">
                         <Text className="px-4 pb-2 pt-4 text-xs font-lufga-semibold uppercase tracking-widest text-slate-400">Activity</Text>
 
-                        <ActionRow icon={<ShoppingBag size={18} color="#334155" />} label="My Orders" />
+                        <ActionRow icon={<ShoppingBag size={18} color="#334155" />} label="My Orders" onPress={onOrderHistory} />
                         <ActionRow icon={<Heart size={18} color="#ef4444" />} label="Wishlist" />
                         <ActionRow icon={<History size={18} color="#6366f1" />} label="Order History" />
                         <ActionRow icon={<CreditCard size={18} color="#0ea5e9" />} label="Payment Methods" />
@@ -144,6 +147,28 @@ export function ProfilePage({ onLogout, onBack }: ProfilePageProps) {
             </SafeAreaView>
 
             <LocationPickerModal visible={showMapPicker} onClose={() => setShowMapPicker(false)} />
+
+            {/* Address Manager Modal */}
+            {showAddressManager && (
+                <Modal visible animationType="slide" onRequestClose={() => setShowAddressManager(false)}>
+                    <AppBackground>
+                        <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
+                            <View className="flex-row items-center px-5 pt-2 pb-4">
+                                <Pressable
+                                    className="h-10 w-10 items-center justify-center rounded-full bg-white/70 active:opacity-60 mr-3"
+                                    onPress={() => setShowAddressManager(false)}
+                                >
+                                    <ChevronLeft size={22} color="#1e293b" />
+                                </Pressable>
+                                <Text className="text-2xl font-lufga-bold text-slate-900">My Addresses</Text>
+                            </View>
+                            <View className="flex-1 px-5">
+                                <LocationAddressManager onClose={() => setShowAddressManager(false)} />
+                            </View>
+                        </SafeAreaView>
+                    </AppBackground>
+                </Modal>
+            )}
         </AppBackground>
     );
 }
@@ -175,9 +200,9 @@ function ProfileRow({
     );
 }
 
-function ActionRow({ icon, label, last }: { icon: React.ReactNode; label: string; last?: boolean }) {
+function ActionRow({ icon, label, last, onPress }: { icon: React.ReactNode; label: string; last?: boolean; onPress?: () => void }) {
     return (
-        <Pressable className={`flex-row items-center px-4 py-4 active:bg-slate-50 ${last ? '' : 'border-b border-slate-100'}`}>
+        <Pressable onPress={onPress} className={`flex-row items-center px-4 py-4 active:bg-slate-50 ${last ? '' : 'border-b border-slate-100'}`}>
             <View className="h-10 w-10 items-center justify-center rounded-2xl bg-slate-100">
                 {icon}
             </View>

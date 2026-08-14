@@ -24,6 +24,8 @@ import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
 import { CartPage } from './pages/CartPage';
 import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { OrderHistoryPage } from './pages/OrderHistoryPage';
+import { CheckoutPage } from './pages/CheckoutPage';
 import { useAuthStore } from './lib/authStore';
 import { useCartStore } from './lib/cartStore';
 
@@ -34,6 +36,8 @@ function AppContent() {
   const [showCart, setShowCart] = useState(false);
   const [showMonthlyGrocery, setShowMonthlyGrocery] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
   const [direction, setDirection] = useState('forward');
   const { isAuthenticated, loadToken } = useAuthStore();
@@ -97,11 +101,23 @@ function AppContent() {
       );
     }
 
+    if (showCheckout) {
+      return (
+        <Animated.View key="checkout" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+          <CheckoutPage
+            onBack={() => setShowCheckout(false)}
+            onSuccess={() => { setShowCheckout(false); setShowCart(false); }}
+          />
+        </Animated.View>
+      );
+    }
+
     if (showCart) {
       return (
         <Animated.View key="cart" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
           <CartPage
             onBack={() => setShowCart(false)}
+            onCheckout={() => setShowCheckout(true)}
             onMonthlyGrocery={() => {
               setShowCart(false);
               setMonthlyReturnToCart(true);
@@ -143,10 +159,22 @@ function AppContent() {
       );
     }
 
+    if (showOrderHistory) {
+      return (
+        <Animated.View key="order-history" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+          <OrderHistoryPage onBack={() => setShowOrderHistory(false)} />
+        </Animated.View>
+      );
+    }
+
     if (showProfile) {
       return (
         <Animated.View key="profile" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
-          <ProfilePage onLogout={() => setShowProfile(false)} onBack={() => setShowProfile(false)} />
+          <ProfilePage
+            onLogout={() => setShowProfile(false)}
+            onBack={() => setShowProfile(false)}
+            onOrderHistory={() => { setShowProfile(false); setShowOrderHistory(true); }}
+          />
         </Animated.View>
       );
     }
@@ -161,6 +189,7 @@ function AppContent() {
             setMonthlyReturnToCart(false);
             setShowMonthlyGrocery(true);
           }}
+          onOrdersPress={() => setShowOrderHistory(true)}
           onProfilePress={() => setShowProfile(true)}
         />
         <FloatingCartBar onPress={() => setShowCart(true)} bottom={88} />

@@ -33,6 +33,7 @@ type HomePageProps = {
     onProductPress?: (product: Product) => void;
     onCartPress?: () => void;
     onListPress?: () => void;
+    onOrdersPress?: () => void;
     onProfilePress?: () => void;
 };
 
@@ -55,7 +56,7 @@ function productPrice(product: any) {
     return Math.max(0, basePrice - (basePrice * discount) / 100);
 }
 
-export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress, onProfilePress }: HomePageProps) {
+export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress, onOrdersPress, onProfilePress }: HomePageProps) {
     const { data: categoryData } = useCategories();
     const { data: randomProductData } = useRandomProducts();
     const { data: businessData } = useBusinesses();
@@ -126,7 +127,7 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
                     <View className="h-20" />
                 </ScrollView>
 
-                <BottomTabBar onProfilePress={onProfilePress} onListPress={onListPress} />
+                <BottomTabBar onProfilePress={onProfilePress} onListPress={onListPress} onOrdersPress={onOrdersPress} />
             </SafeAreaView>
         </AppBackground>
     );

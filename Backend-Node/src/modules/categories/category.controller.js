@@ -35,7 +35,7 @@ async function update(req, res, next) {
     const category = await Category.findByIdAndUpdate(
       req.params.id,
       pickCategoryFields(req.body),
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
     if (!category) return res.status(404).json({ message: 'Category not found' });
     successResponse(res, category, 'Category updated successfully');

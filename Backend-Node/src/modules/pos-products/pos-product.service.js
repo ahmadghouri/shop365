@@ -59,7 +59,7 @@ class PosProductService {
               thumbnail_path: item.THUMBNAIL_PATH,
               locno,
             },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
           );
         }
 

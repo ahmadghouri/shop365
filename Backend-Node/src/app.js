@@ -28,6 +28,7 @@ app.get('/health', (req, res) => {
 // API Routes — matching Laravel api.php structure exactly
 app.use('/api', require('./modules/auth/auth.routes'));
 app.use('/api', require('./modules/users/user.routes'));
+app.use('/api', require('./modules/addresses/address.routes'));
 app.use('/api', require('./modules/businesses/business.routes'));
 app.use('/api', require('./modules/categories/category.routes'));
 app.use('/api', require('./modules/products/product.routes'));

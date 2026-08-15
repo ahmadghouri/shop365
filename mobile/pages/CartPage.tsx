@@ -3,13 +3,15 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Plus, ShoppingBasket } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
+import VendorMinOrderModal from '@/components/VendorMinOrderModal';
+import { GradientPill } from '@/components/reusable/GradientPill';
 import { MonthlyCardSelector } from '@/components/MonthlyCardSelector';
 import { CartItem } from '@/components/cart/CartItem';
 import {
     useAddMonthlyGroceryItem,
     useMonthlyGroceryCards,
 } from '@/api/monthly-grocery/useMonthlyGroceryQueries';
-import { useCartStore, DELIVERY_FEE_AMOUNT } from '@/lib/cartStore';
+import { useCartStore } from '@/lib/cartStore';
 
 type CartPageProps = {
     onBack?: () => void;
@@ -18,12 +20,14 @@ type CartPageProps = {
 };
 
 export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps) {
-    const { items, updateQuantity, removeItem, getSubtotal, getTotal } = useCartStore();
+    const { items, updateQuantity, removeItem, getSubtotal, getTotal, deliveryFee, vendorGroups } = useCartStore();
     const { data: monthlyCards = [] } = useMonthlyGroceryCards();
     const addMonthlyItem = useAddMonthlyGroceryItem();
     const [selectedCardId, setSelectedCardId] = useState('');
     const [showCardSelector, setShowCardSelector] = useState(false);
     const [addingProductId, setAddingProductId] = useState('');
+    const [showVendorModal, setShowVendorModal] = useState(false);
+    const [failedVendors, setFailedVendors] = useState<any[]>([]);
 
     useEffect(() => {
         if (!selectedCardId && monthlyCards.length > 0) setSelectedCardId(monthlyCards[0]._id);
@@ -34,6 +38,25 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
 
     const subtotal = getSubtotal();
     const total = getTotal();
+
+    const handleCheckout = () => {
+        const failed = vendorGroups.filter((g) => !g.meets_min_order);
+        if (failed.length > 0) {
+            setFailedVendors(failed);
+            setShowVendorModal(true);
+            return;
+        }
+        onCheckout?.();
+    };
+
+    const handleCheckoutWithoutVendors = () => {
+        // remove items that belong to vendors who don't meet min order
+        failedVendors.forEach((g) => {
+            items.filter((item) => (item as any).business_id === g.business_id).forEach((it) => removeItem((it as any).id));
+        });
+        setShowVendorModal(false);
+        onCheckout?.();
+    };
 
     const handleAddToMonthly = async (productId: string, quantity: number) => {
         if (!selectedCardId) {
@@ -128,13 +151,29 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
                     {items.length > 0 && (
                         <View className="mx-5 mt-6 rounded-3xl bg-white/85 p-4">
                             <Text className="mb-3 text-base font-lufga-semibold text-slate-900">Order Summary</Text>
-                            <View className="mb-2 flex-row justify-between">
-                                <Text className="text-sm font-lufga text-slate-500">Subtotal</Text>
-                                <Text className="text-sm font-lufga-medium text-slate-800">Rs {subtotal.toLocaleString()}</Text>
-                            </View>
-                            <View className="mb-2 flex-row justify-between">
-                                <Text className="text-sm font-lufga text-slate-500">Delivery Fee</Text>
-                                <Text className="text-sm font-lufga-medium text-slate-800">Rs {DELIVERY_FEE_AMOUNT}</Text>
+
+                            {vendorGroups.map((group) => (
+                                <View key={group.business_id} className="mb-3 rounded-xl bg-slate-50 px-3 py-2">
+                                    <Text className="mb-1 text-xs font-lufga-semibold text-slate-700">{group.business_name}</Text>
+                                    <View className="flex-row justify-between">
+                                        <Text className="text-xs font-lufga text-slate-500">Subtotal</Text>
+                                        <Text className="text-xs font-lufga-medium text-slate-700">Rs {group.subtotal.toLocaleString()}</Text>
+                                    </View>
+                                    <View className="flex-row justify-between">
+                                        <Text className="text-xs font-lufga text-slate-500">Delivery Fee</Text>
+                                        <Text className="text-xs font-lufga-medium text-slate-700">Rs {group.delivery_fee}</Text>
+                                    </View>
+                                    {!group.meets_min_order && (
+                                        <Text className="mt-1 text-xs font-lufga-medium text-amber-600">
+                                            Min order Rs {group.min_order_price.toLocaleString()}. Add Rs {(group.min_order_price - group.subtotal).toLocaleString()} more.
+                                        </Text>
+                                    )}
+                                </View>
+                            ))}
+
+                            <View className="mb-2 mt-1 flex-row justify-between border-t border-slate-100 pt-2">
+                                <Text className="text-sm font-lufga text-slate-500">Total Delivery</Text>
+                                <Text className="text-sm font-lufga-medium text-slate-800">Rs {deliveryFee}</Text>
                             </View>
                             <View className="mt-2 flex-row justify-between border-t border-slate-100 pt-3">
                                 <Text className="text-base font-lufga-semibold text-slate-900">Total</Text>
@@ -142,16 +181,27 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
                             </View>
                         </View>
                     )}
+
                     <View className="h-32" />
                 </ScrollView>
 
                 {items.length > 0 && (
                     <View className="absolute bottom-0 left-0 right-0 border-t border-slate-100 bg-white px-5 pb-7 pt-3">
-                        <Pressable className="items-center justify-center rounded-full bg-[#EAB308] py-4 active:opacity-80" onPress={onCheckout}>
-                            <Text className="text-base font-lufga-semibold text-slate-900">Checkout - Rs {total.toLocaleString()}</Text>
-                        </Pressable>
+                            <GradientPill className="w-full rounded-full h-14">
+                                <Pressable className="h-14 w-full items-center justify-center rounded-full" onPress={handleCheckout}>
+                                <Text className="text-base font-lufga-semibold text-slate-900">
+                                    {`Checkout - Rs ${total.toLocaleString()}`}
+                                </Text>
+                            </Pressable>
+                        </GradientPill>
                     </View>
                 )}
+                <VendorMinOrderModal
+                    visible={showVendorModal}
+                    vendors={failedVendors}
+                    onClose={() => setShowVendorModal(false)}
+                    onCheckoutWithoutVendors={handleCheckoutWithoutVendors}
+                />
             </SafeAreaView>
         </AppBackground>
     );

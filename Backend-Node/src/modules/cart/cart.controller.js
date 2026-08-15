@@ -1,4 +1,5 @@
 const Cart = require('./cart.model');
+const Product = require('../products/product.model');
 const { successResponse } = require('../../utils/api-response');
 
 function extrasKey(extras) {
@@ -46,7 +47,36 @@ async function viewCart(req, res, next) {
       const extrasTotal = (item.extras || []).reduce((s, e) => s + (e.price || 0), 0);
       return sum + (basePrice + extrasTotal) * item.quantity;
     }, 0);
-    successResponse(res, { cartItems, total }, 'Cart retrieved successfully');
+
+    // Group by business for multi-vendor delivery fee + min order
+    const groupMap = {};
+    for (const item of cartItems) {
+      const p = item.product_id;
+      if (!p) continue;
+      const b = p.business_id;
+      const bid = b?._id?.toString() || 'unknown';
+      if (!groupMap[bid]) {
+        groupMap[bid] = {
+          business_id: bid,
+          business_name: b?.name || 'Unknown',
+          subtotal: 0,
+          delivery_fee: b?.delivery_fee ?? 150,
+          min_order_price: b?.min_order_price ?? 0,
+        };
+      }
+      const basePrice = item.variant?.price || p.final_price || p.price || 0;
+      const extrasTotal = (item.extras || []).reduce((s, e) => s + (e.price || 0), 0);
+      groupMap[bid].subtotal += (basePrice + extrasTotal) * item.quantity;
+    }
+
+    const groups = Object.values(groupMap).map((g) => ({
+      ...g,
+      meets_min_order: g.min_order_price === 0 || g.subtotal >= g.min_order_price,
+    }));
+
+    const deliveryFee = groups.reduce((sum, g) => sum + g.delivery_fee, 0);
+
+    successResponse(res, { cartItems, total, delivery_fee: deliveryFee, groups }, 'Cart retrieved successfully');
   } catch (error) { next(error); }
 }
 
@@ -90,4 +120,12 @@ async function getItemCount(req, res, next) {
   } catch (error) { next(error); }
 }
 
-module.exports = { addToCart, viewCart, removeCart, removeProduct, updateQuantity, clearCart, getItemCount };
+async function removeVendorItems(req, res, next) {
+  try {
+    const productIds = await Product.find({ business_id: req.params.businessId }).distinct('_id');
+    await Cart.deleteMany({ user_id: req.user._id, product_id: { $in: productIds } });
+    successResponse(res, null, 'Vendor items removed from cart');
+  } catch (error) { next(error); }
+}
+
+module.exports = { addToCart, viewCart, removeCart, removeProduct, updateQuantity, clearCart, getItemCount, removeVendorItems };

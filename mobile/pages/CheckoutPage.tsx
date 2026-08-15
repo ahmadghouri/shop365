@@ -5,7 +5,7 @@ import { ChevronLeft, Upload } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
 import { GradientPill } from '@/components/reusable/GradientPill';
 import { useAddresses } from '@/api/addresses/useAddressQueries';
-import { useCartStore, DELIVERY_FEE_AMOUNT } from '@/lib/cartStore';
+import { useCartStore } from '@/lib/cartStore';
 import type { Address } from '@/api/addresses/address.service';
 
 // ponytail: payment details hardcoded — move to admin config when backend supports it
@@ -33,7 +33,7 @@ type CheckoutPageProps = {
 
 export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
     const { data: addresses = [] } = useAddresses();
-    const { getSubtotal, getTotal, clearCart } = useCartStore();
+    const { getSubtotal, getTotal, clearCart, deliveryFee } = useCartStore();
 
     const [selectedAddressId, setSelectedAddressId] = useState<string>(
         addresses.find((a) => a.is_active)?._id || addresses[0]?._id || ''
@@ -42,7 +42,7 @@ export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
     const [placing, setPlacing] = useState(false);
 
     const subtotal = getSubtotal();
-    const delivery = DELIVERY_FEE_AMOUNT;
+    const delivery = deliveryFee;
     const discount = 0;
     const payable = subtotal + delivery - discount;
 

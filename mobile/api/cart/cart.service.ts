@@ -36,3 +36,8 @@ export async function getCartItemCount() {
     const response = await api.get('/cart/item-count');
     return response.data.item_count;
 }
+
+export async function removeVendorItems(businessId: string) {
+    const response = await api.delete(`/cart/vendor/${businessId}`);
+    return response.data;
+}

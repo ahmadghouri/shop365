@@ -50,6 +50,17 @@
             </div>
           </div>
 
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="delivery-fee">Delivery Fee (Rs)</Label>
+              <Input id="delivery-fee" v-model.number="form.delivery_fee" type="number" min="0" placeholder="150" />
+            </div>
+            <div class="space-y-2">
+              <Label for="min-order-price">Minimum Order Price (Rs)</Label>
+              <Input id="min-order-price" v-model.number="form.min_order_price" type="number" min="0" placeholder="0" />
+            </div>
+          </div>
+
           <p v-if="errorMessage" class="text-sm text-destructive" role="alert">
             {{ errorMessage }}
           </p>
@@ -85,7 +96,7 @@ const saving = ref(false);
 const errorMessage = ref("");
 const selectedImage = ref(null);
 const imagePreview = ref("");
-const form = ref({ opening_time: "", closing_time: "" });
+const form = ref({ opening_time: "", closing_time: "", delivery_fee: 150, min_order_price: 0 });
 
 const handleImageChange = (event) => {
   const file = event.target.files[0];
@@ -111,6 +122,8 @@ const loadSettings = async () => {
     const business = response.data.data;
     form.value.opening_time = business.opening_time || "";
     form.value.closing_time = business.closing_time || "";
+    form.value.delivery_fee = business.delivery_fee ?? 150;
+    form.value.min_order_price = business.min_order_price ?? 0;
     imagePreview.value = business.image_url || business.image || "";
   } catch (error) {
     errorMessage.value = error?.response?.data?.message || "Unable to load business settings.";
@@ -140,6 +153,8 @@ const saveSettings = async () => {
     const response = await businessApi.updateOwn({
       opening_time: form.value.opening_time,
       closing_time: form.value.closing_time,
+      delivery_fee: form.value.delivery_fee,
+      min_order_price: form.value.min_order_price,
       ...(image ? { image } : {}),
     });
     const business = response.data.data;

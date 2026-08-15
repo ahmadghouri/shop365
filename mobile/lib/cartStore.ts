@@ -6,7 +6,9 @@ import {
     removeCartItem as apiRemoveCartItem,
     updateCartQuantity as apiUpdateCartQuantity,
     clearCart as apiClearCart,
+    removeVendorItems as apiRemoveVendorItems,
 } from '@/api/cart/cart.service';
+import { getSettings as apiGetSettings } from '@/api/settings/settings.service';
 
 export type CartExtra = {
     id: string;
@@ -25,6 +27,7 @@ export type CartItem = {
     productId: string;   // product _id
     name: string;
     store: string;
+    businessId?: string;
     providerType?: string;
     price: number;
     quantity: number;
@@ -34,9 +37,20 @@ export type CartItem = {
     variant?: CartVariant;
 };
 
+export type VendorGroup = {
+    business_id: string;
+    business_name: string;
+    subtotal: number;
+    delivery_fee: number;
+    min_order_price: number;
+    meets_min_order: boolean;
+};
+
 type CartState = {
     items: CartItem[];
     loading: boolean;
+    deliveryFee: number;
+    vendorGroups: VendorGroup[];
     addItem: (item: {
         productId: string;
         name: string;
@@ -49,18 +63,21 @@ type CartState = {
         variant?: CartVariant;
     }) => Promise<void>;
     removeItem: (id: string) => Promise<void>;
+    removeVendorItems: (businessId: string) => Promise<void>;
     updateQuantity: (id: string, quantity: number) => Promise<void>;
     clearCart: () => Promise<void>;
     loadCart: () => Promise<void>;
+    loadSettings: () => Promise<void>;
     getSubtotal: () => number;
     getTotal: () => number;
+    meetsMinOrder: () => boolean;
 };
-
-const DELIVERY_FEE = 150;
 
 export const useCartStore = create<CartState>((set, get) => ({
     items: [],
     loading: false,
+    deliveryFee: 150,
+    vendorGroups: [],
 
     addItem: async (newItem) => {
         try {
@@ -102,7 +119,20 @@ export const useCartStore = create<CartState>((set, get) => ({
             await apiRemoveCartItem(id);
         } catch (error) {
             console.log('Cart removeItem error:', error);
-            // Reload to get real state
+        } finally {
+            // Always reload to refresh vendorGroups + deliveryFee
+            await get().loadCart();
+        }
+    },
+
+    removeVendorItems: async (businessId) => {
+        // Optimistic removal
+        set((state) => ({ items: state.items.filter((item) => item.businessId !== businessId) }));
+        try {
+            await apiRemoveVendorItems(businessId);
+        } catch (error) {
+            console.log('Cart removeVendorItems error:', error);
+        } finally {
             await get().loadCart();
         }
     },
@@ -119,6 +149,8 @@ export const useCartStore = create<CartState>((set, get) => ({
             await apiUpdateCartQuantity(id, quantity);
         } catch (error) {
             console.log('Cart updateQuantity error:', error);
+        } finally {
+            // Always reload to refresh vendorGroups + deliveryFee
             await get().loadCart();
         }
     },
@@ -129,6 +161,17 @@ export const useCartStore = create<CartState>((set, get) => ({
             await apiClearCart();
         } catch (error) {
             console.log('Cart clearCart error:', error);
+        }
+    },
+
+    loadSettings: async () => {
+        try {
+            const data = await apiGetSettings();
+            set({
+                deliveryFee: data.delivery_fee ?? 150,
+            });
+        } catch (error) {
+            console.log('Settings load error:', error);
         }
     },
 
@@ -158,6 +201,7 @@ export const useCartStore = create<CartState>((set, get) => ({
                     productId: String(product?._id || product?.id || ''),
                     name: product?.title || 'Product',
                     store: business?.name || '',
+                    businessId: business?._id?.toString() || business?.id?.toString() || '',
                     providerType: business?.type || business?.category_id?.name || '',
                     price: item.variant?.price || product?.final_price || product?.price || 0,
                     quantity: item.quantity || 1,
@@ -174,7 +218,12 @@ export const useCartStore = create<CartState>((set, get) => ({
                     } : undefined,
                 };
             });
-            set({ items: cartItems, loading: false });
+            set({
+                items: cartItems,
+                loading: false,
+                deliveryFee: data?.delivery_fee ?? 150,
+                vendorGroups: data?.groups ?? [],
+            });
         } catch (error) {
             console.log('Cart loadCart error:', error);
             set({ loading: false });
@@ -190,8 +239,12 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     getTotal: () => {
         const subtotal = get().getSubtotal();
-        return subtotal > 0 ? subtotal + DELIVERY_FEE : 0;
+        return subtotal > 0 ? subtotal + get().deliveryFee : 0;
+    },
+
+    meetsMinOrder: () => {
+        const groups = get().vendorGroups;
+        if (groups.length === 0) return true;
+        return groups.every((g) => g.meets_min_order);
     },
 }));
-
-export const DELIVERY_FEE_AMOUNT = DELIVERY_FEE;

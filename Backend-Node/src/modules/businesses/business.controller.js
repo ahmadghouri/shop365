@@ -128,6 +128,8 @@ async function updateOwn(req, res, next) {
     business.opening_time = openingTime;
     business.closing_time = closingTime;
     if (req.body.image) business.image = req.body.image.trim();
+    if (req.body.delivery_fee !== undefined) business.delivery_fee = Number(req.body.delivery_fee);
+    if (req.body.min_order_price !== undefined) business.min_order_price = Number(req.body.min_order_price);
     await business.save();
     successResponse(res, business, 'Business settings updated successfully');
   } catch (error) { next(error); }

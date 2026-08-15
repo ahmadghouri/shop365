@@ -1,15 +1,19 @@
-const { Server } = require('socket.io');
+const { Server } = require("socket.io");
 let io;
 
 function init(server) {
   io = new Server(server, {
-    cors: { origin: '*' }
+    cors: { origin: "*" },
   });
 
-  io.on('connection', (socket) => {
+  io.on("connection", (socket) => {
     // Optional: join rooms per user id if client sends it
-    socket.on('join', (room) => {
-      try { socket.join(room); } catch (e) { /* ignore */ }
+    socket.on("join", (room) => {
+      try {
+        socket.join(room);
+      } catch (e) {
+        /* ignore */
+      }
     });
   });
 
@@ -17,7 +21,7 @@ function init(server) {
 }
 
 function getIO() {
-  if (!io) throw new Error('Socket.io not initialized');
+  if (!io) throw new Error("Socket.io not initialized");
   return io;
 }
 

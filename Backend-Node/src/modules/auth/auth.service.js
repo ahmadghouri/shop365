@@ -1,13 +1,13 @@
-const User = require('../users/user.model');
-const { hashPassword, comparePassword } = require('../../utils/password');
-const { generateToken } = require('../../utils/jwt');
-const { UserRole } = require('../../common/enums');
+const User = require("../users/user.model");
+const { hashPassword, comparePassword } = require("../../utils/password");
+const { generateToken } = require("../../utils/jwt");
+const { UserRole } = require("../../common/enums");
 
 class AuthService {
   async register(data) {
     const existing = await User.findOne({ phone_no: data.phone_no });
     if (existing) {
-      const error = new Error('Phone number already registered');
+      const error = new Error("Phone number already registered");
       error.statusCode = 409;
       throw error;
     }
@@ -27,16 +27,24 @@ class AuthService {
   async login(data) {
     let user = await User.findOne({ phone_no: data.phone_no });
     if (!user || !(await comparePassword(data.password, user.password))) {
-      const error = new Error('Invalid credentials');
+      const error = new Error("Invalid credentials");
       error.statusCode = 401;
       throw error;
     }
 
-    // Populate household only if household_id is a valid ObjectId
-    if (user.household_id && String(user.household_id).match(/^[0-9a-fA-F]{24}$/)) {
-      try {
-        user = await user.populate('household_id');
-      } catch (_) { /* skip if populate fails */ }
+    // Attach active address (replacing legacy household flow)
+    try {
+      const Address = require("../addresses/address.model");
+      const addr = await Address.findOne({
+        user_id: user._id,
+        is_active: true,
+      });
+      if (addr) {
+        user.address_id = addr._id;
+        user.household_id = addr.toJSON ? addr.toJSON() : addr; // keep response shape
+      }
+    } catch (_) {
+      /* skip if lookup fails */
     }
 
     const token = generateToken({ id: user._id.toString(), role: user.role });
@@ -46,12 +54,15 @@ class AuthService {
   async adminLogin(data) {
     const user = await User.findOne({ phone_no: data.phone_no });
     if (!user || !(await comparePassword(data.password, user.password))) {
-      const error = new Error('Invalid credentials');
+      const error = new Error("Invalid credentials");
       error.statusCode = 401;
       throw error;
     }
-    if (user.role !== UserRole.ADMIN && user.role !== UserRole.RESTAURANT_ADMIN) {
-      const error = new Error('Unauthorized access');
+    if (
+      user.role !== UserRole.ADMIN &&
+      user.role !== UserRole.RESTAURANT_ADMIN
+    ) {
+      const error = new Error("Unauthorized access");
       error.statusCode = 403;
       throw error;
     }
@@ -62,7 +73,7 @@ class AuthService {
   async updatePassword(data) {
     const user = await User.findOne({ phone_no: data.phone_no });
     if (!user) {
-      const error = new Error('User not found');
+      const error = new Error("User not found");
       error.statusCode = 404;
       throw error;
     }

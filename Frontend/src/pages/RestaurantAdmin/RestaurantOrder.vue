@@ -10,21 +10,12 @@
     </PageHeader>
 
     <div class="flex items-center gap-2 mt-6 mb-6 overflow-x-auto pb-2">
-      <Button
-        v-for="tab in statusTabs"
-        :key="tab.value"
-        :variant="selectedStatus === tab.value ? 'default' : 'outline'"
-        :class="selectedStatus === tab.value ? tab.activeClass : tab.inactiveClass"
-        size="sm"
-        @click="selectedStatus = tab.value"
-      >
+      <Button v-for="tab in statusTabs" :key="tab.value" :variant="selectedStatus === tab.value ? 'default' : 'outline'"
+        :class="selectedStatus === tab.value ? tab.activeClass : tab.inactiveClass" size="sm"
+        @click="selectedStatus = tab.value">
         <component :is="tab.icon" class="w-4 h-4 mr-1.5" />
         {{ tab.label }}
-        <Badge
-          v-if="getStatusCount(tab.value) > 0"
-          variant="secondary"
-          class="ml-1.5 text-[10px] px-1.5 py-0"
-        >
+        <Badge v-if="getStatusCount(tab.value) > 0" variant="secondary" class="ml-1.5 text-[10px] px-1.5 py-0">
           {{ getStatusCount(tab.value) }}
         </Badge>
       </Button>
@@ -52,24 +43,14 @@
       <AlertDescription>Error loading orders: {{ error }}</AlertDescription>
     </Alert>
 
-    <EmptyState
-      v-else-if="ordersListSortedAndFiltered.length === 0"
-      title="No Orders"
-      description="No orders found for this status."
-      :icon="ShoppingCart"
-    />
+    <EmptyState v-else-if="ordersListSortedAndFiltered.length === 0" title="No Orders"
+      description="No orders found for this status." :icon="ShoppingCart" />
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      <Card
-        v-for="order in ordersListSortedAndFiltered"
-        :key="order.id"
+      <Card v-for="order in ordersListSortedAndFiltered" :key="order.id"
         class="relative overflow-hidden transition-all duration-300"
-        :class="order.newOrder ? 'ring-2 ring-red-500/80 shadow-lg shadow-red-500/10' : 'hover:shadow-md'"
-      >
-        <Badge
-          v-if="order.newOrder"
-          class="absolute top-3 right-3 bg-red-500 hover:bg-red-500"
-        >
+        :class="order.newOrder ? 'ring-2 ring-red-500/80 shadow-lg shadow-red-500/10' : 'hover:shadow-md'">
+        <Badge v-if="order.newOrder" class="absolute top-3 right-3 bg-red-500 hover:bg-red-500">
           New
         </Badge>
 
@@ -99,8 +80,9 @@
             <div class="flex items-center gap-2 text-muted-foreground">
               <MapPin class="w-3.5 h-3.5 shrink-0" />
               <span class="truncate">
-                {{ order.user?.household?.address || "No Address" }},
-                {{ order.user?.household?.town?.town_name || "" }}
+                {{ order.address?.address || order.user?.household?.address || "No Address" }}
+                <span v-if="order.address?.city || order.user?.household?.town?.town_name">,
+                  {{ order.address?.city || order.user?.household?.town?.town_name }}</span>
               </span>
             </div>
           </div>
@@ -138,14 +120,10 @@
         </DialogHeader>
 
         <div class="flex flex-wrap gap-2">
-          <Button
-            v-for="status in statusOptions"
-            :key="status.value"
-            size="sm"
+          <Button v-for="status in statusOptions" :key="status.value" size="sm"
             :variant="selectedOrder.status === status.value ? 'default' : 'outline'"
             :class="selectedOrder.status === status.value ? status.activeClass : ''"
-            @click="updateOrderStatus(status.value)"
-          >
+            @click="updateOrderStatus(status.value)">
             <component :is="status.icon" class="w-3.5 h-3.5 mr-1" />
             {{ status.label }}
           </Button>
@@ -168,8 +146,9 @@
             <MapPin class="w-4 h-4 text-muted-foreground" />
             <span class="text-muted-foreground">Address:</span>
             <span class="font-medium">
-              {{ selectedOrder.user?.household?.address || "No Address" }},
-              {{ selectedOrder.user?.household?.town?.town_name || "" }}
+              {{ selectedOrder.address?.address || selectedOrder.user?.household?.address || "No Address" }}
+              <span v-if="selectedOrder.address?.city || selectedOrder.user?.household?.town?.town_name">,
+                {{ selectedOrder.address?.city || selectedOrder.user?.household?.town?.town_name }}</span>
             </span>
           </div>
         </div>
@@ -178,17 +157,10 @@
 
         <ScrollArea class="max-h-[40vh]">
           <div v-if="selectedOrder.items?.length > 0" class="space-y-3">
-            <div
-              v-for="item in selectedOrder.items"
-              :key="item.id"
-              class="flex gap-3 p-3 rounded-lg bg-muted/50"
-            >
+            <div v-for="item in selectedOrder.items" :key="item.id" class="flex gap-3 p-3 rounded-lg bg-muted/50">
               <div class="shrink-0">
-                <img
-                  :src="selectedOrder.perscription?.full_image_url || item.product?.image_url"
-                  alt="Product"
-                  class="w-16 h-16 object-cover rounded-md border"
-                />
+                <img :src="selectedOrder.perscription?.full_image_url || item.product?.image_url" alt="Product"
+                  class="w-16 h-16 object-cover rounded-md border" />
               </div>
               <div class="flex-1 min-w-0">
                 <p class="font-medium text-sm">{{ item.product?.title }}</p>
@@ -407,4 +379,3 @@ onMounted(async () => {
   await fetchRestaurantOrders();
 });
 </script>
-

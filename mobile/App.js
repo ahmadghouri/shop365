@@ -27,6 +27,8 @@ import { ProfilePage } from './pages/ProfilePage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { useAuthStore } from './lib/authStore';
+import { initSocket, joinRoom, onOrderStatusUpdated, disconnectSocket } from './lib/socket';
+import { Alert } from 'react-native';
 import { useCartStore } from './lib/cartStore';
 
 function AppContent() {
@@ -40,7 +42,7 @@ function AppContent() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
   const [direction, setDirection] = useState('forward');
-  const { isAuthenticated, loadToken } = useAuthStore();
+  const { isAuthenticated, loadToken, user } = useAuthStore();
   const loadCart = useCartStore((s) => s.loadCart);
 
   useEffect(() => {
@@ -48,8 +50,23 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       loadCart();
+      try {
+        initSocket();
+        joinRoom(`user_${user._id}`);
+        onOrderStatusUpdated((payload) => {
+          // Refresh orders and notify user
+          try { queryClient.invalidateQueries(['orders']); } catch (e) {}
+          const id = String(payload.order_id || payload.orderId || payload._id || '');
+          Alert.alert('Order update', `Order ${id.slice(0,6)} is now ${payload.status}`);
+        });
+      } catch (e) {
+        console.warn('Socket init failed', e);
+      }
+    } else {
+      // cleanup socket on logout
+      disconnectSocket();
     }
   }, [isAuthenticated]);
 

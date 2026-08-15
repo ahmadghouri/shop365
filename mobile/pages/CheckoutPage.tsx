@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Upload } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
 import { GradientPill } from '@/components/reusable/GradientPill';
 import { useAddresses } from '@/api/addresses/useAddressQueries';
+import { useMutation } from '@tanstack/react-query';
+import api from '@/api/client';
 import { useCartStore } from '@/lib/cartStore';
 import type { Address } from '@/api/addresses/address.service';
 
@@ -33,12 +35,19 @@ type CheckoutPageProps = {
 
 export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
     const { data: addresses = [] } = useAddresses();
-    const { getSubtotal, getTotal, clearCart, deliveryFee } = useCartStore();
+    const { getSubtotal, getTotal, clearCart, deliveryFee, vendorGroups, removeVendorItems } = useCartStore();
 
-    const [selectedAddressId, setSelectedAddressId] = useState<string>(
-        addresses.find((a) => a.is_active)?._id || addresses[0]?._id || ''
-    );
+    const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+
+    // ensure selectedAddressId is set once addresses load
+    useEffect(() => {
+        if ((!selectedAddressId || selectedAddressId === '') && addresses && addresses.length > 0) {
+            const active = addresses.find((a) => a.is_active)?._id || addresses[0]?._id || '';
+            setSelectedAddressId(active);
+        }
+    }, [addresses]);
     const [screenshotUri, setScreenshotUri] = useState('');
+    const [voucherCode, setVoucherCode] = useState('');
     const [placing, setPlacing] = useState(false);
 
     const subtotal = getSubtotal();
@@ -46,20 +55,43 @@ export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
     const discount = 0;
     const payable = subtotal + delivery - discount;
 
+    const placeOrderMutation = useMutation({
+        mutationFn: (payload: any) => api.post('/order', payload).then((r) => r.data),
+    });
+
     const handlePlaceOrder = async () => {
         if (!selectedAddressId) {
             Alert.alert('Select address', 'Please select a delivery address.');
             return;
         }
-        setPlacing(true);
+
+        // generate a client-side idempotency key to prevent duplicate orders
+        const client_order_id = `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+        const payload = {
+            address_id: selectedAddressId,
+            voucher_code: voucherCode || undefined,
+            client_order_id,
+            // if screenshot upload supported, send a url or base64 reference
+        };
+
         try {
-            // ponytail: order API call goes here when order service is ready
+            console.log('checkout payload', { address_id: selectedAddressId, voucher_code: voucherCode });
+            setPlacing(true);
+
+            // Remove vendor items that don't meet minimum order before placing order
+            const failed = (vendorGroups || []).filter((g) => !g.meets_min_order);
+            if (failed.length > 0) {
+                await Promise.all(failed.map((g) => removeVendorItems(g.business_id)));
+            }
+
+            const res = await placeOrderMutation.mutateAsync(payload);
             await clearCart();
             Alert.alert('Order Placed!', 'Your order has been placed successfully.', [
                 { text: 'OK', onPress: onSuccess },
             ]);
         } catch (err: any) {
-            Alert.alert('Error', err?.message || 'Could not place order. Please try again.');
+            const msg = err?.response?.data?.message || err?.message || 'Could not place order. Please try again.';
+            Alert.alert('Error', msg);
         } finally {
             setPlacing(false);
         }
@@ -167,6 +199,19 @@ export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
                         <View className="flex-row justify-between mt-1">
                             <Text className="text-sm font-lufga-semibold text-slate-900">Payable Amount:</Text>
                             <Text className="text-sm font-lufga-bold text-slate-900">RS: {payable.toLocaleString()}</Text>
+                        </View>
+                    </View>
+
+                    {/* Voucher input */}
+                    <View className="mb-6">
+                        <Text className="text-sm font-lufga-semibold text-slate-700 mb-2">Voucher / Discount Code (optional)</Text>
+                        <View className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                            <TextInput
+                                className="px-4 py-3 text-sm font-lufga text-slate-700"
+                                placeholder="Enter voucher code"
+                                value={voucherCode}
+                                onChangeText={setVoucherCode}
+                            />
                         </View>
                     </View>
 

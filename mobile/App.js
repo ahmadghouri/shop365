@@ -10,6 +10,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { FloatingCartBar } from './components/FloatingCartBar';
+import { BottomTabBar } from './components/home/BottomTabBar';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
@@ -21,94 +22,44 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { useAuthStore } from './lib/authStore';
 import { useCartStore } from './lib/cartStore';
 
+// Screens where the bottom tab bar should be visible
+const TAB_SCREENS = ['home', 'cart', 'monthly', 'orders', 'profile'];
+
 function AppContent() {
   const [screen, setScreen] = useState('Splash');
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeProduct, setActiveProduct] = useState(null);
-  const [showCart, setShowCart] = useState(false);
-  const [showMonthlyGrocery, setShowMonthlyGrocery] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  const [activeTab, setActiveTab] = useState('home');
   const [showCheckout, setShowCheckout] = useState(false);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
+  const [cartSelectedCardId, setCartSelectedCardId] = useState('');
   const { isAuthenticated, loadToken } = useAuthStore();
   const loadCart = useCartStore((s) => s.loadCart);
 
-  useEffect(() => {
-    loadToken();
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadCart();
-    }
-  }, [isAuthenticated]);
-
+  useEffect(() => { loadToken(); }, []);
+  useEffect(() => { if (isAuthenticated) loadCart(); }, [isAuthenticated]);
   useEffect(() => {
     if (screen === 'Splash') {
-      const timer = setTimeout(() => {
-        setScreen('Location');
-      }, 2500);
+      const timer = setTimeout(() => setScreen('Location'), 2500);
       return () => clearTimeout(timer);
     }
   }, [screen]);
 
-  const navigateForward = useCallback((target) => {
-    setScreen(target);
-  }, []);
-
-  const navigateBack = useCallback((target) => {
-    setScreen(target);
-  }, []);
+  const navigateForward = useCallback((target) => setScreen(target), []);
+  const navigateBack = useCallback((target) => setScreen(target), []);
 
   if (screen === 'Splash') {
-    return (
-      <View style={{ flex: 1 }}>
-        <SplashScreen />
-      </View>
-    );
+    return <View style={{ flex: 1 }}><SplashScreen /></View>;
   }
 
   if (isAuthenticated) {
-    if (showMonthlyGrocery) {
-      return (
-        <View style={{ flex: 1 }}>
-          <MonthlyGroceryPage
-            onBack={() => {
-              setShowMonthlyGrocery(false);
-              if (monthlyReturnToCart) setShowCart(true);
-            }}
-            onGoToCart={() => {
-              setShowMonthlyGrocery(false);
-              setShowCart(true);
-            }}
-          />
-        </View>
-      );
-    }
-
+    // Sub-screens — no tabbar
     if (showCheckout) {
       return (
         <View style={{ flex: 1 }}>
           <CheckoutPage
             onBack={() => setShowCheckout(false)}
-            onSuccess={() => { setShowCheckout(false); setShowCart(false); }}
-          />
-        </View>
-      );
-    }
-
-    if (showCart) {
-      return (
-        <View style={{ flex: 1 }}>
-          <CartPage
-            onBack={() => setShowCart(false)}
-            onCheckout={() => setShowCheckout(true)}
-            onMonthlyGrocery={() => {
-              setShowCart(false);
-              setMonthlyReturnToCart(true);
-              setShowMonthlyGrocery(true);
-            }}
+            onSuccess={() => { setShowCheckout(false); setActiveTab('cart'); }}
           />
         </View>
       );
@@ -121,10 +72,10 @@ function AppContent() {
             productId={String(activeProduct.id || activeProduct._id)}
             previewImage={activeProduct.image}
             onBack={() => setActiveProduct(null)}
-            onAddToCart={() => { }}
-            onBuyNow={() => setShowCart(true)}
+            onAddToCart={() => {}}
+            onBuyNow={() => { setActiveProduct(null); setActiveTab('cart'); }}
           />
-          <FloatingCartBar onPress={() => setShowCart(true)} bottom={104} />
+          <FloatingCartBar onPress={() => { setActiveProduct(null); setActiveTab('cart'); }} bottom={104} />
         </View>
       );
     }
@@ -138,47 +89,73 @@ function AppContent() {
             subtitle={activeCategory.subtitle}
             onBack={() => setActiveCategory(null)}
             onProductPress={(product) => setActiveProduct(product)}
-            onCartPress={() => setShowCart(true)}
+            onCartPress={() => { setActiveCategory(null); setActiveTab('cart'); }}
           />
-          <FloatingCartBar onPress={() => setShowCart(true)} />
+          <FloatingCartBar onPress={() => { setActiveCategory(null); setActiveTab('cart'); }} />
         </View>
       );
     }
 
-    if (showOrderHistory) {
-      return (
-        <View style={{ flex: 1 }}>
-          <OrderHistoryPage onBack={() => setShowOrderHistory(false)} />
-        </View>
-      );
-    }
-
-    if (showProfile) {
-      return (
-        <View style={{ flex: 1 }}>
-          <ProfilePage
-            onLogout={() => setShowProfile(false)}
-            onBack={() => setShowProfile(false)}
-            onOrderHistory={() => { setShowProfile(false); setShowOrderHistory(true); }}
-          />
-        </View>
-      );
-    }
+    // Main tab screens
+    const renderTab = () => {
+      switch (activeTab) {
+        case 'cart':
+          return (
+            <CartPage
+              onBack={() => setActiveTab('home')}
+              onCheckout={() => setShowCheckout(true)}
+              onMonthlyGrocery={() => {
+                setMonthlyReturnToCart(true);
+                setActiveTab('list');
+              }}
+            />
+          );
+        case 'list':
+          return (
+            <MonthlyGroceryPage
+              onBack={() => setActiveTab(monthlyReturnToCart ? 'cart' : 'home')}
+              onGoToCart={() => { setMonthlyReturnToCart(false); setActiveTab('cart'); }}
+            />
+          );
+        case 'orders':
+          return <OrderHistoryPage onBack={() => setActiveTab('home')} />;
+        case 'profile':
+          return (
+            <ProfilePage
+              onLogout={() => setActiveTab('home')}
+              onBack={() => setActiveTab('home')}
+              onOrderHistory={() => setActiveTab('orders')}
+            />
+          );
+        default: // home
+          return (
+            <HomePage
+              onCategoryPress={(category) => setActiveCategory(category)}
+              onProductPress={(product) => setActiveProduct(product)}
+              onCartPress={() => setActiveTab('cart')}
+              onListPress={() => { setMonthlyReturnToCart(false); setActiveTab('list'); }}
+              onOrdersPress={() => setActiveTab('orders')}
+              onProfilePress={() => setActiveTab('profile')}
+            />
+          );
+      }
+    };
 
     return (
       <View style={{ flex: 1 }}>
-        <HomePage
-          onCategoryPress={(category) => setActiveCategory(category)}
-          onProductPress={(product) => setActiveProduct(product)}
-          onCartPress={() => setShowCart(true)}
-          onListPress={() => {
-            setMonthlyReturnToCart(false);
-            setShowMonthlyGrocery(true);
-          }}
-          onOrdersPress={() => setShowOrderHistory(true)}
-          onProfilePress={() => setShowProfile(true)}
-        />
-        <FloatingCartBar onPress={() => setShowCart(true)} bottom={88} />
+        {renderTab()}
+        {activeTab !== 'cart' && (
+          <BottomTabBar
+            activeTab={activeTab}
+            onHomePress={() => setActiveTab('home')}
+            onListPress={() => setActiveTab('list')}
+            onOrdersPress={() => setActiveTab('orders')}
+            onProfilePress={() => setActiveTab('profile')}
+          />
+        )}
+        {activeTab === 'home' && (
+          <FloatingCartBar onPress={() => setActiveTab('cart')} bottom={88} />
+        )}
       </View>
     );
   }
@@ -186,20 +163,18 @@ function AppContent() {
   const renderScreen = () => {
     switch (screen) {
       case 'Location':
-        return (
-          <LocationPermissionScreen onDone={() => navigateForward('Welcome')} />
-        );
+        return <LocationPermissionScreen onDone={() => navigateForward('Welcome')} />;
       case 'Register':
         return (
           <RegisterScreen
-            onSuccess={() => { }}
+            onSuccess={() => {}}
             onLogin={() => navigateBack('Login')}
           />
         );
       case 'Login':
         return (
           <LoginScreen
-            onSuccess={() => { }}
+            onSuccess={() => {}}
             onRegister={() => navigateForward('Register')}
             onForgotPassword={() => console.log('Forgot password')}
           />
@@ -209,11 +184,7 @@ function AppContent() {
     }
   };
 
-  return (
-    <View style={{ flex: 1 }}>
-      {renderScreen()}
-    </View>
-  );
+  return <View style={{ flex: 1 }}>{renderScreen()}</View>;
 }
 
 export default function App() {

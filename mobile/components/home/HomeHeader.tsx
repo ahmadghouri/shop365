@@ -1,15 +1,15 @@
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { LocateFixed, MapPin, ShoppingCart } from 'lucide-react-native';
+import { Bell, MapPin } from 'lucide-react-native';
 import { useUpdateLocationMutation } from '@/api/users/useUpdateLocationMutation';
 import { useAuthStore } from '@/lib/authStore';
 import { useLocation } from '@/lib/useLocation';
 import { GlassCard } from '../reusable/GlassCard';
 
 type HomeHeaderProps = {
-    onCartPress?: () => void;
+    onNotificationPress?: () => void;
 };
 
-export function HomeHeader({ onCartPress }: HomeHeaderProps) {
+export function HomeHeader({ onNotificationPress }: HomeHeaderProps) {
     const user = useAuthStore((state) => state.user);
     const { location, loading, detectLocation } = useLocation();
     const updateLocation = useUpdateLocationMutation();
@@ -57,9 +57,9 @@ export function HomeHeader({ onCartPress }: HomeHeaderProps) {
             <GlassCard className='rounded-full'>
                 <Pressable
                     className="h-12 w-12 items-center justify-center"
-                    onPress={onCartPress}
+                    onPress={onNotificationPress}
                 >
-                    <ShoppingCart size={20} color="#111827" />
+                    <Bell size={20} color="#111827" />
                 </Pressable>
             </GlassCard>
         </View>

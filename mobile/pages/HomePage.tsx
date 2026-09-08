@@ -9,7 +9,6 @@ import { CategoryList } from '@/components/home/CategoryList';
 import { PromoBanner } from '@/components/home/PromoBanner';
 import { MonthlyGroceryHomeCard } from '@/components/home/MonthlyGroceryHomeCard';
 import { TopSellingProducts } from '@/components/home/TopSellingProducts';
-import { BottomTabBar } from '@/components/home/BottomTabBar';
 
 type Category = {
     id: string;
@@ -119,15 +118,13 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
         <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    <HomeHeader onCartPress={onCartPress} />
+                    <HomeHeader />
                     <CategoryList categories={categories} onCategoryPress={onCategoryPress} />
                     <PromoBanner discount="10%" storeName="SHOP365 Mart" />
                     <MonthlyGroceryHomeCard onPress={onListPress} />
                     <TopSellingProducts products={products} onProductPress={onProductPress} />
-                    <View className="h-20" />
+                    <View className="h-28" />
                 </ScrollView>
-
-                <BottomTabBar onProfilePress={onProfilePress} onListPress={onListPress} onOrdersPress={onOrdersPress} />
             </SafeAreaView>
         </AppBackground>
     );

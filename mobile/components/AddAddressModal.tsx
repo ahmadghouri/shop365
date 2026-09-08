@@ -58,7 +58,7 @@ export function AddAddressModal({
   const handlePickerClose = () => {
     setShowPicker(false);
     const u = useAuthStore.getState().user;
-    if (u?.latitude) {
+    if (u?.latitude && u.longitude) {
       setCoords({ lat: u.latitude, lng: u.longitude });
       if (u.address && !address.trim()) setAddress(u.address);
     }

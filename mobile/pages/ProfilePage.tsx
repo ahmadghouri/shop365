@@ -1,8 +1,18 @@
 import { useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+    Alert,
+    Image,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import {
     Bell,
+    Camera,
     ChevronLeft,
     ChevronRight,
     CircleHelp,
@@ -13,17 +23,16 @@ import {
     Mail,
     Map,
     MapPin,
-    Pencil,
     Phone,
     Shield,
     ShoppingBag,
     Star,
-    User,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/lib/authStore';
 import { AppBackground } from '@/components/AppBackground';
 import { LocationPickerModal } from '@/components/LocationPickerModal';
 import { LocationAddressManager } from '@/components/LocationAddressManager';
+import { useUpdateAvatarMutation } from '@/api/users/useUpdateAvatarMutation';
 
 type ProfilePageProps = {
     onLogout?: () => void;
@@ -32,9 +41,10 @@ type ProfilePageProps = {
 };
 
 export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePageProps) {
-    const { user, logout } = useAuthStore();
+    const { user, updateUser, logout } = useAuthStore();
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [showAddressManager, setShowAddressManager] = useState(false);
+    const uploadAvatar = useUpdateAvatarMutation();
 
     const handleLogout = () => {
         Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -50,10 +60,46 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePagePro
         ]);
     };
 
+    const handlePickAvatar = async () => {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+            Alert.alert('Permission needed', 'Allow photo library access to set your profile picture.');
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+        });
+        if (result.canceled || !result.assets?.length) return;
+
+        // Preview immediately, then persist to the backend
+        const localUri = result.assets[0].uri;
+        const prevImage = user?.image;
+        try {
+            await updateUser({ image: localUri });
+        } catch {
+            // preview only
+        }
+
+        const userId = user?._id || user?.id;
+        if (userId) {
+            try {
+                await uploadAvatar.mutateAsync({ userId, imageUri: localUri });
+            } catch {
+                // keep the local preview but flag failure
+                Alert.alert('Upload failed', 'Your photo could not be saved to the server.');
+                if (prevImage) await updateUser({ image: prevImage });
+            }
+        }
+    };
+
     const name = user?.name || 'User';
-    const phone = user?.phone || user?.phone_number || '—';
+    const phone = user?.phone || user?.phone_number || user?.phone_no || '—';
     const email = user?.email || '—';
     const address = user?.address || user?.location?.address || 'Not set';
+    const avatarUri = user?.image;
     const initials = name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
 
     return (
@@ -70,23 +116,48 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePagePro
                 </View>
 
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    {/* Avatar & Info */}
-                    <View className="items-center px-5 pb-6 pt-6">
-                        <View className="h-28 w-28 items-center justify-center rounded-full bg-slate-900 shadow-lg shadow-slate-400">
-                            <Text className="text-3xl font-lufga-bold text-amber-300">{initials}</Text>
+                    {/* Hero card with gradient avatar */}
+                    <View className="mx-5 mt-2 overflow-hidden rounded-[28px] bg-[#1D1D1D] shadow-sm shadow-slate-300">
+                        <View className="absolute -right-16 -top-20 h-48 w-48 rounded-full bg-amber-400/20" />
+                        <View className="absolute -left-12 -bottom-24 h-40 w-40 rounded-full bg-amber-500/10" />
+                        <View className="items-center px-6 pb-7 pt-8">
+                            <Pressable
+                                className="relative active:opacity-80"
+                                onPress={handlePickAvatar}
+                                disabled={uploadAvatar.isPending}
+                            >
+                                <View className="h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-amber-400/70 bg-slate-800">
+                                    {avatarUri ? (
+                                        <Image source={{ uri: avatarUri }} className="h-full w-full" resizeMode="cover" />
+                                    ) : (
+                                        <Text className="text-3xl font-lufga-bold text-amber-300">{initials}</Text>
+                                    )}
+                                </View>
+                                {uploadAvatar.isPending ? (
+                                    <View className="absolute bottom-0 right-0 h-8 w-8 items-center justify-center rounded-full bg-amber-400">
+                                        <Text className="text-xs font-lufga-bold text-slate-900">…</Text>
+                                    </View>
+                                ) : (
+                                    <View className="absolute bottom-0 right-0 h-8 w-8 items-center justify-center rounded-full bg-amber-400">
+                                        <Camera size={15} color="#171717" />
+                                    </View>
+                                )}
+                            </Pressable>
+                            <Text className="mt-4 text-2xl font-lufga-bold text-white">{name}</Text>
+                            <Text className="mt-1 text-sm font-lufga text-slate-300">
+                                {email !== '—' ? email : phone}
+                            </Text>
+                            <View className="mt-4 flex-row items-center rounded-full bg-white/10 px-4 py-2">
+                                <MapPin size={14} color="#FCD34D" />
+                                <Text className="ml-2 text-xs font-lufga-medium text-slate-200" numberOfLines={1}>
+                                    {address}
+                                </Text>
+                            </View>
                         </View>
-                        <Text className="mt-4 text-2xl font-lufga-bold text-slate-950">{name}</Text>
-                        <Text className="mt-1 text-sm font-lufga text-slate-500">
-                            {email !== '—' ? email : phone}
-                        </Text>
-                        <Pressable className="mt-4 flex-row items-center rounded-full bg-slate-900 px-5 py-2.5 active:opacity-80">
-                            <Pencil size={14} color="#FCD34D" />
-                            <Text className="ml-2 text-sm font-lufga-semibold text-white">Edit Profile</Text>
-                        </Pressable>
                     </View>
 
                     {/* Personal Info Card */}
-                    <View className="mx-5 mt-2 rounded-[28px] bg-white p-1 shadow-sm shadow-slate-100">
+                    <View className="mx-5 mt-5 rounded-[28px] bg-white p-1 shadow-sm shadow-slate-100">
                         <Text className="px-4 pb-2 pt-4 text-xs font-lufga-semibold uppercase tracking-widest text-slate-400">Personal Information</Text>
 
                         <ProfileRow icon={<Phone size={18} color="#b77900" />} label="Phone" value={phone} />

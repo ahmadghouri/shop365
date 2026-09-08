@@ -6,6 +6,7 @@ type User = {
     id?: string | number;
     phone_no: string;
     name?: string;
+    image?: string;
     address?: string;
     street?: string;
     area?: string;
@@ -20,7 +21,7 @@ type AuthState = {
     token: string | null;
     isAuthenticated: boolean;
     setAuth: (user: User, token: string) => void;
-    updateUser: (user: User) => Promise<void>;
+    updateUser: (user: Partial<User>) => Promise<void>;
     logout: () => Promise<void>;
     loadToken: () => Promise<void>;
 };

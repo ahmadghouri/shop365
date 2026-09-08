@@ -1,6 +1,7 @@
 const userService = require('./user.service');
 const User = require('./user.model');
 const { successResponse } = require('../../utils/api-response');
+const { uploadToCloudinary } = require('../../utils/cloudinary-upload');
 const Order = require('../orders/order.model');
 
 async function refreshUser(req, res, next) {
@@ -115,4 +116,16 @@ async function updateUser(req, res, next) {
   } catch (error) { next(error); }
 }
 
-module.exports = { refreshUser, index, show, destroy, usersRegisteredToday, deleteUsers, updateUser };
+async function uploadAvatar(req, res, next) {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No image uploaded' });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    const result = await uploadToCloudinary(req.file, 'avatars');
+    user.image = result.secure_url;
+    await user.save();
+    res.json({ message: 'Profile image updated successfully', user: user.toJSON() });
+  } catch (error) { next(error); }
+}
+
+module.exports = { refreshUser, index, show, destroy, usersRegisteredToday, deleteUsers, updateUser, uploadAvatar };

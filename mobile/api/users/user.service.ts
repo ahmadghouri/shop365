@@ -8,3 +8,19 @@ export async function updateUserLocation(
     const response = await api.put<UpdateUserResponse>(`/update/${userId}`, location);
     return response.data;
 }
+
+export async function updateUserAvatar(
+    userId: string | number,
+    imageUri: string
+): Promise<UpdateUserResponse> {
+    const formData = new FormData();
+    formData.append('image', {
+        uri: imageUri,
+        name: 'avatar.jpg',
+        type: 'image/jpeg',
+    } as any);
+    const response = await api.put<UpdateUserResponse>(`/update/${userId}/avatar`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+}

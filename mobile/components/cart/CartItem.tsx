@@ -112,19 +112,7 @@ export function CartItem({
                 </View>
             )}
 
-            {/* Add to Monthly Grocery */}
-            {isGroceryProvider && onAddToMonthly && (
-                <Pressable
-                    disabled={!selectedCardId || isAdding}
-                    className="mt-3 flex-row items-center justify-center rounded-2xl border border-amber-300 bg-amber-50 py-3 active:opacity-70 disabled:opacity-40"
-                    onPress={() => onAddToMonthly(item.productId, item.quantity)}
-                >
-                    <ListPlus size={17} color="#b45309" />
-                    <Text className="ml-2 text-sm font-lufga-semibold text-amber-800">
-                        {isAdding ? 'Adding...' : 'Add to Monthly Grocery'}
-                    </Text>
-                </Pressable>
-            )}
+
         </View>
     );
 }

@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String },
   password: { type: String, required: true },
   role: { type: String, enum: Object.values(UserRole), default: UserRole.END_USER },
+  image: { type: String, default: '' },
   household_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Household' },
   town_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Town' },
   business_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Business' },

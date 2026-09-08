@@ -38,9 +38,8 @@ function AlertDialogOverlay({
           as="Pressable">
           <>{children}</>
         </NativeOnlyAnimatedView>
-      </NativeOnlyAnimatedView>
-    </AlertDialogPrimitive.Overlay>
-    </FullWindowOverlay >
+      </AlertDialogPrimitive.Overlay>
+    </FullWindowOverlay>
   );
 }
 

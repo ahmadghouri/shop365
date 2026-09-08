@@ -3,16 +3,8 @@ import { TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as AccordionPrimitive from '@rn-primitives/accordion';
 import { ChevronDown } from 'lucide-react-native';
-import { Platform, Pressable, View } from 'react-native';
-import Animated, {
-  FadeOutUp,
-  LayoutAnimationConfig,
-  LinearTransition,
-  ReduceMotion,
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import { Animated, Platform, Pressable, View } from 'react-native';
 
 function Accordion({
   children,
@@ -20,13 +12,11 @@ function Accordion({
   ...props
 }: Omit<React.ComponentProps<typeof AccordionPrimitive.Root>, 'asChild'>) {
   return (
-    <LayoutAnimationConfig skipEntering>
-      <AccordionPrimitive.Root
-        {...(props as AccordionPrimitive.RootProps)}
-        asChild={Platform.OS !== 'web'}>
-        <Animated.View layout={LinearTransition.duration(200)}>{children}</Animated.View>
-      </AccordionPrimitive.Root>
-    </LayoutAnimationConfig>
+    <AccordionPrimitive.Root
+      {...(props as AccordionPrimitive.RootProps)}
+      asChild={Platform.OS !== 'web'}>
+      <View>{children}</View>
+    </AccordionPrimitive.Root>
   );
 }
 
@@ -46,11 +36,7 @@ function AccordionItem({
       value={value}
       asChild={Platform.OS !== 'web'}
       {...props}>
-      <Animated.View
-        className="native:overflow-hidden"
-        layout={Platform.select({ native: LinearTransition.duration(200) })}>
-        {children}
-      </Animated.View>
+      <View className="native:overflow-hidden">{children}</View>
     </AccordionPrimitive.Item>
   );
 }
@@ -65,17 +51,20 @@ function AccordionTrigger({
   children?: React.ReactNode;
 }) {
   const { isExpanded } = AccordionPrimitive.useItemContext();
+  const rotation = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
 
-  const progress = useDerivedValue(
-    () => (isExpanded ? withTiming(1, { duration: 250 }) : withTiming(0, { duration: 200 })),
-    [isExpanded]
-  );
-  const chevronStyle = useAnimatedStyle(
-    () => ({
-      transform: [{ rotate: `${progress.value * 180}deg` }],
-    }),
-    [progress]
-  );
+  useEffect(() => {
+    Animated.timing(rotation, {
+      toValue: isExpanded ? 1 : 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+  }, [isExpanded]);
+
+  const rotate = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
 
   return (
     <TextClassContext.Provider
@@ -94,7 +83,7 @@ function AccordionTrigger({
               className
             )}>
             <>{children}</>
-            <Animated.View style={chevronStyle}>
+            <Animated.View style={{ transform: [{ rotate }] }}>
               <Icon
                 as={ChevronDown}
                 size={16}
@@ -129,13 +118,7 @@ function AccordionContent({
           })
         )}
         {...props}>
-        <Animated.View
-          exiting={Platform.select({
-            native: FadeOutUp.duration(200).reduceMotion(ReduceMotion.System),
-          })}
-          className={cn('pb-4', className)}>
-          {children}
-        </Animated.View>
+        <View className={cn('pb-4', className)}>{children}</View>
       </AccordionPrimitive.Content>
     </TextClassContext.Provider>
   );

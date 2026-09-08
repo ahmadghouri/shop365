@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import * as AlertDialogPrimitive from '@rn-primitives/alert-dialog';
 import * as React from 'react';
 import { Platform, View, type ViewProps } from 'react-native';
-import { FadeIn, FadeOut, ReduceMotion } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
 const AlertDialog = AlertDialogPrimitive.Root;
@@ -21,8 +20,8 @@ function AlertDialogOverlay({
   children,
   ...props
 }: Omit<React.ComponentProps<typeof AlertDialogPrimitive.Overlay>, 'asChild'> & {
-    children?: React.ReactNode;
-  }) {
+  children?: React.ReactNode;
+}) {
   return (
     <FullWindowOverlay>
       <AlertDialogPrimitive.Overlay
@@ -36,13 +35,12 @@ function AlertDialogOverlay({
         {...props}
         asChild={Platform.OS !== 'web'}>
         <NativeOnlyAnimatedView
-          entering={FadeIn.duration(200).delay(50).reduceMotion(ReduceMotion.System)}
-          exiting={FadeOut.duration(150).reduceMotion(ReduceMotion.System)}
           as="Pressable">
           <>{children}</>
         </NativeOnlyAnimatedView>
-      </AlertDialogPrimitive.Overlay>
-    </FullWindowOverlay>
+      </NativeOnlyAnimatedView>
+    </AlertDialogPrimitive.Overlay>
+    </FullWindowOverlay >
   );
 }
 
@@ -51,8 +49,8 @@ function AlertDialogContent({
   portalHost,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
-    portalHost?: string;
-  }) {
+  portalHost?: string;
+}) {
   return (
     <AlertDialogPortal hostName={portalHost}>
       <AlertDialogOverlay>

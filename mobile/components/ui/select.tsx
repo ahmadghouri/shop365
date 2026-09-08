@@ -6,7 +6,6 @@ import * as SelectPrimitive from '@rn-primitives/select';
 import { Check, ChevronDown, ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import { FadeIn, FadeOut, ReduceMotion } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
 type Option = SelectPrimitive.Option;
@@ -20,8 +19,8 @@ function SelectValue({
   className,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value> & {
-    className?: string;
-  }) {
+  className?: string;
+}) {
   const { value } = SelectPrimitive.useRootContext();
   return (
     <SelectPrimitive.Value
@@ -43,9 +42,9 @@ function SelectTrigger({
   size = 'default',
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-    children?: React.ReactNode;
-    size?: 'default' | 'sm';
-  }) {
+  children?: React.ReactNode;
+  size?: 'default' | 'sm';
+}) {
   return (
     <SelectPrimitive.Trigger
       ref={ref}
@@ -74,9 +73,9 @@ function SelectContent({
   portalHost,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content> & {
-    className?: string;
-    portalHost?: string;
-  }) {
+  className?: string;
+  portalHost?: string;
+}) {
   return (
     <SelectPrimitive.Portal hostName={portalHost}>
       <FullWindowOverlay>
@@ -85,8 +84,6 @@ function SelectContent({
           asChild={Platform.OS !== 'web'}>
           <NativeOnlyAnimatedView
             className="z-50"
-            entering={FadeIn.reduceMotion(ReduceMotion.System)}
-            exiting={FadeOut.reduceMotion(ReduceMotion.System)}
             as="Pressable">
             <TextClassContext.Provider value="text-popover-foreground">
               <SelectPrimitive.Content

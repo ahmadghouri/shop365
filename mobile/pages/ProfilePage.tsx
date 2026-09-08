@@ -163,7 +163,7 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePagePro
                                 <Text className="text-2xl font-lufga-bold text-slate-900">My Addresses</Text>
                             </View>
                             <View className="flex-1 px-5">
-                                <LocationAddressManager onClose={() => setShowAddressManager(false)} />
+                                <LocationAddressManager />
                             </View>
                         </SafeAreaView>
                     </AppBackground>

@@ -1,13 +1,7 @@
 import { cn } from '@/lib/utils';
 import * as ProgressPrimitive from '@rn-primitives/progress';
-import { Platform, View } from 'react-native';
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedStyle,
-  useDerivedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import { Animated, Platform, View } from 'react-native';
 
 function Progress({
   className,
@@ -40,38 +34,38 @@ type IndicatorProps = {
 };
 
 function WebIndicator({ value, className }: IndicatorProps) {
-  if (Platform.OS !== 'web') {
-    return null;
-  }
-
+  if (Platform.OS !== 'web') return null;
   return (
     <View
       className={cn('bg-primary h-full w-full flex-1 transition-all', className)}
-      style={{ transform: `translateX(-${100 - (value ?? 0)}%)` }}>
+      style={{ transform: `translateX(-${100 - (value ?? 0)}%)` } as any}>
       <ProgressPrimitive.Indicator className={cn('h-full w-full', className)} />
     </View>
   );
 }
 
 function NativeIndicator({ value, className }: IndicatorProps) {
-  const progress = useDerivedValue(() => value ?? 0);
+  const anim = useRef(new Animated.Value(value ?? 0)).current;
 
-  const indicator = useAnimatedStyle(() => {
-    return {
-      width: withSpring(
-        `${interpolate(progress.value, [0, 100], [1, 100], Extrapolation.CLAMP)}%`,
-        { overshootClamping: true }
-      ),
-    };
+  useEffect(() => {
+    Animated.spring(anim, {
+      toValue: Math.max(1, Math.min(100, value ?? 0)),
+      overshootClamping: true,
+      useNativeDriver: false,
+    }).start();
   }, [value]);
 
-  if (Platform.OS === 'web') {
-    return null;
-  }
+  const width = anim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+    extrapolate: 'clamp',
+  });
+
+  if (Platform.OS === 'web') return null;
 
   return (
     <ProgressPrimitive.Indicator asChild>
-      <Animated.View style={indicator} className={cn('bg-foreground h-full', className)} />
+      <Animated.View style={{ width }} className={cn('bg-foreground h-full', className)} />
     </ProgressPrimitive.Indicator>
   );
 }

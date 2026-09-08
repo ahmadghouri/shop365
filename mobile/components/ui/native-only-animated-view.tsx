@@ -1,29 +1,25 @@
-import { Platform, Pressable } from 'react-native';
-import Animated from 'react-native-reanimated';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { Platform, Pressable, View } from 'react-native';
 
 /**
- * This component is used to wrap animated views that should only be animated on native.
- * @param props - The props for the animated view.
- * @returns The animated view if the platform is native, otherwise the children.
- * @example
- * <NativeOnlyAnimatedView entering={FadeIn} exiting={FadeOut}>
- *   <Text>I am only animated on native</Text>
- * </NativeOnlyAnimatedView>
+ * Wrapper that renders children directly (no animation).
+ * Previously used react-native-reanimated for enter/exit animations;
+ * now falls back to plain View/Pressable since reanimated was removed.
  */
 function NativeOnlyAnimatedView(
-  props: (React.ComponentProps<typeof Animated.View> & React.RefAttributes<typeof Animated.View> 
-    & { as?: "View" }) | (React.ComponentProps<typeof AnimatedPressable> & React.RefAttributes<typeof AnimatedPressable> & { as: "Pressable" })
+  props: ({ as?: 'View' } & React.ComponentProps<typeof View>) |
+    ({ as: 'Pressable' } & React.ComponentProps<typeof Pressable>)
 ) {
+  const { as, entering: _e, exiting: _x, layout: _l, ...rest } = props as any;
+
   if (Platform.OS === 'web') {
-    return <>{props.children as React.ReactNode}</>;
-  } else {
-    if (props.as === "Pressable"){
-      return <AnimatedPressable {...props} />;
-    }
-    return <Animated.View {...props} />;
+    return <>{props.children}</>;
   }
+
+  if (as === 'Pressable') {
+    return <Pressable {...rest} />;
+  }
+
+  return <View {...rest} />;
 }
 
 export { NativeOnlyAnimatedView };

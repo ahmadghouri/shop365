@@ -15,7 +15,6 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { FadeIn, ReduceMotion } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
 const MenubarMenu = MenubarPrimitive.Menu;
@@ -102,10 +101,10 @@ function MenubarSubTrigger({
   iconClassName,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.SubTrigger> & {
-    children?: React.ReactNode;
-    iconClassName?: string;
-    inset?: boolean;
-  }) {
+  children?: React.ReactNode;
+  iconClassName?: string;
+  inset?: boolean;
+}) {
   const { open } = MenubarPrimitive.useSubContext();
   const icon = Platform.OS === 'web' ? ChevronRight : open ? ChevronUp : ChevronDown;
   return (
@@ -137,7 +136,7 @@ function MenubarSubContent({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.SubContent>) {
   return (
-    <NativeOnlyAnimatedView entering={FadeIn.reduceMotion(ReduceMotion.System)}>
+    <NativeOnlyAnimatedView>
       <MenubarPrimitive.SubContent
         className={cn(
           'bg-popover border-border overflow-hidden rounded-md border p-1 shadow-lg shadow-black/5',
@@ -160,15 +159,14 @@ function MenubarContent({
   sideOffset = 8,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Content> & {
-    portalHost?: string;
-  }) {
+  portalHost?: string;
+}) {
   return (
     <MenubarPrimitive.Portal hostName={portalHost}>
       <FullWindowOverlay>
         <NativeOnlyAnimatedView
           as="Pressable"
           accessible={false}
-          entering={FadeIn.reduceMotion(ReduceMotion.System)}
           style={StyleSheet.absoluteFill}
           pointerEvents="box-none">
           <TextClassContext.Provider value="text-popover-foreground">
@@ -202,10 +200,10 @@ function MenubarItem({
   variant,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Item> & {
-    className?: string;
-    inset?: boolean;
-    variant?: 'default' | 'destructive';
-  }) {
+  className?: string;
+  inset?: boolean;
+  variant?: 'default' | 'destructive';
+}) {
   return (
     <TextClassContext.Provider
       value={cn(
@@ -237,8 +235,8 @@ function MenubarCheckboxItem({
   children,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.CheckboxItem> & {
-    children?: React.ReactNode;
-  }) {
+  children?: React.ReactNode;
+}) {
   return (
     <TextClassContext.Provider value="text-sm text-popover-foreground select-none group-active:text-accent-foreground">
       <MenubarPrimitive.CheckboxItem
@@ -273,8 +271,8 @@ function MenubarRadioItem({
   children,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.RadioItem> & {
-    children?: React.ReactNode;
-  }) {
+  children?: React.ReactNode;
+}) {
   return (
     <TextClassContext.Provider value="text-sm text-popover-foreground select-none group-active:text-accent-foreground">
       <MenubarPrimitive.RadioItem
@@ -303,9 +301,9 @@ function MenubarLabel({
   inset,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Label> & {
-    className?: string;
-    inset?: boolean;
-  }) {
+  className?: string;
+  inset?: boolean;
+}) {
   return (
     <MenubarPrimitive.Label
       className={cn(

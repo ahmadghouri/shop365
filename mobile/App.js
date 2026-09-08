@@ -1,16 +1,8 @@
 import './global.css';
-import { StatusBar } from 'react-native';
+import { StatusBar, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  SlideInRight,
-  SlideOutLeft,
-  SlideInLeft,
-  SlideOutRight,
-} from 'react-native-reanimated';
 import { queryClient } from './lib/queryClient';
 import { SplashScreen } from './components/SplashScreen';
 import { LocationPermissionScreen } from './components/LocationPermissionScreen';
@@ -39,7 +31,6 @@ function AppContent() {
   const [showOrderHistory, setShowOrderHistory] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
-  const [direction, setDirection] = useState('forward');
   const { isAuthenticated, loadToken } = useAuthStore();
   const loadCart = useCartStore((s) => s.loadCart);
 
@@ -63,30 +54,25 @@ function AppContent() {
   }, [screen]);
 
   const navigateForward = useCallback((target) => {
-    setDirection('forward');
     setScreen(target);
   }, []);
 
   const navigateBack = useCallback((target) => {
-    setDirection('back');
     setScreen(target);
   }, []);
 
-  const entering = direction === 'forward' ? SlideInRight.duration(300) : SlideInLeft.duration(300);
-  const exiting = direction === 'forward' ? SlideOutLeft.duration(300) : SlideOutRight.duration(300);
-
   if (screen === 'Splash') {
     return (
-      <Animated.View exiting={FadeOut.duration(400)} style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <SplashScreen />
-      </Animated.View>
+      </View>
     );
   }
 
   if (isAuthenticated) {
     if (showMonthlyGrocery) {
       return (
-        <Animated.View key="monthly-grocery" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <MonthlyGroceryPage
             onBack={() => {
               setShowMonthlyGrocery(false);
@@ -97,24 +83,24 @@ function AppContent() {
               setShowCart(true);
             }}
           />
-        </Animated.View>
+        </View>
       );
     }
 
     if (showCheckout) {
       return (
-        <Animated.View key="checkout" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <CheckoutPage
             onBack={() => setShowCheckout(false)}
             onSuccess={() => { setShowCheckout(false); setShowCart(false); }}
           />
-        </Animated.View>
+        </View>
       );
     }
 
     if (showCart) {
       return (
-        <Animated.View key="cart" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <CartPage
             onBack={() => setShowCart(false)}
             onCheckout={() => setShowCheckout(true)}
@@ -124,13 +110,13 @@ function AppContent() {
               setShowMonthlyGrocery(true);
             }}
           />
-        </Animated.View>
+        </View>
       );
     }
 
     if (activeProduct) {
       return (
-        <Animated.View key="product" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <BackendProductDetailPage
             productId={String(activeProduct.id || activeProduct._id)}
             previewImage={activeProduct.image}
@@ -139,13 +125,13 @@ function AppContent() {
             onBuyNow={() => setShowCart(true)}
           />
           <FloatingCartBar onPress={() => setShowCart(true)} bottom={104} />
-        </Animated.View>
+        </View>
       );
     }
 
     if (activeCategory) {
       return (
-        <Animated.View key="category" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <CategoryDetailPage
             categoryId={activeCategory.id}
             title={activeCategory.name}
@@ -155,32 +141,32 @@ function AppContent() {
             onCartPress={() => setShowCart(true)}
           />
           <FloatingCartBar onPress={() => setShowCart(true)} />
-        </Animated.View>
+        </View>
       );
     }
 
     if (showOrderHistory) {
       return (
-        <Animated.View key="order-history" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <OrderHistoryPage onBack={() => setShowOrderHistory(false)} />
-        </Animated.View>
+        </View>
       );
     }
 
     if (showProfile) {
       return (
-        <Animated.View key="profile" entering={SlideInRight.duration(300)} exiting={SlideOutRight.duration(250)} style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <ProfilePage
             onLogout={() => setShowProfile(false)}
             onBack={() => setShowProfile(false)}
             onOrderHistory={() => { setShowProfile(false); setShowOrderHistory(true); }}
           />
-        </Animated.View>
+        </View>
       );
     }
 
     return (
-      <Animated.View key="home" entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <HomePage
           onCategoryPress={(category) => setActiveCategory(category)}
           onProductPress={(product) => setActiveProduct(product)}
@@ -193,7 +179,7 @@ function AppContent() {
           onProfilePress={() => setShowProfile(true)}
         />
         <FloatingCartBar onPress={() => setShowCart(true)} bottom={88} />
-      </Animated.View>
+      </View>
     );
   }
 
@@ -224,9 +210,9 @@ function AppContent() {
   };
 
   return (
-    <Animated.View key={screen} entering={entering} exiting={exiting} style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       {renderScreen()}
-    </Animated.View>
+    </View>
   );
 }
 

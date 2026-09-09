@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE_URL } from '@/api/client';
@@ -34,6 +34,8 @@ type HomePageProps = {
     onListPress?: () => void;
     onOrdersPress?: () => void;
     onProfilePress?: () => void;
+    onScrollChange?: (scrolling: boolean) => void;
+    onNotificationPress?: () => void;
 };
 
 function backendImageUri(product: any) {
@@ -55,10 +57,11 @@ function productPrice(product: any) {
     return Math.max(0, basePrice - (basePrice * discount) / 100);
 }
 
-export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress, onOrdersPress, onProfilePress }: HomePageProps) {
+export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress, onOrdersPress, onProfilePress, onScrollChange, onNotificationPress }: HomePageProps) {
     const { data: categoryData } = useCategories();
     const { data: randomProductData } = useRandomProducts();
     const { data: businessData } = useBusinesses();
+    const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Build a businessId → name map for quick lookup
     const businessMap = useMemo<Record<string, string>>(() => {
@@ -118,7 +121,7 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
         <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    <HomeHeader />
+                    <HomeHeader onNotificationPress={onNotificationPress} />
                     <CategoryList categories={categories} onCategoryPress={onCategoryPress} />
                     <PromoBanner discount="10%" storeName="SHOP365 Mart" />
                     <MonthlyGroceryHomeCard onPress={onListPress} />

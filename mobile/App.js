@@ -19,6 +19,7 @@ import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { NotificationPage } from './pages/NotificationPage';
 import { useAuthStore } from './lib/authStore';
 import { useCartStore } from './lib/cartStore';
 
@@ -127,6 +128,8 @@ function AppContent() {
               onOrderHistory={() => setActiveTab('orders')}
             />
           );
+        case 'notifications':
+          return <NotificationPage onBack={() => setActiveTab('home')} />;
         default: // home
           return (
             <HomePage
@@ -136,6 +139,7 @@ function AppContent() {
               onListPress={() => { setMonthlyReturnToCart(false); setActiveTab('list'); }}
               onOrdersPress={() => setActiveTab('orders')}
               onProfilePress={() => setActiveTab('profile')}
+              onNotificationPress={() => setActiveTab('notifications')}
             />
           );
       }

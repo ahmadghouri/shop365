@@ -6,6 +6,7 @@ import { AppBackground } from '@/components/AppBackground';
 import { GradientPill } from '@/components/reusable/GradientPill';
 import { useAddresses } from '@/api/addresses/useAddressQueries';
 import { useCartStore, DELIVERY_FEE_AMOUNT } from '@/lib/cartStore';
+import { placeOrder } from '@/api/orders/order.service';
 import type { Address } from '@/api/addresses/address.service';
 
 // ponytail: payment details hardcoded — move to admin config when backend supports it
@@ -53,13 +54,13 @@ export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
         }
         setPlacing(true);
         try {
-            // ponytail: order API call goes here when order service is ready
+            await placeOrder({ address_id: selectedAddressId });
             await clearCart();
-            Alert.alert('Order Placed!', 'Your order has been placed successfully.', [
+            Alert.alert('Order Placed! 🎉', 'Your order has been placed successfully.', [
                 { text: 'OK', onPress: onSuccess },
             ]);
         } catch (err: any) {
-            Alert.alert('Error', err?.message || 'Could not place order. Please try again.');
+            Alert.alert('Error', err?.response?.data?.message || err?.message || 'Could not place order. Please try again.');
         } finally {
             setPlacing(false);
         }

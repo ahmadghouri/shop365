@@ -11,6 +11,7 @@ import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { FloatingCartBar } from './components/FloatingCartBar';
 import { BottomTabBar } from './components/home/BottomTabBar';
+import { connectSocket, disconnectSocket } from './lib/socketService';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
@@ -38,7 +39,15 @@ function AppContent() {
   const loadCart = useCartStore((s) => s.loadCart);
 
   useEffect(() => { loadToken(); }, []);
-  useEffect(() => { if (isAuthenticated) loadCart(); }, [isAuthenticated]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCart();
+      const token = useAuthStore.getState().token;
+      if (token) connectSocket(token);
+    } else {
+      disconnectSocket();
+    }
+  }, [isAuthenticated]);
   useEffect(() => {
     if (screen === 'Splash') {
       const timer = setTimeout(() => setScreen('Location'), 2500);

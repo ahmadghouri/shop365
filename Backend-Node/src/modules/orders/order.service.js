@@ -7,6 +7,7 @@ const VoucherUsage = require('../vouchers/voucher-usage.model');
 const Perscription = require('../perscriptions/perscription.model');
 const User = require('../users/user.model');
 const { getPaginationParams, paginateResponse } = require('../../utils/pagination');
+const { notifyUser } = require('../../services/socket.service');
 
 class OrderService {
   async placeOrder(userId, data) {
@@ -94,11 +95,37 @@ class OrderService {
     }
 
     await Cart.deleteMany({ user_id: userId });
+
+    // Notify user — one notification for the batch
+    notifyUser(userId, {
+      type: 'order',
+      title: 'Order Confirmed! 🎉',
+      body: `Your order${orders.length > 1 ? 's have' : ' has'} been placed and is being prepared.`,
+    });
+
     return orders;
   }
 
   async viewOrders(userId) {
-    return Order.find({ user_id: userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user_id: userId }).sort({ createdAt: -1 }).lean();
+    // Attach first vendor name per order for the card display
+    const orderIds = orders.map(o => o._id);
+    const allItems = await OrderItem.find({ order_id: { $in: orderIds } })
+      .populate({ path: 'product_id', select: 'title business_id', populate: { path: 'business_id', select: 'name' } })
+      .lean();
+
+    const itemsByOrder = {};
+    for (const item of allItems) {
+      const oid = item.order_id.toString();
+      if (!itemsByOrder[oid]) itemsByOrder[oid] = [];
+      itemsByOrder[oid].push(item);
+    }
+
+    return orders.map(order => {
+      const items = itemsByOrder[order._id.toString()] || [];
+      const vendors = [...new Set(items.map(i => i.product_id?.business_id?.name).filter(Boolean))];
+      return { ...order, vendors, item_count: items.reduce((s, i) => s + i.quantity, 0) };
+    });
   }
 
   async show(orderId) {
@@ -126,6 +153,18 @@ class OrderService {
 
   async updateOrderStatus(orderId, status) {
     const order = await Order.findByIdAndUpdate(orderId, { status }, { returnDocument: 'after' });
+
+    if (order) {
+      const messages = {
+        processing:  { title: 'Order Being Prepared 👨‍🍳', body: `Your order #${orderId.toString().slice(-6).toUpperCase()} is now being prepared.` },
+        shipped:     { title: 'Out for Delivery 🚚',      body: `Your order #${orderId.toString().slice(-6).toUpperCase()} is on its way!` },
+        delivered:   { title: 'Order Delivered ✅',        body: `Your order #${orderId.toString().slice(-6).toUpperCase()} has been delivered. Enjoy!` },
+        cancelled:   { title: 'Order Cancelled',           body: `Your order #${orderId.toString().slice(-6).toUpperCase()} has been cancelled.` },
+      };
+      const msg = messages[status];
+      if (msg) notifyUser(order.user_id.toString(), { type: status === 'delivered' ? 'order' : 'delivery', ...msg });
+    }
+
     return order;
   }
 

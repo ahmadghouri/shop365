@@ -76,7 +76,7 @@
         <CardHeader class="pb-3">
           <div class="flex items-center justify-between">
             <div>
-              <CardTitle class="text-base">Order #{{ order.id }}</CardTitle>
+              <CardTitle class="text-base">Order #{{ order.id.slice(-6).toUpperCase() }}</CardTitle>
               <CardDescription class="flex items-center gap-1 mt-0.5">
                 <Clock class="w-3 h-3" />
                 {{ formatDate(order.created_at) }}
@@ -130,7 +130,7 @@
         <DialogHeader>
           <div class="flex items-center justify-between">
             <div>
-              <DialogTitle>Order #{{ selectedOrder.id }}</DialogTitle>
+              <DialogTitle>Order #{{ selectedOrder.id.slice(-6).toUpperCase() }}</DialogTitle>
               <DialogDescription>{{ formatDate(selectedOrder.created_at) }}</DialogDescription>
             </div>
             <OrderStatusBadge :status="selectedOrder.status" />
@@ -254,17 +254,23 @@ const I = new Audio("/notification.mp3");
 I.volume = 0.25;
 
 const statusTabs = [
-  { value: "pending", label: "New Orders", icon: Circle, activeClass: "bg-red-500 hover:bg-red-600 text-white", inactiveClass: "text-red-500 border-red-200 hover:bg-red-50" },
-  { value: "preparing", label: "Preparing", icon: Timer, activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white", inactiveClass: "text-yellow-600 border-yellow-200 hover:bg-yellow-50" },
-  { value: "delivered", label: "Delivered", icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white", inactiveClass: "text-green-600 border-green-200 hover:bg-green-50" },
-  { value: "cancelled", label: "Cancelled", icon: XCircle, activeClass: "bg-blue-500 hover:bg-blue-600 text-white", inactiveClass: "text-blue-500 border-blue-200 hover:bg-blue-50" },
+  { value: "pending",          label: "New Orders",       icon: Circle,       activeClass: "bg-red-500 hover:bg-red-600 text-white",    inactiveClass: "text-red-500 border-red-200 hover:bg-red-50" },
+  { value: "confirmed",        label: "Confirmed",        icon: CheckCircle2, activeClass: "bg-sky-500 hover:bg-sky-600 text-white",    inactiveClass: "text-sky-600 border-sky-200 hover:bg-sky-50" },
+  { value: "preparing",        label: "Preparing",        icon: Timer,        activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white", inactiveClass: "text-yellow-600 border-yellow-200 hover:bg-yellow-50" },
+  { value: "picked_up",        label: "Picked Up",        icon: Timer,        activeClass: "bg-purple-500 hover:bg-purple-600 text-white", inactiveClass: "text-purple-600 border-purple-200 hover:bg-purple-50" },
+  { value: "out_for_delivery", label: "Out for Delivery", icon: Timer,        activeClass: "bg-orange-500 hover:bg-orange-600 text-white", inactiveClass: "text-orange-600 border-orange-200 hover:bg-orange-50" },
+  { value: "delivered",        label: "Delivered",        icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white", inactiveClass: "text-green-600 border-green-200 hover:bg-green-50" },
+  { value: "cancelled",        label: "Cancelled",        icon: XCircle,      activeClass: "bg-blue-500 hover:bg-blue-600 text-white",   inactiveClass: "text-blue-500 border-blue-200 hover:bg-blue-50" },
 ];
 
 const statusOptions = [
-  { value: "pending", label: "Pending", icon: Circle, activeClass: "bg-red-500 hover:bg-red-600 text-white" },
-  { value: "preparing", label: "Preparing", icon: Timer, activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white" },
-  { value: "delivered", label: "Delivered", icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white" },
-  { value: "cancelled", label: "Cancelled", icon: XCircle, activeClass: "bg-blue-500 hover:bg-blue-600 text-white" },
+  { value: "pending",          label: "Pending",          icon: Circle,       activeClass: "bg-red-500 hover:bg-red-600 text-white" },
+  { value: "confirmed",        label: "Confirmed",        icon: CheckCircle2, activeClass: "bg-sky-500 hover:bg-sky-600 text-white" },
+  { value: "preparing",        label: "Preparing",        icon: Timer,        activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white" },
+  { value: "picked_up",        label: "Picked Up",        icon: Timer,        activeClass: "bg-purple-500 hover:bg-purple-600 text-white" },
+  { value: "out_for_delivery", label: "Out for Delivery", icon: Timer,        activeClass: "bg-orange-500 hover:bg-orange-600 text-white" },
+  { value: "delivered",        label: "Delivered",        icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white" },
+  { value: "cancelled",        label: "Cancelled",        icon: XCircle,      activeClass: "bg-blue-500 hover:bg-blue-600 text-white" },
 ];
 
 const { stop } = useIntersectionObserver(

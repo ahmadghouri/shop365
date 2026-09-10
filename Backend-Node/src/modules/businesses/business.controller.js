@@ -128,6 +128,17 @@ async function updateOwn(req, res, next) {
     business.opening_time = openingTime;
     business.closing_time = closingTime;
     if (req.body.image) business.image = req.body.image.trim();
+
+    for (const field of ['minimum_order', 'delivery_fee']) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        const value = Number(req.body[field]);
+        if (!Number.isFinite(value) || value < 0) {
+          return res.status(422).json({ message: `${field} must be a non-negative number` });
+        }
+        business[field] = value;
+      }
+    }
+
     await business.save();
     successResponse(res, business, 'Business settings updated successfully');
   } catch (error) { next(error); }

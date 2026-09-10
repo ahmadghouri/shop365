@@ -1,24 +1,42 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Plus, ShoppingBasket } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
 import { MonthlyCardSelector } from '@/components/MonthlyCardSelector';
 import { CartItem } from '@/components/cart/CartItem';
 import { useMonthlyGroceryCards } from '@/api/monthly-grocery/useMonthlyGroceryQueries';
-import { useCartStore, DELIVERY_FEE_AMOUNT } from '@/lib/cartStore';
+import { useCartStore } from '@/lib/cartStore';
 
 type CartPageProps = {
     onBack?: () => void;
-    onCheckout?: () => void;
+    onCheckout?: (excludedVendorIds?: string[]) => void;
     onMonthlyGrocery?: () => void;
 };
 
 export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps) {
-    const { items, updateQuantity, removeItem, getSubtotal, getTotal } = useCartStore();
+    const { items, updateQuantity, removeItem, getVendorSummaries, getTotal, loadCart } = useCartStore();
+    const [refreshing, setRefreshing] = useState(false);
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        await loadCart();
+        setRefreshing(false);
+    };
     const { data: monthlyCards = [] } = useMonthlyGroceryCards();
     const [selectedCardId, setSelectedCardId] = useState('');
     const [showCardSelector, setShowCardSelector] = useState(false);
+    const [minimumOpen, setMinimumOpen] = useState(false);
 
     useEffect(() => {
         if (!selectedCardId && monthlyCards.length > 0) setSelectedCardId(monthlyCards[0]._id);
@@ -27,8 +45,22 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
         }
     }, [monthlyCards, selectedCardId]);
 
-    const subtotal = getSubtotal();
+    const vendorSummaries = getVendorSummaries();
     const total = getTotal();
+    const blockedVendors = vendorSummaries.filter((v) => v.minimumOrder > 0 && v.subtotal < v.minimumOrder);
+
+    const handleCheckout = () => {
+        if (blockedVendors.length > 0) {
+            setMinimumOpen(true);
+            return;
+        }
+        onCheckout?.();
+    };
+
+    const proceedWithoutBlocked = () => {
+        setMinimumOpen(false);
+        onCheckout?.(blockedVendors.map((v) => v.businessId));
+    };
 
     return (
         <AppBackground>
@@ -50,7 +82,9 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
                     </View>
                 </View>
 
-                <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+                <ScrollView className="flex-1" showsVerticalScrollIndicator={false}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#EAB308" colors={['#EAB308']} />}
+                >
                     {/* Monthly Grocery Banner */}
                     <View className="mx-5 mt-2 rounded-[28px] bg-slate-900 p-4">
                         <View className="flex-row items-center">
@@ -118,18 +152,34 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
                     {items.length > 0 && (
                         <View className="mx-5 mt-6 rounded-3xl bg-white/85 p-4">
                             <Text className="mb-3 text-base font-lufga-semibold text-slate-900">Order Summary</Text>
-                            <View className="mb-2 flex-row justify-between">
-                                <Text className="text-sm font-lufga text-slate-500">Subtotal</Text>
-                                <Text className="text-sm font-lufga-medium text-slate-800">
-                                    Rs {subtotal.toLocaleString()}
-                                </Text>
-                            </View>
-                            <View className="mb-2 flex-row justify-between">
-                                <Text className="text-sm font-lufga text-slate-500">Delivery Fee</Text>
-                                <Text className="text-sm font-lufga-medium text-slate-800">
-                                    Rs {DELIVERY_FEE_AMOUNT}
-                                </Text>
-                            </View>
+
+                            {vendorSummaries.map((v) => (
+                                <View key={v.name} className="mb-3 rounded-2xl bg-slate-50 p-3">
+                                    <Text className="mb-1 text-sm font-lufga-bold text-slate-900">{v.name}</Text>
+                                    <View className="flex-row justify-between py-0.5">
+                                        <Text className="text-sm font-lufga text-slate-500">Subtotal</Text>
+                                        <Text className="text-sm font-lufga-medium text-slate-800">
+                                            Rs {v.subtotal.toLocaleString()}
+                                        </Text>
+                                    </View>
+                                    {v.deliveryFee > 0 && (
+                                        <View className="flex-row justify-between py-0.5">
+                                            <Text className="text-sm font-lufga text-slate-500">Delivery Fee</Text>
+                                            <Text className="text-sm font-lufga-medium text-slate-800">
+                                                Rs {v.deliveryFee.toLocaleString()}
+                                            </Text>
+                                        </View>
+                                    )}
+                                    {v.minimumOrder > 0 && (
+                                        <Text className="mt-1 text-xs font-lufga text-amber-700">
+                                            {v.subtotal >= v.minimumOrder
+                                                ? `Minimum order met (Rs ${v.minimumOrder.toLocaleString()})`
+                                                : `Minimum order Rs ${v.minimumOrder.toLocaleString()} — add Rs ${(v.minimumOrder - v.subtotal).toLocaleString()} more`}
+                                        </Text>
+                                    )}
+                                </View>
+                            ))}
+
                             <View className="mt-2 flex-row justify-between border-t border-slate-100 pt-3">
                                 <Text className="text-base font-lufga-semibold text-slate-900">Total</Text>
                                 <Text className="text-lg font-lufga-bold text-slate-900">
@@ -145,7 +195,7 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
                     <View className="absolute bottom-0 left-0 right-0 border-t border-slate-100 bg-white px-5 pb-7 pt-3">
                         <Pressable
                             className="items-center justify-center rounded-full bg-[#EAB308] py-4 active:opacity-80"
-                            onPress={onCheckout}
+                            onPress={handleCheckout}
                         >
                             <Text className="text-base font-lufga-semibold text-slate-900">
                                 Checkout - Rs {total.toLocaleString()}
@@ -153,6 +203,30 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
                         </Pressable>
                     </View>
                 )}
+
+                <AlertDialog open={minimumOpen} onOpenChange={setMinimumOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Minimum Order Not Met</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {blockedVendors.map((v) => (
+                                    <Text key={v.name} className="mb-1 font-lufga text-slate-600">
+                                        {v.name}: add Rs {(v.minimumOrder - v.subtotal).toLocaleString()} more{'\n'}
+                                        <Text className="text-xs">min Rs {v.minimumOrder.toLocaleString()}</Text>
+                                    </Text>
+                                ))}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel className="rounded-full" onPress={() => setMinimumOpen(false)}>
+                                <Text>Add More Items</Text>
+                            </AlertDialogCancel>
+                            <AlertDialogAction className="rounded-full bg-[#EAB308] text-slate-900 active:bg-[#EAB308]" onPress={proceedWithoutBlocked}>
+                                <Text>Order Without These</Text>
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </SafeAreaView>
         </AppBackground>
     );

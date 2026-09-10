@@ -87,6 +87,15 @@ async function viewRestaurantOrders(req, res, next) {
   } catch (error) { next(error); }
 }
 
+async function assignRider(req, res, next) {
+  try {
+    const rider_id = req.body.rider_id;
+    if (!rider_id) return res.status(400).json({ message: 'rider_id is required' });
+    const result = await orderService.assignRider(req.params.id, rider_id, req.user.business_id);
+    successResponse(res, result, 'Rider assigned to order successfully');
+  } catch (error) { next(error); }
+}
+
 async function superAdminOrders(req, res, next) {
   try {
     const businessId = req.params.id;
@@ -122,4 +131,4 @@ async function deleteAllOrders(req, res, next) {
   } catch (error) { next(error); }
 }
 
-module.exports = { placeOrder, viewOrders, show, updateStatus, reorder, viewRestaurantOrders, superAdminOrders, getGroceryOrders, deleteAllOrders };
+module.exports = { placeOrder, viewOrders, show, updateStatus, reorder, viewRestaurantOrders, assignRider, superAdminOrders, getGroceryOrders, deleteAllOrders };

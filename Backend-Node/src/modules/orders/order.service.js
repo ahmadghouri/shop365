@@ -6,6 +6,7 @@ const Voucher = require('../vouchers/voucher.model');
 const VoucherUsage = require('../vouchers/voucher-usage.model');
 const Perscription = require('../perscriptions/perscription.model');
 const User = require('../users/user.model');
+const Rider = require('../riders/rider.model');
 const { getPaginationParams } = require('../../utils/pagination');
 const { notifyUser } = require('../../services/socket.service');
 
@@ -124,7 +125,9 @@ class OrderService {
   }
 
   async viewOrders(userId) {
-    const orders = await Order.find({ user_id: userId }).sort({ createdAt: -1 }).lean();
+    const orders = await Order.find({ user_id: userId })
+      .populate({ path: 'rider_id', select: 'name phone_no image' })
+      .sort({ createdAt: -1 }).lean();
     // Attach first vendor name per order for the card display
     const orderIds = orders.map(o => o._id);
     const allItems = await OrderItem.find({ order_id: { $in: orderIds } })
@@ -141,14 +144,22 @@ class OrderService {
     return orders.map(order => {
       const items = itemsByOrder[order._id.toString()] || [];
       const vendors = [...new Set(items.map(i => i.product_id?.business_id?.name).filter(Boolean))];
-      return { ...order, vendors, item_count: items.reduce((s, i) => s + i.quantity, 0) };
+      const r = order.rider_id && typeof order.rider_id === 'object' ? order.rider_id : null;
+      return {
+        ...order,
+        vendors,
+        item_count: items.reduce((s, i) => s + i.quantity, 0),
+        rider: r ? { _id: r._id?.toString(), name: r.name, phone_no: r.phone_no, image: r.image || '' } : null,
+        rider_id: r ? r._id?.toString() : null,
+      };
     });
   }
 
   async show(orderId) {
     const order = await Order.findById(orderId)
       .populate({ path: 'items', populate: { path: 'product_id', populate: { path: 'business_id' } } })
-      .populate('user_id');
+      .populate('user_id')
+      .populate({ path: 'rider_id', select: 'name phone_no image' });
     if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
     return order;
   }
@@ -164,6 +175,7 @@ class OrderService {
     const [orders, total] = await Promise.all([
       Order.find(filter).skip(skip).limit(perPage)
         .populate({ path: 'user_id', populate: { path: 'household_id', populate: { path: 'town_id' } } })
+        .populate({ path: 'rider_id', select: 'name phone_no image' })
         .sort({ createdAt: -1 }),
       Order.countDocuments(filter),
     ]);
@@ -181,11 +193,16 @@ class OrderService {
     const serialized = orders.map(o => {
       const u = o.user_id || {};
       const h = u.household_id || {};
+      const r = o.rider_id || {};
       return {
         id: o._id.toString(),
         created_at: o.createdAt,
         status: o.status,
         total_price: o.total_price,
+        rider_id: o.rider_id ? o.rider_id._id.toString() : null,
+        rider: o.rider_id
+          ? { id: r._id.toString(), name: r.name, phone_no: r.phone_no, image: r.image || '' }
+          : null,
         user: {
           id: (u._id || '').toString(),
           name: u.name,
@@ -234,6 +251,36 @@ class OrderService {
     }
 
     return order;
+  }
+
+  async assignRider(orderId, riderId, businessId) {
+    const order = await Order.findById(orderId);
+    if (!order) throw Object.assign(new Error('Order not found'), { statusCode: 404 });
+
+    // The rider flow starts once the provider marks the order "preparing"
+    if (!['preparing', 'picked_up', 'out_for_delivery'].includes(order.status)) {
+      throw Object.assign(new Error('Assign a rider only after the order is preparing'), { statusCode: 400 });
+    }
+
+    const items = await OrderItem.find({ order_id: order._id }).populate({ path: 'product_id', select: 'business_id' });
+    const businessIds = [...new Set(items.map(i => i.product_id?.business_id?.toString()).filter(Boolean))];
+    if (!businessIds.includes(String(businessId))) {
+      throw Object.assign(new Error('Not authorized for this order'), { statusCode: 403 });
+    }
+
+    const rider = await Rider.findById(riderId);
+    if (!rider || rider.business_id.toString() !== String(businessId)) {
+      throw Object.assign(new Error('Rider not found for your business'), { statusCode: 400 });
+    }
+    if (rider.status !== 'active') {
+      throw Object.assign(new Error('This rider is inactive'), { statusCode: 400 });
+    }
+
+    order.rider_id = rider.user_id;
+    await order.save();
+    // Assign hone ke saath hi order picked up ho jata hai — same notification path as the dashboard button
+    const updated = await this.updateOrderStatus(orderId, 'picked_up');
+    return { order: updated, rider };
   }
 
   async reorder(userId, orderId) {

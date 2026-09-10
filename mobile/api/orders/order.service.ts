@@ -15,6 +15,13 @@ export type OrderItemDetail = {
     price: number;
 };
 
+export type OrderRider = {
+    _id: string;
+    name: string;
+    phone_no?: string;
+    image?: string;
+};
+
 export type Order = {
     _id: string;
     total_price: number;
@@ -23,6 +30,7 @@ export type Order = {
     vendors?: string[];
     item_count?: number;
     items?: OrderItemDetail[];
+    rider?: OrderRider | null;
 };
 
 export type OrderDetail = Order & {

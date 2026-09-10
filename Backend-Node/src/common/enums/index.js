@@ -5,10 +5,13 @@ module.exports = {
     RESTAURANT_ADMIN: 'restaurant_admin',
   }),
   OrderStatus: Object.freeze({
-    PENDING: 'pending',
-    PREPARING: 'preparing',
-    DELIVERED: 'delivered',
-    CANCELLED: 'cancelled',
+    PENDING:          'pending',
+    CONFIRMED:        'confirmed',
+    PREPARING:        'preparing',
+    PICKED_UP:        'picked_up',
+    OUT_FOR_DELIVERY: 'out_for_delivery',
+    DELIVERED:        'delivered',
+    CANCELLED:        'cancelled',
   }),
   ComplaintStatus: Object.freeze({
     PENDING: 'pending',

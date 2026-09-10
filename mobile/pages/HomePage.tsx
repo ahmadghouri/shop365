@@ -1,5 +1,5 @@
-import { useMemo, useRef } from 'react';
-import { View, ScrollView } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE_URL } from '@/api/client';
 import { AppBackground } from '@/components/AppBackground';
@@ -58,10 +58,17 @@ function productPrice(product: any) {
 }
 
 export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress, onOrdersPress, onProfilePress, onScrollChange, onNotificationPress }: HomePageProps) {
-    const { data: categoryData } = useCategories();
-    const { data: randomProductData } = useRandomProducts();
-    const { data: businessData } = useBusinesses();
+    const { data: categoryData, refetch: refetchCategories } = useCategories();
+    const { data: randomProductData, refetch: refetchProducts } = useRandomProducts();
+    const { data: businessData, refetch: refetchBusinesses } = useBusinesses();
     const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        await Promise.all([refetchCategories(), refetchProducts(), refetchBusinesses()]);
+        setRefreshing(false);
+    };
 
     // Build a businessId → name map for quick lookup
     const businessMap = useMemo<Record<string, string>>(() => {
@@ -120,7 +127,13 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
     return (
         <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
-                <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+                <ScrollView
+                    className="flex-1"
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#EAB308" colors={['#EAB308']} />
+                    }
+                >
                     <HomeHeader onNotificationPress={onNotificationPress} />
                     <CategoryList categories={categories} onCategoryPress={onCategoryPress} />
                     <PromoBanner discount="10%" storeName="SHOP365 Mart" />

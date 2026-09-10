@@ -5,6 +5,14 @@ export type PlaceOrderPayload = {
     voucher_code?: string;
     payment_method?: string;
     screenshot_uri?: string;
+    excluded_business_ids?: string[];
+};
+
+export type OrderItemDetail = {
+    _id: string;
+    product_id: { title: string; price: number; image_url?: string; business_id?: { name: string } };
+    quantity: number;
+    price: number;
 };
 
 export type Order = {
@@ -14,18 +22,14 @@ export type Order = {
     createdAt: string;
     vendors?: string[];
     item_count?: number;
-    items?: { quantity: number }[];
+    items?: OrderItemDetail[];
 };
 
 export type OrderDetail = Order & {
-    items: {
-        _id: string;
-        product_id: { title: string; price: number; image_url?: string; business_id?: { name: string } };
-        quantity: number;
-        price: number;
-    }[];
-    delivery_charge: number;
+    items: OrderItemDetail[];
     total_amount: number;
+    delivery_charge: number;
+    status_history?: { status: string; at: string; _id?: string }[];
 };
 
 export async function placeOrder(payload: PlaceOrderPayload) {

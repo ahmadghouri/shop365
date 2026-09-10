@@ -33,7 +33,10 @@ async function show(req, res, next) {
     const items = await OrderItem.find({ order_id: order._id }).populate('product_id');
     const orderObj = order.toJSON();
     orderObj.items = items;
-    orderObj.delivery_charge = 50;
+
+    // delivery_fee is snapshotted on the order at placement time, so history
+    // shows the fee charged then, not the provider's current setting
+    orderObj.delivery_charge = order.delivery_fee || 0;
     orderObj.total_amount = order.total_price;
 
     res.json(orderObj);
@@ -42,7 +45,7 @@ async function show(req, res, next) {
 
 async function updateStatus(req, res, next) {
   try {
-    const order = await Order.findByIdAndUpdate(req.params.id, { status: req.body.status }, { returnDocument: 'after' });
+    const order = await orderService.updateOrderStatus(req.params.id, req.body.status);
     if (!order) return res.status(404).json({ message: 'Order not found or update failed' });
     successResponse(res, order, 'Order status updated successfully');
   } catch (error) { next(error); }

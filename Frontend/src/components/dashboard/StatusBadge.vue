@@ -14,14 +14,17 @@ const props = defineProps({
 })
 
 const statusConfig = {
-  pending: { variant: 'destructive', dot: 'bg-red-500' },
-  cancelled: { variant: 'destructive', dot: 'bg-red-500' },
-  completed: { variant: 'default', dot: 'bg-emerald-500' },
-  delivered: { variant: 'default', dot: 'bg-emerald-500' },
-  processing: { variant: 'secondary', dot: 'bg-amber-500' },
-  preparing: { variant: 'secondary', dot: 'bg-amber-500' },
-  active: { variant: 'default', dot: 'bg-emerald-500' },
-  default: { variant: 'outline', dot: 'bg-gray-400' },
+  pending:          { variant: 'destructive', dot: 'bg-red-500' },
+  confirmed:        { variant: 'secondary',   dot: 'bg-sky-500' },
+  preparing:        { variant: 'secondary',   dot: 'bg-amber-500' },
+  picked_up:        { variant: 'secondary',   dot: 'bg-purple-500' },
+  out_for_delivery: { variant: 'secondary',   dot: 'bg-orange-500' },
+  delivered:        { variant: 'default',     dot: 'bg-emerald-500' },
+  cancelled:        { variant: 'destructive', dot: 'bg-red-500' },
+  completed:        { variant: 'default',     dot: 'bg-emerald-500' },
+  processing:       { variant: 'secondary',   dot: 'bg-amber-500' },
+  active:           { variant: 'default',     dot: 'bg-emerald-500' },
+  default:          { variant: 'outline',     dot: 'bg-gray-400' },
 }
 
 const config = computed(() => {

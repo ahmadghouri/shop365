@@ -3,6 +3,7 @@ import { StatusBar, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { PortalHost } from '@rn-primitives/portal';
 import { queryClient } from './lib/queryClient';
 import { SplashScreen } from './components/SplashScreen';
 import { LocationPermissionScreen } from './components/LocationPermissionScreen';
@@ -21,6 +22,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { NotificationPage } from './pages/NotificationPage';
+import { OrderTrackingPage } from './pages/OrderTrackingPage';
 import { useAuthStore } from './lib/authStore';
 import { useCartStore } from './lib/cartStore';
 
@@ -33,8 +35,10 @@ function AppContent() {
   const [activeProduct, setActiveProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [showCheckout, setShowCheckout] = useState(false);
+  const [excludedOrderVendorIds, setExcludedOrderVendorIds] = useState([]);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
   const [cartSelectedCardId, setCartSelectedCardId] = useState('');
+  const [trackingOrderId, setTrackingOrderId] = useState(null);
   const { isAuthenticated, loadToken } = useAuthStore();
   const loadCart = useCartStore((s) => s.loadCart);
 
@@ -64,12 +68,24 @@ function AppContent() {
 
   if (isAuthenticated) {
     // Sub-screens — no tabbar
+    if (trackingOrderId) {
+      return (
+        <View style={{ flex: 1 }}>
+          <OrderTrackingPage
+            orderId={trackingOrderId}
+            onBack={() => setTrackingOrderId(null)}
+          />
+        </View>
+      );
+    }
+
     if (showCheckout) {
       return (
         <View style={{ flex: 1 }}>
           <CheckoutPage
-            onBack={() => setShowCheckout(false)}
-            onSuccess={() => { setShowCheckout(false); setActiveTab('cart'); }}
+            excludeVendorIds={excludedOrderVendorIds}
+            onBack={() => { setExcludedOrderVendorIds([]); setShowCheckout(false); }}
+            onSuccess={() => { setExcludedOrderVendorIds([]); setShowCheckout(false); setActiveTab('cart'); }}
           />
         </View>
       );
@@ -113,7 +129,10 @@ function AppContent() {
           return (
             <CartPage
               onBack={() => setActiveTab('home')}
-              onCheckout={() => setShowCheckout(true)}
+              onCheckout={(vendorIds) => {
+                setExcludedOrderVendorIds(vendorIds || []);
+                setShowCheckout(true);
+              }}
               onMonthlyGrocery={() => {
                 setMonthlyReturnToCart(true);
                 setActiveTab('list');
@@ -128,7 +147,7 @@ function AppContent() {
             />
           );
         case 'orders':
-          return <OrderHistoryPage onBack={() => setActiveTab('home')} />;
+          return <OrderHistoryPage onBack={() => setActiveTab('home')} onTrackOrder={(id) => setTrackingOrderId(id)} />;
         case 'profile':
           return (
             <ProfilePage
@@ -204,6 +223,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
+        <PortalHost />
         <AppContent />
         <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       </SafeAreaProvider>

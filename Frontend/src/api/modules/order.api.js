@@ -11,6 +11,7 @@ export const orderApi = {
 
   // Restaurant admin
   getRestaurantOrders: (params) => http.get(ENDPOINTS.RESTAURANT_ORDERS, { params }),
+  assignRider: (id, rider_id) => http.put(ENDPOINTS.ORDER_ASSIGN_RIDER(id), { rider_id }),
 
   // Super admin
   getBusinessOrders: (id) => http.get(ENDPOINTS.ADMIN_BUSINESS_ORDERS(id)),

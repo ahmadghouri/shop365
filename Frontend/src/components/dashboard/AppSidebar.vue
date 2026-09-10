@@ -13,7 +13,7 @@ import {
   LayoutGrid, Users, Store, BarChart3, ShoppingBag, Ticket,
   GraduationCap, Image, Package, ShoppingCart, Building2, Zap,
   Percent, Star, LogOut, ChevronLeft, ChevronRight, ShoppingBasket,
-  Settings
+  Settings, Bike
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -64,6 +64,7 @@ const adminMenuItems = [
 const restaurantAdminMenuItems = computed(() => {
   const items = [
     { label: 'Orders', to: '/admin/restaurantOrders', icon: ShoppingCart },
+    { label: 'Riders', to: '/admin/riders', icon: Bike },
     { label: 'Business Settings', to: '/admin/provider-settings', icon: Settings },
     { label: 'Sub Businesses', to: '/admin/sub-business', icon: Building2 },
     { label: 'Products', to: '/admin/restaurantAdminDashboard', icon: Package },

@@ -54,6 +54,11 @@ app.use('/api/admin', require('./modules/admin/admin.routes'));
 // Restaurant admin routes — Laravel: Route::middleware(['auth:sanctum', TownAdminMiddleware::class])->prefix('/restaurantAdmin')
 app.use('/api/restaurantAdmin', require('./modules/restaurants/restaurant.routes'));
 
+// Riders: vendor dashboard CRUD + rider mobile app
+const { vendorRouter, riderRouter } = require('./modules/riders/rider.routes');
+app.use('/api/restaurantAdmin', vendorRouter);
+app.use('/api/rider', riderRouter);
+
 // Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);

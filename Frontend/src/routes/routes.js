@@ -52,6 +52,7 @@ import EasyBuyPage from "../pages/EasyBuyPage.vue";
 import EasyBuyAdminDashboard from "../pages/RestaurantAdmin/EasyBuyAdminDashboard.vue";
 import StoreEasyBuyProduct from "../components/Vendor/StoreEasyBuyProduct.vue";
 import PosProducts from "../pages/Admin/PosProducts.vue";
+import Riders from "../pages/RestaurantAdmin/Riders.vue";
 
 const routes = [
   {
@@ -362,6 +363,14 @@ const routes = [
         path: "provider-settings",
         name: "ProviderSettings",
         component: ProviderSettings,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "riders",
+        name: "Riders",
+        component: Riders,
         meta: {
           requiresAdminAuth: true,
         },

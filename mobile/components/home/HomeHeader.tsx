@@ -4,6 +4,7 @@ import { useUpdateLocationMutation } from '@/api/users/useUpdateLocationMutation
 import { useAuthStore } from '@/lib/authStore';
 import { useLocation } from '@/lib/useLocation';
 import { GlassCard } from '../reusable/GlassCard';
+import { useNotificationStore } from '@/lib/notificationStore';
 
 type HomeHeaderProps = {
     onNotificationPress?: () => void;
@@ -13,6 +14,7 @@ export function HomeHeader({ onNotificationPress }: HomeHeaderProps) {
     const user = useAuthStore((state) => state.user);
     const { location, loading, detectLocation } = useLocation();
     const updateLocation = useUpdateLocationMutation();
+    const unreadCount = useNotificationStore((s) => s.unreadCount());
 
     const savedAddress = user?.address || user?.household_id?.address || user?.household?.address;
     const displayAddress = location?.address || savedAddress || 'Tap to detect location';
@@ -60,6 +62,19 @@ export function HomeHeader({ onNotificationPress }: HomeHeaderProps) {
                     onPress={onNotificationPress}
                 >
                     <Bell size={20} color="#111827" />
+                    {unreadCount > 0 && (
+                        <View style={{
+                            position: 'absolute', top: 8, right: 8,
+                            height: 16, minWidth: 16, borderRadius: 8,
+                            backgroundColor: '#EAB308',
+                            alignItems: 'center', justifyContent: 'center',
+                            paddingHorizontal: 3,
+                        }}>
+                            <Text style={{ color: '#111', fontSize: 9, fontFamily: 'Lufga-Bold' }}>
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </Text>
+                        </View>
+                    )}
                 </Pressable>
             </GlassCard>
         </View>

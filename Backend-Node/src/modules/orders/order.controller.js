@@ -33,7 +33,10 @@ async function show(req, res, next) {
     const items = await OrderItem.find({ order_id: order._id }).populate('product_id');
     const orderObj = order.toJSON();
     orderObj.items = items;
-    orderObj.delivery_charge = 50;
+
+    // delivery_fee is snapshotted on the order at placement time, so history
+    // shows the fee charged then, not the provider's current setting
+    orderObj.delivery_charge = order.delivery_fee || 0;
     orderObj.total_amount = order.total_price;
 
     res.json(orderObj);
@@ -42,7 +45,7 @@ async function show(req, res, next) {
 
 async function updateStatus(req, res, next) {
   try {
-    const order = await Order.findByIdAndUpdate(req.params.id, { status: req.body.status }, { returnDocument: 'after' });
+    const order = await orderService.updateOrderStatus(req.params.id, req.body.status);
     if (!order) return res.status(404).json({ message: 'Order not found or update failed' });
     successResponse(res, order, 'Order status updated successfully');
   } catch (error) { next(error); }
@@ -84,6 +87,15 @@ async function viewRestaurantOrders(req, res, next) {
   } catch (error) { next(error); }
 }
 
+async function assignRider(req, res, next) {
+  try {
+    const rider_id = req.body.rider_id;
+    if (!rider_id) return res.status(400).json({ message: 'rider_id is required' });
+    const result = await orderService.assignRider(req.params.id, rider_id, req.user.business_id);
+    successResponse(res, result, 'Rider assigned to order successfully');
+  } catch (error) { next(error); }
+}
+
 async function superAdminOrders(req, res, next) {
   try {
     const businessId = req.params.id;
@@ -119,4 +131,4 @@ async function deleteAllOrders(req, res, next) {
   } catch (error) { next(error); }
 }
 
-module.exports = { placeOrder, viewOrders, show, updateStatus, reorder, viewRestaurantOrders, superAdminOrders, getGroceryOrders, deleteAllOrders };
+module.exports = { placeOrder, viewOrders, show, updateStatus, reorder, viewRestaurantOrders, assignRider, superAdminOrders, getGroceryOrders, deleteAllOrders };

@@ -5,7 +5,8 @@ import { ChevronLeft, Upload } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
 import { GradientPill } from '@/components/reusable/GradientPill';
 import { useAddresses } from '@/api/addresses/useAddressQueries';
-import { useCartStore, DELIVERY_FEE_AMOUNT } from '@/lib/cartStore';
+import { useCartStore } from '@/lib/cartStore';
+import { placeOrder } from '@/api/orders/order.service';
 import type { Address } from '@/api/addresses/address.service';
 
 // ponytail: payment details hardcoded — move to admin config when backend supports it
@@ -29,11 +30,12 @@ const PAYMENT_METHODS = [
 type CheckoutPageProps = {
     onBack?: () => void;
     onSuccess?: () => void;
+    excludeVendorIds?: string[];
 };
 
-export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
+export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: CheckoutPageProps) {
     const { data: addresses = [] } = useAddresses();
-    const { getSubtotal, getTotal, clearCart } = useCartStore();
+    const { getVendorSummaries, loadCart } = useCartStore();
 
     const [selectedAddressId, setSelectedAddressId] = useState<string>(
         addresses.find((a) => a.is_active)?._id || addresses[0]?._id || ''
@@ -41,8 +43,10 @@ export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
     const [screenshotUri, setScreenshotUri] = useState('');
     const [placing, setPlacing] = useState(false);
 
-    const subtotal = getSubtotal();
-    const delivery = DELIVERY_FEE_AMOUNT;
+    const excludeSet = new Set(excludeVendorIds);
+    const vendorSummaries = getVendorSummaries().filter((v) => !excludeSet.has(v.businessId));
+    const subtotal = vendorSummaries.reduce((sum, v) => sum + v.subtotal, 0);
+    const delivery = vendorSummaries.reduce((sum, v) => sum + v.deliveryFee, 0);
     const discount = 0;
     const payable = subtotal + delivery - discount;
 
@@ -53,13 +57,16 @@ export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
         }
         setPlacing(true);
         try {
-            // ponytail: order API call goes here when order service is ready
-            await clearCart();
-            Alert.alert('Order Placed!', 'Your order has been placed successfully.', [
+            await placeOrder({
+                address_id: selectedAddressId,
+                excluded_business_ids: excludeSet.size > 0 ? [...excludeSet] : undefined,
+            });
+            await loadCart();
+            Alert.alert('Order Placed! 🎉', 'Your order has been placed successfully.', [
                 { text: 'OK', onPress: onSuccess },
             ]);
         } catch (err: any) {
-            Alert.alert('Error', err?.message || 'Could not place order. Please try again.');
+            Alert.alert('Error', err?.response?.data?.message || err?.message || 'Could not place order. Please try again.');
         } finally {
             setPlacing(false);
         }
@@ -152,14 +159,29 @@ export function CheckoutPage({ onBack, onSuccess }: CheckoutPageProps) {
 
                     {/* Order Summary */}
                     <View className="mb-6 border-t border-slate-100 pt-4">
-                        <View className="flex-row justify-between mb-2">
-                            <Text className="text-sm font-lufga text-slate-500">Total:</Text>
-                            <Text className="text-sm font-lufga-semibold text-slate-900">RS: {subtotal.toLocaleString()}</Text>
-                        </View>
-                        <View className="flex-row justify-between mb-2">
-                            <Text className="text-sm font-lufga text-slate-500">Delivery Charges:</Text>
-                            <Text className="text-sm font-lufga-semibold text-slate-900">RS: {delivery}</Text>
-                        </View>
+                        <Text className="mb-2 text-sm font-lufga-semibold text-slate-900">Order Summary</Text>
+                        {vendorSummaries.map((v) => (
+                            <View key={v.name} className="mb-3 rounded-xl bg-slate-50 p-3">
+                                <Text className="mb-1 text-sm font-lufga-bold text-slate-900">{v.name}</Text>
+                                <View className="flex-row justify-between mb-1">
+                                    <Text className="text-sm font-lufga text-slate-500">Subtotal</Text>
+                                    <Text className="text-sm font-lufga-semibold text-slate-900">RS: {v.subtotal.toLocaleString()}</Text>
+                                </View>
+                                {v.deliveryFee > 0 && (
+                                    <View className="flex-row justify-between mb-1">
+                                        <Text className="text-sm font-lufga text-slate-500">Delivery Charges</Text>
+                                        <Text className="text-sm font-lufga-semibold text-slate-900">RS: {v.deliveryFee}</Text>
+                                    </View>
+                                )}
+                                {v.minimumOrder > 0 && (
+                                    <Text className="text-xs font-lufga text-amber-700">
+                                        {v.subtotal >= v.minimumOrder
+                                            ? `Minimum order met (Rs ${v.minimumOrder.toLocaleString()})`
+                                            : `Minimum order Rs ${v.minimumOrder.toLocaleString()} — add Rs ${(v.minimumOrder - v.subtotal).toLocaleString()} more`}
+                                    </Text>
+                                )}
+                            </View>
+                        ))}
                         <View className="flex-row justify-between mb-2">
                             <Text className="text-sm font-lufga text-slate-500">Discount:</Text>
                             <Text className="text-sm font-lufga-semibold text-slate-900">RS: {discount}</Text>

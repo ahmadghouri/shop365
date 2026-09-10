@@ -76,7 +76,7 @@
         <CardHeader class="pb-3">
           <div class="flex items-center justify-between">
             <div>
-              <CardTitle class="text-base">Order #{{ order.id }}</CardTitle>
+              <CardTitle class="text-base">Order #{{ order.id.slice(-6).toUpperCase() }}</CardTitle>
               <CardDescription class="flex items-center gap-1 mt-0.5">
                 <Clock class="w-3 h-3" />
                 {{ formatDate(order.created_at) }}
@@ -130,7 +130,7 @@
         <DialogHeader>
           <div class="flex items-center justify-between">
             <div>
-              <DialogTitle>Order #{{ selectedOrder.id }}</DialogTitle>
+              <DialogTitle>Order #{{ selectedOrder.id.slice(-6).toUpperCase() }}</DialogTitle>
               <DialogDescription>{{ formatDate(selectedOrder.created_at) }}</DialogDescription>
             </div>
             <OrderStatusBadge :status="selectedOrder.status" />
@@ -144,12 +144,37 @@
             size="sm"
             :variant="selectedOrder.status === status.value ? 'default' : 'outline'"
             :class="selectedOrder.status === status.value ? status.activeClass : ''"
+            :disabled="status.value === 'picked_up' && !selectedOrder.rider_id"
             @click="updateOrderStatus(status.value)"
           >
             <component :is="status.icon" class="w-3.5 h-3.5 mr-1" />
             {{ status.label }}
           </Button>
         </div>
+
+        <Separator />
+
+        <div class="flex items-center gap-2 text-sm">
+          <Bike class="w-4 h-4 text-muted-foreground" />
+          <span class="text-muted-foreground">Rider:</span>
+          <span v-if="selectedOrder.rider" class="font-medium">
+            {{ selectedOrder.rider.name }} ({{ selectedOrder.rider.phone_no }})
+          </span>
+          <span v-else class="text-muted-foreground">Not assigned</span>
+        </div>
+        <div v-if="canAssignRider" class="flex items-center gap-2">
+          <Select v-model="assignRiderId" class="flex-1" placeholder="Select a rider">
+            <SelectItem v-for="rider in riders" :key="rider._id" :value="rider._id">
+              {{ rider.name }} · {{ rider.phone_no }}
+            </SelectItem>
+          </Select>
+          <Button size="sm" variant="outline" @click="assignOrderRider" :disabled="!assignRiderId">
+            Assign
+          </Button>
+        </div>
+        <p v-if="selectedOrder.status === 'preparing' && !selectedOrder.rider_id" class="text-xs text-yellow-600">
+          Assign a rider before picking up this order.
+        </p>
 
         <Separator />
 
@@ -220,6 +245,7 @@
 
 <script setup>
 import { orderApi } from "@/api/modules/order.api";
+import { riderApi } from "@/api/modules/rider.api";
 import { ref, onMounted, computed, watch, h } from "vue";
 import { useOrderStore } from "../../store/orderStore";
 import { toast } from "vue3-toastify";
@@ -236,9 +262,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectItem } from "@/components/ui/select";
 import {
   RefreshCw, Clock, User, Phone, MapPin, ShoppingCart, Eye,
-  AlertCircle, Circle, Timer, CheckCircle2, XCircle
+  AlertCircle, Circle, Timer, CheckCircle2, XCircle, Bike
 } from "lucide-vue-next";
 
 const target = ref(null);
@@ -249,22 +276,30 @@ const error = ref(null);
 const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
+const riders = ref([]);
+const assignRiderId = ref("");
 
 const I = new Audio("/notification.mp3");
 I.volume = 0.25;
 
 const statusTabs = [
-  { value: "pending", label: "New Orders", icon: Circle, activeClass: "bg-red-500 hover:bg-red-600 text-white", inactiveClass: "text-red-500 border-red-200 hover:bg-red-50" },
-  { value: "preparing", label: "Preparing", icon: Timer, activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white", inactiveClass: "text-yellow-600 border-yellow-200 hover:bg-yellow-50" },
-  { value: "delivered", label: "Delivered", icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white", inactiveClass: "text-green-600 border-green-200 hover:bg-green-50" },
-  { value: "cancelled", label: "Cancelled", icon: XCircle, activeClass: "bg-blue-500 hover:bg-blue-600 text-white", inactiveClass: "text-blue-500 border-blue-200 hover:bg-blue-50" },
+  { value: "pending",          label: "New Orders",       icon: Circle,       activeClass: "bg-red-500 hover:bg-red-600 text-white",    inactiveClass: "text-red-500 border-red-200 hover:bg-red-50" },
+  { value: "confirmed",        label: "Confirmed",        icon: CheckCircle2, activeClass: "bg-sky-500 hover:bg-sky-600 text-white",    inactiveClass: "text-sky-600 border-sky-200 hover:bg-sky-50" },
+  { value: "preparing",        label: "Preparing",        icon: Timer,        activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white", inactiveClass: "text-yellow-600 border-yellow-200 hover:bg-yellow-50" },
+  { value: "picked_up",        label: "Picked Up",        icon: Timer,        activeClass: "bg-purple-500 hover:bg-purple-600 text-white", inactiveClass: "text-purple-600 border-purple-200 hover:bg-purple-50" },
+  { value: "out_for_delivery", label: "Out for Delivery", icon: Timer,        activeClass: "bg-orange-500 hover:bg-orange-600 text-white", inactiveClass: "text-orange-600 border-orange-200 hover:bg-orange-50" },
+  { value: "delivered",        label: "Delivered",        icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white", inactiveClass: "text-green-600 border-green-200 hover:bg-green-50" },
+  { value: "cancelled",        label: "Cancelled",        icon: XCircle,      activeClass: "bg-blue-500 hover:bg-blue-600 text-white",   inactiveClass: "text-blue-500 border-blue-200 hover:bg-blue-50" },
 ];
 
 const statusOptions = [
-  { value: "pending", label: "Pending", icon: Circle, activeClass: "bg-red-500 hover:bg-red-600 text-white" },
-  { value: "preparing", label: "Preparing", icon: Timer, activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white" },
-  { value: "delivered", label: "Delivered", icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white" },
-  { value: "cancelled", label: "Cancelled", icon: XCircle, activeClass: "bg-blue-500 hover:bg-blue-600 text-white" },
+  { value: "pending",          label: "Pending",          icon: Circle,       activeClass: "bg-red-500 hover:bg-red-600 text-white" },
+  { value: "confirmed",        label: "Confirmed",        icon: CheckCircle2, activeClass: "bg-sky-500 hover:bg-sky-600 text-white" },
+  { value: "preparing",        label: "Preparing",        icon: Timer,        activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white" },
+  { value: "picked_up",        label: "Picked Up",        icon: Timer,        activeClass: "bg-purple-500 hover:bg-purple-600 text-white" },
+  { value: "out_for_delivery", label: "Out for Delivery", icon: Timer,        activeClass: "bg-orange-500 hover:bg-orange-600 text-white" },
+  { value: "delivered",        label: "Delivered",        icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white" },
+  { value: "cancelled",        label: "Cancelled",        icon: XCircle,      activeClass: "bg-blue-500 hover:bg-blue-600 text-white" },
 ];
 
 const { stop } = useIntersectionObserver(
@@ -377,6 +412,8 @@ const openModal = async (order) => {
       selectedOrder.value = { ...order };
     }
     isModalOpen.value = true;
+    assignRiderId.value = selectedOrder.value.rider_id || "";
+    await loadRiders();
   } catch (err) {
     console.error("Error fetching order details:", err);
     toast.error("Failed to load order details");
@@ -386,6 +423,39 @@ const openModal = async (order) => {
 const closeModal = () => {
   isModalOpen.value = false;
   selectedOrder.value = null;
+};
+
+const loadRiders = async () => {
+  try {
+    const res = await riderApi.getRiders();
+    riders.value = (res.data?.data || []).filter((r) => r.status === "active");
+  } catch (err) {
+    riders.value = [];
+  }
+};
+
+const canAssignRider = computed(() => {
+  return ["preparing", "picked_up", "out_for_delivery"].includes(selectedOrder.value?.status);
+});
+
+const assignOrderRider = async () => {
+  if (!assignRiderId.value) return;
+  try {
+    const res = await orderApi.assignRider(selectedOrder.value.id, assignRiderId.value);
+    const result = res.data?.data || {};
+    const rider = result.rider || riders.value.find((r) => r._id === assignRiderId.value);
+    selectedOrder.value.rider_id = rider?._id || assignRiderId.value;
+    selectedOrder.value.rider = rider
+      ? { id: rider._id, name: rider.name, phone_no: rider.phone_no, image: rider.image || "" }
+      : selectedOrder.value.rider;
+    if (result.order?.status) selectedOrder.value.status = result.order.status;
+    ordersList.value = ordersList.value.map((o) =>
+      o.id === selectedOrder.value.id ? { ...o, ...selectedOrder.value } : o
+    );
+    toast.success(`Rider assigned — order ${selectedOrder.value.status === 'picked_up' ? 'picked up' : 'updated'}`);
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Failed to assign rider");
+  }
 };
 
 const formatDate = (dateString) => {

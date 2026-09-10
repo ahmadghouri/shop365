@@ -22,6 +22,7 @@ router.put('/complaint-status', complaintCtrl.update);
 router.get('/complaints', complaintCtrl.complaintsOfTown);
 router.get('/allproducts', productCtrl.getProducts);
 router.get('/orders', orderCtrl.viewRestaurantOrders);
+router.put('/orders/:id/assign-rider', orderCtrl.assignRider);
 router.post('/products/discount', productCtrl.updateDiscount);
 router.get('/products/removeDiscount', productCtrl.removeDiscount);
 router.post('/add-products', upload.single('image'), productCtrl.addProduct);

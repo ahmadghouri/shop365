@@ -49,6 +49,18 @@
               <Input id="closing-time" v-model="form.closing_time" type="time" required />
             </div>
           </div>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="minimum-order">Minimum Order (Rs)</Label>
+              <Input id="minimum-order" v-model.number="form.minimum_order" type="number" min="0" step="1" placeholder="e.g. 500" />
+              <p class="text-xs text-muted-foreground">Keep 0 to disable the minimum order limit.</p>
+            </div>
+            <div class="space-y-2">
+              <Label for="delivery-fee">Delivery Fee (Rs)</Label>
+              <Input id="delivery-fee" v-model.number="form.delivery_fee" type="number" min="0" step="1" placeholder="e.g. 100" />
+              <p class="text-xs text-muted-foreground">Keep 0 for free delivery.</p>
+            </div>
+          </div>
 
           <p v-if="errorMessage" class="text-sm text-destructive" role="alert">
             {{ errorMessage }}
@@ -85,7 +97,7 @@ const saving = ref(false);
 const errorMessage = ref("");
 const selectedImage = ref(null);
 const imagePreview = ref("");
-const form = ref({ opening_time: "", closing_time: "" });
+const form = ref({ opening_time: "", closing_time: "", minimum_order: 0, delivery_fee: 0 });
 
 const handleImageChange = (event) => {
   const file = event.target.files[0];
@@ -111,6 +123,8 @@ const loadSettings = async () => {
     const business = response.data.data;
     form.value.opening_time = business.opening_time || "";
     form.value.closing_time = business.closing_time || "";
+    form.value.minimum_order = business.minimum_order || 0;
+    form.value.delivery_fee = business.delivery_fee || 0;
     imagePreview.value = business.image_url || business.image || "";
   } catch (error) {
     errorMessage.value = error?.response?.data?.message || "Unable to load business settings.";
@@ -121,11 +135,6 @@ const loadSettings = async () => {
 
 const saveSettings = async () => {
   errorMessage.value = "";
-  if (!imagePreview.value) {
-    errorMessage.value = "Please add a business image.";
-    return;
-  }
-
   saving.value = true;
   try {
     let image;
@@ -140,6 +149,8 @@ const saveSettings = async () => {
     const response = await businessApi.updateOwn({
       opening_time: form.value.opening_time,
       closing_time: form.value.closing_time,
+      minimum_order: form.value.minimum_order,
+      delivery_fee: form.value.delivery_fee,
       ...(image ? { image } : {}),
     });
     const business = response.data.data;

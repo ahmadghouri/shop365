@@ -26,6 +26,9 @@ export type CartItem = {
     name: string;
     store: string;
     providerType?: string;
+    businessId?: string;
+    deliveryFee?: number;
+    minimumOrder?: number;
     price: number;
     quantity: number;
     image?: any;
@@ -53,10 +56,11 @@ type CartState = {
     clearCart: () => Promise<void>;
     loadCart: () => Promise<void>;
     getSubtotal: () => number;
+    getVendorSummaries: () => { name: string; businessId: string; subtotal: number; deliveryFee: number; minimumOrder: number }[];
+    getDeliveryFees: () => { name: string; fee: number }[];
+    getDeliveryFee: () => number;
     getTotal: () => number;
 };
-
-const DELIVERY_FEE = 150;
 
 export const useCartStore = create<CartState>((set, get) => ({
     items: [],
@@ -159,6 +163,9 @@ export const useCartStore = create<CartState>((set, get) => ({
                     name: product?.title || 'Product',
                     store: business?.name || '',
                     providerType: business?.type || business?.category_id?.name || '',
+                    businessId: String(business?._id || business?.id || ''),
+                    deliveryFee: Number(business?.delivery_fee) || 0,
+                    minimumOrder: Number(business?.minimum_order) || 0,
                     price: item.variant?.price || product?.final_price || product?.price || 0,
                     quantity: item.quantity || 1,
                     imageUri,
@@ -188,10 +195,38 @@ export const useCartStore = create<CartState>((set, get) => ({
         }, 0);
     },
 
+    getVendorSummaries: () => {
+        // ponytail: local/unauthed cart items carry no businessId -> lumped under the item's store
+        // name (or "Provider"). Backend still charges per vendor at order time.
+        const byVendor = new Map<string, { name: string; businessId: string; subtotal: number; deliveryFee: number; minimumOrder: number }>();
+        for (const item of get().items) {
+            const key = item.businessId || item.store || 'unknown';
+            const itemTotal = (item.price + item.extras.reduce((s, e) => s + e.price, 0)) * item.quantity;
+            const entry = byVendor.get(key);
+            if (entry) entry.subtotal += itemTotal;
+            else byVendor.set(key, {
+                name: item.store || 'Provider',
+                businessId: key,
+                subtotal: itemTotal,
+                deliveryFee: Number(item.deliveryFee) || 0,
+                minimumOrder: Number(item.minimumOrder) || 0,
+            });
+        }
+        return [...byVendor.values()].filter((v) => v.subtotal > 0);
+    },
+
+    getDeliveryFees: () => {
+        return get().getVendorSummaries()
+            .filter((v) => v.deliveryFee > 0)
+            .map(({ name, deliveryFee }) => ({ name, fee: deliveryFee }));
+    },
+
+    getDeliveryFee: () => {
+        return get().getDeliveryFees().reduce((sum, v) => sum + v.fee, 0);
+    },
+
     getTotal: () => {
         const subtotal = get().getSubtotal();
-        return subtotal > 0 ? subtotal + DELIVERY_FEE : 0;
+        return subtotal > 0 ? subtotal + get().getDeliveryFee() : 0;
     },
 }));
-
-export const DELIVERY_FEE_AMOUNT = DELIVERY_FEE;

@@ -3,6 +3,7 @@ import { StatusBar, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { PortalHost } from '@rn-primitives/portal';
 import { queryClient } from './lib/queryClient';
 import { SplashScreen } from './components/SplashScreen';
 import { LocationPermissionScreen } from './components/LocationPermissionScreen';
@@ -11,6 +12,7 @@ import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { FloatingCartBar } from './components/FloatingCartBar';
 import { BottomTabBar } from './components/home/BottomTabBar';
+import { connectSocket, disconnectSocket } from './lib/socketService';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
@@ -19,6 +21,8 @@ import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { NotificationPage } from './pages/NotificationPage';
+import { OrderTrackingPage } from './pages/OrderTrackingPage';
 import { useAuthStore } from './lib/authStore';
 import { useCartStore } from './lib/cartStore';
 
@@ -31,13 +35,23 @@ function AppContent() {
   const [activeProduct, setActiveProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [showCheckout, setShowCheckout] = useState(false);
+  const [excludedOrderVendorIds, setExcludedOrderVendorIds] = useState([]);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
   const [cartSelectedCardId, setCartSelectedCardId] = useState('');
+  const [trackingOrder, setTrackingOrder] = useState(null);
   const { isAuthenticated, loadToken } = useAuthStore();
   const loadCart = useCartStore((s) => s.loadCart);
 
   useEffect(() => { loadToken(); }, []);
-  useEffect(() => { if (isAuthenticated) loadCart(); }, [isAuthenticated]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCart();
+      const token = useAuthStore.getState().token;
+      if (token) connectSocket(token);
+    } else {
+      disconnectSocket();
+    }
+  }, [isAuthenticated]);
   useEffect(() => {
     if (screen === 'Splash') {
       const timer = setTimeout(() => setScreen('Location'), 2500);
@@ -54,12 +68,25 @@ function AppContent() {
 
   if (isAuthenticated) {
     // Sub-screens — no tabbar
+    if (trackingOrder) {
+      return (
+        <View style={{ flex: 1 }}>
+          <OrderTrackingPage
+            orderId={trackingOrder._id}
+            initialOrder={trackingOrder}
+            onBack={() => setTrackingOrder(null)}
+          />
+        </View>
+      );
+    }
+
     if (showCheckout) {
       return (
         <View style={{ flex: 1 }}>
           <CheckoutPage
-            onBack={() => setShowCheckout(false)}
-            onSuccess={() => { setShowCheckout(false); setActiveTab('cart'); }}
+            excludeVendorIds={excludedOrderVendorIds}
+            onBack={() => { setExcludedOrderVendorIds([]); setShowCheckout(false); }}
+            onSuccess={() => { setExcludedOrderVendorIds([]); setShowCheckout(false); setActiveTab('cart'); }}
           />
         </View>
       );
@@ -103,7 +130,10 @@ function AppContent() {
           return (
             <CartPage
               onBack={() => setActiveTab('home')}
-              onCheckout={() => setShowCheckout(true)}
+              onCheckout={(vendorIds) => {
+                setExcludedOrderVendorIds(vendorIds || []);
+                setShowCheckout(true);
+              }}
               onMonthlyGrocery={() => {
                 setMonthlyReturnToCart(true);
                 setActiveTab('list');
@@ -118,7 +148,7 @@ function AppContent() {
             />
           );
         case 'orders':
-          return <OrderHistoryPage onBack={() => setActiveTab('home')} />;
+          return <OrderHistoryPage onBack={() => setActiveTab('home')} onTrackOrder={(order) => setTrackingOrder(order)} />;
         case 'profile':
           return (
             <ProfilePage
@@ -127,6 +157,8 @@ function AppContent() {
               onOrderHistory={() => setActiveTab('orders')}
             />
           );
+        case 'notifications':
+          return <NotificationPage onBack={() => setActiveTab('home')} />;
         default: // home
           return (
             <HomePage
@@ -136,6 +168,7 @@ function AppContent() {
               onListPress={() => { setMonthlyReturnToCart(false); setActiveTab('list'); }}
               onOrdersPress={() => setActiveTab('orders')}
               onProfilePress={() => setActiveTab('profile')}
+              onNotificationPress={() => setActiveTab('notifications')}
             />
           );
       }
@@ -191,6 +224,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
+        <PortalHost />
         <AppContent />
         <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       </SafeAreaProvider>

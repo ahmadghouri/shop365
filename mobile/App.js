@@ -38,7 +38,7 @@ function AppContent() {
   const [excludedOrderVendorIds, setExcludedOrderVendorIds] = useState([]);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
   const [cartSelectedCardId, setCartSelectedCardId] = useState('');
-  const [trackingOrderId, setTrackingOrderId] = useState(null);
+  const [trackingOrder, setTrackingOrder] = useState(null);
   const { isAuthenticated, loadToken } = useAuthStore();
   const loadCart = useCartStore((s) => s.loadCart);
 
@@ -68,12 +68,13 @@ function AppContent() {
 
   if (isAuthenticated) {
     // Sub-screens — no tabbar
-    if (trackingOrderId) {
+    if (trackingOrder) {
       return (
         <View style={{ flex: 1 }}>
           <OrderTrackingPage
-            orderId={trackingOrderId}
-            onBack={() => setTrackingOrderId(null)}
+            orderId={trackingOrder._id}
+            initialOrder={trackingOrder}
+            onBack={() => setTrackingOrder(null)}
           />
         </View>
       );
@@ -147,7 +148,7 @@ function AppContent() {
             />
           );
         case 'orders':
-          return <OrderHistoryPage onBack={() => setActiveTab('home')} onTrackOrder={(id) => setTrackingOrderId(id)} />;
+          return <OrderHistoryPage onBack={() => setActiveTab('home')} onTrackOrder={(order) => setTrackingOrder(order)} />;
         case 'profile':
           return (
             <ProfilePage

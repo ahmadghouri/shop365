@@ -11,7 +11,7 @@ import { OrderTrackingModal } from '@/components/orders/OrderTrackingModal';
 
 type OrderHistoryPageProps = {
     onBack?: () => void;
-    onTrackOrder?: (orderId: string) => void;
+    onTrackOrder?: (order: Order) => void;
 };
 
 export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps) {
@@ -78,7 +78,7 @@ export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps
                                 key={order._id}
                                 order={order}
                                 onPress={() => setSelectedOrderId(order._id)}
-                                onTrack={() => setTrackingOrder(order)}
+                                onTrack={() => (onTrackOrder ? onTrackOrder(order) : setTrackingOrder(order))}
                             />
                         ))}
                         <View className="h-28" />

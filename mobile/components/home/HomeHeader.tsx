@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import LottieView from "lottie-react-native";
+import { useEffect, useRef } from "react";
 import { MapPin } from "lucide-react-native";
 import { useUpdateLocationMutation } from "@/api/users/useUpdateLocationMutation";
 import { useAuthStore } from "@/lib/authStore";
@@ -16,6 +17,18 @@ export function HomeHeader({ onNotificationPress }: HomeHeaderProps) {
   const { location, loading, detectLocation } = useLocation();
   const updateLocation = useUpdateLocationMutation();
   const unreadCount = useNotificationStore((s) => s.unreadCount());
+
+  const bellRef = useRef<any>(null);
+  const shouldRing = unreadCount > 0;
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        bellRef.current?.reset();
+        if (shouldRing) bellRef.current?.play();
+      } catch {}
+    }, 16);
+    return () => clearTimeout(t);
+  }, [shouldRing]);
 
   const savedAddress =
     user?.address || user?.household_id?.address || user?.household?.address;
@@ -70,11 +83,14 @@ export function HomeHeader({ onNotificationPress }: HomeHeaderProps) {
           onPress={onNotificationPress}
         >
           <LottieView
-            key={unreadCount > 0 ? "ringing" : "idle"}
+            ref={bellRef}
+            key={shouldRing ? "ringing" : "idle"}
             source={require("@/assets/lottiefilesicons/bell.json")}
-            autoPlay={unreadCount > 0}
-            loop={unreadCount > 0}
+            autoPlay={false}
+            loop={shouldRing}
             speed={1}
+            renderMode="SOFTWARE"
+            resizeMode="contain"
             style={{ width: 50, height: 50 }}
           />
           {unreadCount > 0 && (

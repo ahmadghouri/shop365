@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import LottieView from "lottie-react-native";
+import { useEffect, useRef } from "react";
 import { Bell, ShoppingBag, Star, Tag, Truck } from "lucide-react-native";
 import { GlassCard } from "@/components/reusable/GlassCard";
 import { AppColors } from "@/components/reusable/colors";
@@ -20,21 +21,56 @@ export type NotificationItemProps = {
   onPress: (notif: Notification) => void;
 };
 
-const SLOT_STYLE = {
-  width: 48,
-  height: 48,
-  marginRight: 12,
-  alignItems: "center" as const,
-  justifyContent: "center" as const,
-  marginTop: 2,
-};
-
-function IconSlot({ children }: { children: React.ReactNode }) {
-  return <View style={SLOT_STYLE}>{children}</View>;
+function LottieIcon({
+  source,
+  size = 44,
+  loop = true,
+}: {
+  source: any;
+  size?: number;
+  loop?: boolean;
+}) {
+  const ref = useRef<any>(null);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        ref.current?.reset();
+        ref.current?.play();
+      } catch {}
+    }, 16);
+    return () => clearTimeout(t);
+  }, [source]);
+  return (
+    <LottieView
+      ref={ref}
+      source={source}
+      autoPlay={false}
+      loop={loop}
+      speed={1}
+      renderMode="SOFTWARE"
+      resizeMode="contain"
+      style={{ width: size, height: size }}
+    />
+  );
 }
 
 export function NotificationItem({ notif, onPress }: NotificationItemProps) {
   const { Icon, bg, color } = TYPE_META[notif.type];
+  const text = `${notif.title ?? ""} ${notif.body ?? ""}`.toLowerCase();
+  const bizType = notif.metadata?.business_type?.toLowerCase();
+  const businessName = (notif.metadata?.business_name ?? "").toLowerCase();
+  const isFood =
+    bizType === "food" ||
+    bizType === "restaurant" ||
+    /food|restaurant|biryani|pizza|burger|cooking|kitchen|cuisine|tikka|karahi|naan|menu|meal|dinner|lunch|breakfast/.test(
+      text + businessName,
+    );
+  const isGrocery =
+    bizType === "grocery" ||
+    /grocery|kiryana|supermarket|mart|daily|items|atta|rice|sugar|oil|dal|soap|vegetable|fruit|grocery/.test(
+      text + businessName,
+    );
+
   const isRiderPickedUp =
     notif.type === "delivery" &&
     /picked.*rider|rider.*picked/i.test(notif.title);
@@ -44,10 +80,33 @@ export function NotificationItem({ notif, onPress }: NotificationItemProps) {
   const isOrderDelivered =
     /deliver/i.test(notif.title) && /order/i.test(notif.title);
   const isOutForDelivery = /out.*for.*delivery|on.*its.*way/i.test(notif.title);
-  const isPreparing = /prepar/i.test(notif.title) && /order/i.test(notif.title);
-  const bizType = notif.metadata?.business_type?.toLowerCase();
-  const isFood = bizType === "food" || bizType === "restaurant";
-  const isGrocery = bizType === "grocery";
+  const isPreparing = /prepar/.test(notif.title) || /prepar/.test(text);
+
+  let lottieSource: any = null;
+  let lottieSize = 44;
+  if (isRiderPickedUp) {
+    lottieSource = require("@/assets/lottiefilesicons/pick-rider.json");
+    lottieSize = 50;
+  } else if (isOrderPlaced) {
+    lottieSource = require("@/assets/lottiefilesicons/order-placed.json");
+    lottieSize = 52;
+  } else if (isOrderConfirmed) {
+    lottieSource = require("@/assets/lottiefilesicons/confirmed.json");
+    lottieSize = 50;
+  } else if (isOrderDelivered) {
+    lottieSource = require("@/assets/lottiefilesicons/delivered.json");
+    lottieSize = 50;
+  } else if (isOutForDelivery) {
+    lottieSource = require("@/assets/lottiefilesicons/out-of-delivery.json");
+    lottieSize = 52;
+  } else if (isPreparing) {
+    if (isGrocery && !isFood) {
+      lottieSource = require("@/assets/lottiefilesicons/Grocery.json");
+    } else {
+      lottieSource = require("@/assets/lottiefilesicons/Cooking.json");
+    }
+    lottieSize = 50;
+  }
 
   return (
     <Pressable
@@ -59,83 +118,19 @@ export function NotificationItem({ notif, onPress }: NotificationItemProps) {
         className={`rounded-2xl mb-3 w-full ${notif.read ? "opacity-70" : ""}`}
       >
         <View className="flex-row items-start px-4 py-4">
-          {isRiderPickedUp ? (
-            <IconSlot>
-              <LottieView
-                source={require("@/assets/lottiefilesicons/pick-rider.json")}
-                autoPlay
-                loop
-                speed={1}
-                resizeMode="cover"
-                style={{ width: 58, height: 58 }}
-              />
-            </IconSlot>
-          ) : isOrderPlaced ? (
-            <IconSlot>
-              <LottieView
-                source={require("@/assets/lottiefilesicons/order-placed.json")}
-                autoPlay
-                loop={false}
-                speed={1}
-                resizeMode="cover"
-                style={{ width: 64, height: 72 }}
-              />
-            </IconSlot>
-          ) : isOrderConfirmed ? (
-            <IconSlot>
-              <LottieView
-                source={require("@/assets/lottiefilesicons/confirmed.json")}
-                autoPlay
-                loop
-                speed={1}
-                resizeMode="cover"
-                style={{ width: 60, height: 60 }}
-              />
-            </IconSlot>
-          ) : isOrderDelivered ? (
-            <IconSlot>
-              <LottieView
-                source={require("@/assets/lottiefilesicons/delivered.json")}
-                autoPlay
-                loop
-                speed={1}
-                resizeMode="cover"
-                style={{ width: 58, height: 58 }}
-              />
-            </IconSlot>
-          ) : isOutForDelivery ? (
-            <IconSlot>
-              <LottieView
-                source={require("@/assets/lottiefilesicons/out-of-delivery.json")}
-                autoPlay
-                loop
-                speed={1}
-                resizeMode="cover"
-                style={{ width: 64, height: 56 }}
-              />
-            </IconSlot>
-          ) : isPreparing && isFood ? (
-            <IconSlot>
-              <LottieView
-                source={require("@/assets/lottiefilesicons/Cooking.json")}
-                autoPlay
-                loop
-                speed={1}
-                resizeMode="cover"
-                style={{ width: 60, height: 60 }}
-              />
-            </IconSlot>
-          ) : isPreparing && isGrocery ? (
-            <IconSlot>
-              <LottieView
-                source={require("@/assets/lottiefilesicons/Grocery.json")}
-                autoPlay
-                loop
-                speed={1}
-                resizeMode="cover"
-                style={{ width: 60, height: 60 }}
-              />
-            </IconSlot>
+          {lottieSource ? (
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                marginRight: 12,
+                marginTop: 2,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <LottieIcon source={lottieSource} size={lottieSize} />
+            </View>
           ) : (
             <View
               style={{ backgroundColor: bg }}

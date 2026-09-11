@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~57.0.8",
     "@expo/vector-icons": "^15.1.1",
+    "@lottiefiles/dotlottie-react": "^0.13.5",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-reusables/cli": "^0.7.1",
     "@react-navigation/bottom-tabs": "^7.18.16",

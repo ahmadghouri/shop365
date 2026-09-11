@@ -47,6 +47,7 @@ app.use('/api', require('./modules/grocery-products/grocery-product.routes'));
 app.use('/api', require('./modules/pos-products/pos-product.routes'));
 app.use('/api', require('./modules/internship-applications/internship-application.routes'));
 app.use('/api', require('./modules/upload/upload.routes'));
+app.use('/api', require('./modules/notifications/notification.routes'));
 
 // Admin routes — Laravel: Route::middleware(['auth:sanctum', AdminMiddleware::class])->prefix('/admin')
 app.use('/api/admin', require('./modules/admin/admin.routes'));

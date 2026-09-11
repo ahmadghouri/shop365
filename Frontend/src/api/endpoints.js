@@ -75,9 +75,14 @@ export const ENDPOINTS = {
   RESTAURANT_COMPLAINTS: "/restaurantAdmin/complaints",
   RESTAURANT_PRODUCTS: "/restaurantAdmin/allproducts",
   RESTAURANT_ORDERS: "/restaurantAdmin/orders",
+  RESTAURANT_ASSIGN_RIDER: (id) => `/restaurantAdmin/orders/${id}/assign-rider`,
   RESTAURANT_DISCOUNT: "/restaurantAdmin/products/discount",
   RESTAURANT_REMOVE_DISCOUNT: "/restaurantAdmin/products/removeDiscount",
   RESTAURANT_ADD_PRODUCT: "/restaurantAdmin/add-products",
-  RESTAURANT_APPLY_DISCOUNT: (id) => `/restaurantAdmin/products/${id}/apply-discount`,
-  RESTAURANT_TOGGLE_ACTIVE: (id) => `/restaurantAdmin/products/${id}/toggle-active`,
+  RESTAURANT_APPLY_DISCOUNT: (id) =>
+    `/restaurantAdmin/products/${id}/apply-discount`,
+  RESTAURANT_TOGGLE_ACTIVE: (id) =>
+    `/restaurantAdmin/products/${id}/toggle-active`,
+  RESTAURANT_RIDERS: "/restaurantAdmin/riders",
+  RESTAURANT_RIDER: (id) => `/restaurantAdmin/riders/${id}`,
 };

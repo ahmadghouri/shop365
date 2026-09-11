@@ -22,6 +22,11 @@ const orderSchema = new mongoose.Schema(
       default: OrderStatus.PENDING,
     },
     voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: "Voucher" },
+    delivery_rider_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   { timestamps: true },
 );

@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import * as PopoverPrimitive from '@rn-primitives/popover';
 import * as React from 'react';
 import { Platform, StyleSheet } from 'react-native';
-import { FadeIn, FadeOut, ReduceMotion } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
 const Popover = PopoverPrimitive.Root;
@@ -28,10 +27,7 @@ function PopoverContent({
         <PopoverPrimitive.Overlay
           style={Platform.select({ native: StyleSheet.absoluteFill })}
           asChild={Platform.OS !== 'web'}>
-          <NativeOnlyAnimatedView
-            entering={FadeIn.duration(200).reduceMotion(ReduceMotion.System)}
-            exiting={FadeOut.reduceMotion(ReduceMotion.System)}
-            as="Pressable">
+          <NativeOnlyAnimatedView as="Pressable">
             <TextClassContext.Provider value="text-popover-foreground">
               <PopoverPrimitive.Content
                 align={align}

@@ -13,7 +13,6 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { FadeIn, ReduceMotion } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
@@ -70,7 +69,7 @@ function DropdownMenuSubContent({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
   return (
-    <NativeOnlyAnimatedView entering={FadeIn.reduceMotion(ReduceMotion.System)}>
+    <NativeOnlyAnimatedView>
       <DropdownMenuPrimitive.SubContent
         className={cn(
           'bg-popover border-border overflow-hidden rounded-md border p-1 shadow-lg shadow-black/5',
@@ -112,7 +111,7 @@ function DropdownMenuContent({
               : StyleSheet.absoluteFill,
           })}
           className={overlayClassName} asChild={Platform.OS !== 'web'}>
-          <NativeOnlyAnimatedView entering={FadeIn.reduceMotion(ReduceMotion.System)} as="Pressable">
+          <NativeOnlyAnimatedView as="Pressable">
             <TextClassContext.Provider value="text-popover-foreground">
               <DropdownMenuPrimitive.Content
                 className={cn(

@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import * as TooltipPrimitive from '@rn-primitives/tooltip';
 import * as React from 'react';
 import { Platform, StyleSheet } from 'react-native';
-import { FadeInDown, FadeInUp, FadeOut, ReduceMotion } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
 const Tooltip = TooltipPrimitive.Root;
@@ -28,18 +27,7 @@ function TooltipContent({
         <TooltipPrimitive.Overlay
           style={Platform.select({ native: StyleSheet.absoluteFill })}
           asChild={Platform.OS !== 'web'}>
-          <NativeOnlyAnimatedView
-            entering={
-              side === 'top'
-                ? FadeInDown.withInitialValues({ transform: [{ translateY: 3 }] })
-                    .duration(150)
-                    .reduceMotion(ReduceMotion.System)
-                : FadeInUp.withInitialValues({ transform: [{ translateY: -5 }] }).reduceMotion(
-                    ReduceMotion.System
-                  )
-            }
-            exiting={FadeOut.reduceMotion(ReduceMotion.System)}
-            as="Pressable">
+          <NativeOnlyAnimatedView as="Pressable">
             <TextClassContext.Provider value="text-xs text-primary-foreground">
               <TooltipPrimitive.Content
                 sideOffset={sideOffset}

@@ -15,7 +15,6 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { FadeIn, ReduceMotion } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
 const MenubarMenu = MenubarPrimitive.Menu;
@@ -137,7 +136,7 @@ function MenubarSubContent({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.SubContent>) {
   return (
-    <NativeOnlyAnimatedView entering={FadeIn.reduceMotion(ReduceMotion.System)}>
+    <NativeOnlyAnimatedView>
       <MenubarPrimitive.SubContent
         className={cn(
           'bg-popover border-border overflow-hidden rounded-md border p-1 shadow-lg shadow-black/5',
@@ -168,7 +167,6 @@ function MenubarContent({
         <NativeOnlyAnimatedView
           as="Pressable"
           accessible={false}
-          entering={FadeIn.reduceMotion(ReduceMotion.System)}
           style={StyleSheet.absoluteFill}
           pointerEvents="box-none">
           <TextClassContext.Provider value="text-popover-foreground">

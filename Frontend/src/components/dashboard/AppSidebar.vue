@@ -67,6 +67,7 @@ const restaurantAdminMenuItems = computed(() => {
     { label: 'Business Settings', to: '/admin/provider-settings', icon: Settings },
     { label: 'Sub Businesses', to: '/admin/sub-business', icon: Building2 },
     { label: 'Products', to: '/admin/restaurantAdminDashboard', icon: Package },
+    { label: 'Riders', to: '/admin/riders', icon: Users },
   ]
 
   if (user.value?.phone_no === '62222222222') {
@@ -102,12 +103,10 @@ const handleNavClick = () => {
 </script>
 
 <template>
-  <aside
-    :class="[
-      'fixed inset-y-0 left-0 z-40 flex flex-col bg-background border-r border-border transition-all duration-300 ease-in-out',
-      collapsed ? 'w-16' : 'w-64'
-    ]"
-  >
+  <aside :class="[
+    'fixed inset-y-0 left-0 z-40 flex flex-col bg-background border-r border-border transition-all duration-300 ease-in-out',
+    collapsed ? 'w-16' : 'w-64'
+  ]">
     <div class="flex items-center gap-3 px-4 h-16 border-b border-border shrink-0">
       <Avatar class="h-8 w-8 shrink-0">
         <AvatarFallback class="bg-primary text-primary-foreground text-xs font-bold">S3</AvatarFallback>
@@ -137,16 +136,12 @@ const handleNavClick = () => {
         <template v-for="item in menuItems" :key="item.to">
           <Tooltip :disabled="!collapsed">
             <TooltipTrigger as-child>
-              <router-link
-                :to="item.to"
-                :class="[
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  isActive(item.to)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                ]"
-                @click="handleNavClick"
-              >
+              <router-link :to="item.to" :class="[
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                isActive(item.to)
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              ]" @click="handleNavClick">
                 <component :is="item.icon" class="h-5 w-5 shrink-0" />
                 <transition name="fade">
                   <span v-if="!collapsed" class="whitespace-nowrap overflow-hidden">
@@ -166,10 +161,8 @@ const handleNavClick = () => {
     <div class="mt-auto border-t border-border p-2 shrink-0">
       <Tooltip :disabled="!collapsed">
         <TooltipTrigger as-child>
-          <button
-            @click="handleLogout"
-            class="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
-          >
+          <button @click="handleLogout"
+            class="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
             <LogOut class="h-5 w-5 shrink-0" />
             <transition name="fade">
               <span v-if="!collapsed" class="whitespace-nowrap">Logout</span>
@@ -185,10 +178,8 @@ const handleNavClick = () => {
 
       <Tooltip :disabled="!collapsed">
         <TooltipTrigger as-child>
-          <button
-            @click="toggleCollapse"
-            class="flex items-center justify-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
+          <button @click="toggleCollapse"
+            class="flex items-center justify-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
             <component :is="collapsed ? ChevronRight : ChevronLeft" class="h-5 w-5 shrink-0" />
             <transition name="fade">
               <span v-if="!collapsed" class="whitespace-nowrap">Collapse</span>
@@ -208,6 +199,7 @@ const handleNavClick = () => {
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

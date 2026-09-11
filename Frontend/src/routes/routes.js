@@ -32,6 +32,8 @@ import ProviderSettings from "../pages/RestaurantAdmin/ProviderSettings.vue";
 import OurStoreUsers from "../pages/Admin/OurStoreUsers.vue";
 import RestaurantOrder from "../pages/RestaurantAdmin/RestaurantOrder.vue";
 import BusinessReviews from "../pages/RestaurantAdmin/BusinessReviews.vue";
+import Riders from "../pages/RestaurantAdmin/Riders.vue";
+import RiderDetail from "../pages/RestaurantAdmin/RiderDetail.vue";
 import Profile from "../pages/Profile.vue";
 import OrderHistory from "../pages/OrderHistory.vue";
 import UserLogin from "../pages/Login.vue";
@@ -346,6 +348,22 @@ const routes = [
         path: "restaurantOrders",
         name: "RestaurantOrders",
         component: RestaurantOrder,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "riders",
+        name: "Riders",
+        component: Riders,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "riders/:id",
+        name: "RiderDetail",
+        component: RiderDetail,
         meta: {
           requiresAdminAuth: true,
         },

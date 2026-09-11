@@ -10,7 +10,10 @@ export const orderApi = {
   deleteAll: () => http.delete(ENDPOINTS.DELETE_ALL_ORDERS),
 
   // Restaurant admin
-  getRestaurantOrders: (params) => http.get(ENDPOINTS.RESTAURANT_ORDERS, { params }),
+  getRestaurantOrders: (params) =>
+    http.get(ENDPOINTS.RESTAURANT_ORDERS, { params }),
+  assignRider: (id, data) =>
+    http.post(ENDPOINTS.RESTAURANT_ASSIGN_RIDER(id), data),
 
   // Super admin
   getBusinessOrders: (id) => http.get(ENDPOINTS.ADMIN_BUSINESS_ORDERS(id)),

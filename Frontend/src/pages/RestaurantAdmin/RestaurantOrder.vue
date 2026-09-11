@@ -129,6 +129,19 @@
           </Button>
         </div>
 
+        <div v-if="selectedOrder.status === 'preparing'" class="mt-3 flex items-center gap-2">
+          <select v-model="selectedRider" class="p-2 border rounded">
+            <option value="">-- Assign Rider --</option>
+            <option v-for="r in ridersList" :key="r._id" :value="r._id">{{ r.name || r.phone_no }}</option>
+          </select>
+          <Button size="sm" @click="assignRiderToOrder" :disabled="!selectedRider">Assign</Button>
+        </div>
+        <div v-else-if="selectedOrder.delivery_rider_id" class="mt-3">
+          <div class="text-sm text-muted">Assigned Rider:</div>
+          <div class="font-medium">{{(ridersList.find(r => r._id === selectedOrder.delivery_rider_id) || {}).name ||
+            selectedOrder.delivery_rider_id }}</div>
+        </div>
+
         <Separator />
 
         <div class="space-y-2 text-sm">
@@ -192,6 +205,7 @@
 
 <script setup>
 import { orderApi } from "@/api/modules/order.api";
+import restaurantAdminApi from '@/api/modules/restaurantAdmin.api'
 import { ref, onMounted, computed, watch, h } from "vue";
 import { useOrderStore } from "../../store/orderStore";
 import { toast } from "vue3-toastify";
@@ -210,7 +224,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   RefreshCw, Clock, User, Phone, MapPin, ShoppingCart, Eye,
-  AlertCircle, Circle, Timer, CheckCircle2, XCircle
+  AlertCircle, Circle, Timer, CheckCircle2, XCircle, Truck
 } from "lucide-vue-next";
 
 const target = ref(null);
@@ -221,6 +235,8 @@ const error = ref(null);
 const isModalOpen = ref(false);
 const selectedOrder = ref(null);
 const selectedStatus = ref("pending");
+const ridersList = ref([])
+const selectedRider = ref('')
 
 const I = new Audio("/notification.mp3");
 I.volume = 0.25;
@@ -228,6 +244,7 @@ I.volume = 0.25;
 const statusTabs = [
   { value: "pending", label: "New Orders", icon: Circle, activeClass: "bg-red-500 hover:bg-red-600 text-white", inactiveClass: "text-red-500 border-red-200 hover:bg-red-50" },
   { value: "preparing", label: "Preparing", icon: Timer, activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white", inactiveClass: "text-yellow-600 border-yellow-200 hover:bg-yellow-50" },
+  { value: "on_way", label: "On Way", icon: Truck, activeClass: "bg-indigo-500 hover:bg-indigo-600 text-white", inactiveClass: "text-indigo-600 border-indigo-200 hover:bg-indigo-50" },
   { value: "delivered", label: "Delivered", icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white", inactiveClass: "text-green-600 border-green-200 hover:bg-green-50" },
   { value: "cancelled", label: "Cancelled", icon: XCircle, activeClass: "bg-blue-500 hover:bg-blue-600 text-white", inactiveClass: "text-blue-500 border-blue-200 hover:bg-blue-50" },
 ];
@@ -235,6 +252,7 @@ const statusTabs = [
 const statusOptions = [
   { value: "pending", label: "Pending", icon: Circle, activeClass: "bg-red-500 hover:bg-red-600 text-white" },
   { value: "preparing", label: "Preparing", icon: Timer, activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white" },
+  { value: "on_way", label: "On Way", icon: Truck, activeClass: "bg-indigo-500 hover:bg-indigo-600 text-white" },
   { value: "delivered", label: "Delivered", icon: CheckCircle2, activeClass: "bg-green-500 hover:bg-green-600 text-white" },
   { value: "cancelled", label: "Cancelled", icon: XCircle, activeClass: "bg-blue-500 hover:bg-blue-600 text-white" },
 ];
@@ -349,6 +367,13 @@ const openModal = async (order) => {
       selectedOrder.value = { ...order };
     }
     isModalOpen.value = true;
+    // load riders for assignment
+    try {
+      const { data } = await restaurantAdminApi.getRiders()
+      ridersList.value = data?.data || []
+    } catch (e) {
+      ridersList.value = []
+    }
   } catch (err) {
     console.error("Error fetching order details:", err);
     toast.error("Failed to load order details");
@@ -358,7 +383,29 @@ const openModal = async (order) => {
 const closeModal = () => {
   isModalOpen.value = false;
   selectedOrder.value = null;
+  selectedRider.value = ''
 };
+
+const assignRiderToOrder = async () => {
+  if (!selectedRider.value) return toast.error('Select a rider first')
+  try {
+    const { data } = await orderApi.assignRider(selectedOrder.value.id, { rider_id: selectedRider.value })
+    const order = data?.data || {}
+    toast.success('Rider assigned')
+    // update local order and status
+    selectedOrder.value = { ...selectedOrder.value, ...order }
+    // update the order in the store list so UI reflects new status
+    const idx = orderStore.ordersList.findIndex(o => o.id === order.id)
+    if (idx !== -1) {
+      orderStore.ordersList.splice(idx, 1, order)
+    }
+    // refresh orders list (optional)
+    await fetchRestaurantOrders()
+  } catch (e) {
+    console.error(e)
+    toast.error('Failed to assign rider')
+  }
+}
 
 const formatDate = (dateString) => {
   const options = {

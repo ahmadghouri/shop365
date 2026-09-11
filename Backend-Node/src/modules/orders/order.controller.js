@@ -153,6 +153,79 @@ async function viewRestaurantOrders(req, res, next) {
   }
 }
 
+async function assignRider(req, res, next) {
+  try {
+    const orderId = req.params.id;
+    const { rider_id } = req.body;
+    if (!rider_id)
+      return res.status(400).json({ message: "rider_id is required" });
+
+    const Order = require("./order.model");
+    const OrderItem = require("./order-item.model");
+    const Product = require("../products/product.model");
+    const User = require("../users/user.model");
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    // Ensure this order belongs to this restaurant (by checking the products' business)
+    const items = await OrderItem.find({ order_id: order._id }).populate(
+      "product_id",
+    );
+    const businessId = req.user.business_id && String(req.user.business_id);
+    const belongs = items.some((i) => {
+      const bid = i.product_id?.business_id?._id || i.product_id?.business_id;
+      return String(bid) === businessId;
+    });
+    if (!belongs)
+      return res
+        .status(403)
+        .json({ message: "Order does not belong to your business" });
+
+    // Verify rider exists and belongs to this business
+    const rider = await User.findOne({
+      _id: rider_id,
+      role: "rider",
+      business_id: businessId,
+      deleted_at: null,
+    });
+    if (!rider)
+      return res
+        .status(404)
+        .json({ message: "Rider not found for this business" });
+
+    order.delivery_rider_id = rider._id;
+    // set order status to on_way when a rider is assigned (use enum)
+    const { OrderStatus } = require("../../common/enums");
+    order.status = OrderStatus.ON_WAY || "on_way";
+    await order.save();
+
+    // re-fetch saved order to return fresh document
+    const savedOrder = await Order.findById(order._id);
+
+    // Emit socket events: notify rider user room and update user who placed the order
+    try {
+      const { getIO } = require("../../socket");
+      const io = getIO();
+      // notify the rider specifically
+      io.to(`user_${rider._id}`).emit("order:riderAssigned", {
+        order_id: savedOrder._id,
+        rider: { _id: rider._id, name: rider.name, phone_no: rider.phone_no },
+      });
+      // notify the order owner about status update
+      io.to(`user_${savedOrder.user_id}`).emit("order:statusUpdated", {
+        order_id: savedOrder._id,
+        status: savedOrder.status,
+      });
+    } catch (e) {}
+
+    const { successResponse } = require("../../utils/api-response");
+    successResponse(res, savedOrder, "Rider assigned to order");
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function superAdminOrders(req, res, next) {
   try {
     const businessId = req.params.id;
@@ -236,6 +309,7 @@ module.exports = {
   updateStatus,
   reorder,
   viewRestaurantOrders,
+  assignRider,
   superAdminOrders,
   getGroceryOrders,
   deleteAllOrders,

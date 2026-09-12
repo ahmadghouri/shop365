@@ -126,3 +126,6 @@ mobile/android/
 # ─── Testing & Coverage ──────────────────────────────────────────────────────
 coverage/
 .nyc_output/
+
+# Firebase service account
+mobile/*firebase-adminsdk*.json

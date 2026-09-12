@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
   latitude: { type: Number },
   longitude: { type: Number },
   points: { type: Number, default: 0 },
+  expo_push_token: { type: String, default: null, index: true },
+  push_platform: { type: String, enum: ['android', 'ios', null], default: null },
   email_verified_at: { type: Date },
   deleted_at: { type: Date },
 }, { timestamps: true });
@@ -26,6 +28,7 @@ userSchema.set('toJSON', {
   transform: (doc, ret) => {
     delete ret.password;
     delete ret.__v;
+    delete ret.expo_push_token;
     return ret;
   },
 });

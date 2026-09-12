@@ -6,6 +6,7 @@ const { cloudinaryUpload } = require('../../middleware/cloudinary-upload.middlew
 
 // Laravel: GET /refreshUser (under auth)
 router.get('/refreshUser', authenticate, ctrl.refreshUser);
+router.post('/push-token', authenticate, ctrl.registerPushToken);
 
 // Laravel: PUT /update/{id}
 router.put('/update/:id', ctrl.updateUser);

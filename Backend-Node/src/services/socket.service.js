@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/env');
 const logger = require('../config/logger');
 const Notification = require('../modules/notifications/notification.model');
+const User = require('../modules/users/user.model');
+const { sendExpoPush } = require('./expo-push.service');
 
 /** @type {Server} */
 let io;
@@ -61,6 +63,9 @@ function notifyUser(userId, payload) {
     metadata: payload.metadata || undefined,
   })
     .then((notif) => {
+      User.findById(userId).then((user) => sendExpoPush(user, payload)).catch((err) => {
+        logger.warn({ userId, error: err.message }, 'Could not load user for Expo push');
+      });
       if (!io) return;
       io.to(`user:${String(userId)}`).emit('notification', {
         id: String(notif._id),

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "418162723685",
+    "project_id": "studio-4355859681-27710",
+    "storage_bucket": "studio-4355859681-27710.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:418162723685:android:c76918ce637dbb9a83af8c",
+        "android_client_info": {
+          "package_name": "com.nbthub.shop365"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeDHRE_VwFoEmlDb27Q2IWoYFlGX6gr-M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

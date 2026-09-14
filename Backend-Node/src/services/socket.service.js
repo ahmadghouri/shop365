@@ -2,6 +2,9 @@ const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/env');
 const logger = require('../config/logger');
+const Notification = require('../modules/notifications/notification.model');
+const User = require('../modules/users/user.model');
+const { sendExpoPush } = require('./expo-push.service');
 
 /** @type {Server} */
 let io;
@@ -44,18 +47,41 @@ function initSocket(httpServer) {
 }
 
 /**
- * Emit a notification to a specific user.
+ * Emit a notification to a specific user, and persist it so it survives a
+ * refresh. The live socket emit uses the saved _id so the client can dedupe.
  * @param {string} userId
- * @param {{ title: string, body: string, type: string }} payload
+ * @param {{ title: string, body: string, type: string, reference_id?: string|ObjectId, reference_type?: string, metadata?: any }} payload
  */
 function notifyUser(userId, payload) {
-  if (!io) return;
-  io.to(`user:${String(userId)}`).emit('notification', {
-    id: Date.now().toString(),
-    ...payload,
-    time: 'Just now',
-    read: false,
-  });
+  Notification.create({
+    user_id: userId,
+    type: payload.type || 'general',
+    title: payload.title || '',
+    body: payload.body || '',
+    reference_id: payload.reference_id || undefined,
+    reference_type: payload.reference_type || '',
+    metadata: payload.metadata || undefined,
+  })
+    .then((notif) => {
+      User.findById(userId).then((user) => sendExpoPush(user, payload)).catch((err) => {
+        logger.warn({ userId, error: err.message }, 'Could not load user for Expo push');
+      });
+      if (!io) return;
+      io.to(`user:${String(userId)}`).emit('notification', {
+        id: String(notif._id),
+        type: notif.type,
+        title: notif.title,
+        body: notif.body,
+        time: 'Just now',
+        read: false,
+        reference_id: notif.reference_id ? String(notif.reference_id) : undefined,
+        reference_type: notif.reference_type || undefined,
+        metadata: notif.metadata || undefined,
+      });
+    })
+    .catch((err) => {
+      logger.error('Failed to save notification: %s', err.message);
+    });
 }
 
 module.exports = { initSocket, notifyUser };

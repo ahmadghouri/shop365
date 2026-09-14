@@ -25,6 +25,13 @@ import { NotificationPage } from './pages/NotificationPage';
 import { OrderTrackingPage } from './pages/OrderTrackingPage';
 import { useAuthStore } from './lib/authStore';
 import { useCartStore } from './lib/cartStore';
+import { useNotificationStore } from './lib/notificationStore';
+import { fetchNotifications, toLocalNotifications } from './api/notifications/notification.service';
+import {
+  registerForPushNotificationsAsync,
+  registerPushToken,
+  setupPushNotificationListeners,
+} from './lib/pushNotifications';
 
 // Screens where the bottom tab bar should be visible
 const TAB_SCREENS = ['home', 'cart', 'monthly', 'orders', 'profile'];
@@ -48,10 +55,17 @@ function AppContent() {
       loadCart();
       const token = useAuthStore.getState().token;
       if (token) connectSocket(token);
+      registerForPushNotificationsAsync()
+        .then((pushToken) => pushToken && registerPushToken(pushToken))
+        .catch((error) => console.warn('Push token registration failed', error));
+      fetchNotifications(1, 20)
+        .then((res) => useNotificationStore.getState().setNotifications(toLocalNotifications(res.data)))
+        .catch(() => {});
     } else {
       disconnectSocket();
     }
   }, [isAuthenticated]);
+  useEffect(() => setupPushNotificationListeners(() => setActiveTab('notifications')), []);
   useEffect(() => {
     if (screen === 'Splash') {
       const timer = setTimeout(() => setScreen('Location'), 2500);
@@ -158,7 +172,12 @@ function AppContent() {
             />
           );
         case 'notifications':
-          return <NotificationPage onBack={() => setActiveTab('home')} />;
+          return (
+            <NotificationPage
+              onBack={() => setActiveTab('home')}
+              onTrackOrder={(orderId) => setTrackingOrder({ _id: orderId })}
+            />
+          );
         default: // home
           return (
             <HomePage

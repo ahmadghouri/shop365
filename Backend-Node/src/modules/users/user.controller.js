@@ -11,6 +11,20 @@ async function refreshUser(req, res, next) {
   } catch (error) { next(error); }
 }
 
+async function registerPushToken(req, res, next) {
+  try {
+    const { token, platform } = req.body;
+    if (!token || typeof token !== 'string' || !['android', 'ios'].includes(platform)) {
+      return res.status(422).json({ message: 'A valid token and platform are required' });
+    }
+
+    req.user.expo_push_token = token;
+    req.user.push_platform = platform;
+    await req.user.save();
+    res.json({ message: 'Push token registered' });
+  } catch (error) { next(error); }
+}
+
 async function index(req, res, next) {
   try {
     const totalUsers = await User.countDocuments({ role: 'end_user', deleted_at: null });
@@ -128,4 +142,4 @@ async function uploadAvatar(req, res, next) {
   } catch (error) { next(error); }
 }
 
-module.exports = { refreshUser, index, show, destroy, usersRegisteredToday, deleteUsers, updateUser, uploadAvatar };
+module.exports = { refreshUser, registerPushToken, index, show, destroy, usersRegisteredToday, deleteUsers, updateUser, uploadAvatar };

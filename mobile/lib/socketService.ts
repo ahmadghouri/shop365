@@ -21,6 +21,13 @@ export function connectSocket(token: string) {
     Platform.OS,
   );
 
+  // Sanitize token: strip accidental "Bearer " prefix before sending,
+  // server also strips defensively but doing it client-side saves a round trip.
+  const cleanToken =
+    token && token.toLowerCase().startsWith("bearer ")
+      ? token.slice(7).trim()
+      : (token || "").trim();
+
   const isHttps = API_BASE_URL.startsWith("https://");
   const extraHeaders: Record<string, string> = {};
   if (isHttps) {
@@ -29,8 +36,8 @@ export function connectSocket(token: string) {
 
   socket = io(API_BASE_URL, {
     path: "/socket.io",
-    auth: { token },
-    query: { token },
+    auth: { token: cleanToken },
+    query: { token: cleanToken },
     transports: ["polling", "websocket"],
     reconnection: true,
     reconnectionAttempts: Infinity,
@@ -68,20 +75,36 @@ export function connectSocket(token: string) {
     console.warn("[Socket] Reconnect failed — all attempts exhausted");
   });
 
-  socket.on("connect_error", (err) => {
-    console.warn(
-      "[Socket] Connection error:",
-      err.message,
-      "| url:",
-      API_BASE_URL,
-    );
-    if (
-      err.message &&
-      (err.message.toLowerCase().includes("cors") ||
-        err.message.toLowerCase().includes("403"))
-    ) {
+  socket.on("connect_error", (err: any) => {
+    const ctx: Record<string, unknown> = {
+      message: err?.message,
+      url: API_BASE_URL,
+    };
+    if (err?.context) ctx.context = err.context;
+    if (err?.description) ctx.description = err.description;
+    const statusCode = err?.data?.statusCode || err?.status;
+    if (statusCode) ctx.statusCode = statusCode;
+    const responseBody = err?.data?.body?.toString?.();
+    if (responseBody) ctx.body = responseBody.slice(0, 400);
+    console.warn("[Socket] Connection error:", JSON.stringify(ctx));
+    const msg = (err?.message || "").toLowerCase();
+    if (msg.includes("cors") || msg.includes("403")) {
       console.warn(
         "[Socket] CORS/auth issue detected — check server CORS_ORIGINS or token validity",
+      );
+    }
+    if (msg.includes("server error") || statusCode === 500) {
+      console.warn(
+        "[Socket] Server returned 500 during handshake — check server logs for socket auth middleware / DB errors",
+      );
+    }
+    if (
+      msg.includes("user not found") ||
+      msg.includes("invalid token") ||
+      msg.includes("authentication error")
+    ) {
+      console.warn(
+        "[Socket] Auth failure on server — token may be expired or user deleted; try re-login.",
       );
     }
     if (reconnectCount > 0 && reconnectCount % 5 === 0) {

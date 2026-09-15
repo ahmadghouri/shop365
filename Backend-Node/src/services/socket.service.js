@@ -50,32 +50,71 @@ function initSocket(httpServer) {
   });
 
   // Auth middleware — expect token in handshake.auth.token OR query.token
-  io.use((socket, next) => {
-    const token = socket.handshake.auth?.token || socket.handshake.query?.token;
-    if (!token) {
-      logger.warn("Socket rejected: missing auth token");
-      return next(new Error("Authentication error"));
-    }
+  io.use(async (socket, next) => {
     try {
-      const payload = jwt.verify(token, JWT_SECRET);
-      socket.userId = String(payload.id || payload._id || payload.sub);
+      const rawToken =
+        socket.handshake.auth?.token || socket.handshake.query?.token;
+      if (!rawToken) {
+        logger.warn("Socket rejected: missing auth token");
+        return next(new Error("Authentication error"));
+      }
+      // Strip accidental "Bearer " prefix if present (sometimes stored with prefix)
+      const token = String(rawToken).startsWith("Bearer ")
+        ? String(rawToken).slice(7).trim()
+        : String(rawToken).trim();
+
+      let payload;
+      try {
+        payload = verifyToken(token);
+      } catch (err) {
+        logger.warn(`Socket rejected: invalid token (${err.message})`);
+        return next(new Error("Invalid token"));
+      }
+      const uid = String(payload.id || payload._id || payload.sub);
+      if (!uid) {
+        logger.warn("Socket rejected: no id in JWT payload");
+        return next(new Error("Invalid token"));
+      }
+      // Confirm user actually exists in DB (matches express auth middleware behaviour)
+      try {
+        const user = await User.findById(uid).select("_id").lean();
+        if (!user) {
+          logger.warn(`Socket rejected: user ${uid} not found in DB`);
+          return next(new Error("User not found"));
+        }
+      } catch (dbErr) {
+        logger.error(`Socket auth DB error for user ${uid}: ${dbErr.message}`);
+        return next(new Error("Authentication error"));
+      }
+      socket.userId = uid;
       next();
-    } catch (err) {
-      logger.warn(`Socket rejected: invalid token (${err.message})`);
-      next(new Error("Invalid token"));
+    } catch (fatal) {
+      logger.error(
+        `Socket auth middleware crashed: ${fatal.message}`,
+        fatal.stack,
+      );
+      next(new Error("Authentication error"));
     }
   });
 
   io.on("connection", (socket) => {
-    socket.join(`user:${socket.userId}`);
-    logger.info(
-      `Socket connected: user ${socket.userId} [id=${socket.id}, transport=${socket.conn.transport.name}]`,
-    );
+    try {
+      socket.join(`user:${socket.userId}`);
+      logger.info(
+        `Socket connected: user ${socket.userId} [id=${socket.id}, transport=${socket.conn.transport.name}]`,
+      );
+    } catch (err) {
+      logger.error(`Socket on-connection error: ${err.message}`);
+    }
 
     socket.on("disconnect", (reason) => {
-      logger.info(
-        `Socket disconnected: user ${socket.userId} [reason=${reason}]`,
-      );
+      try {
+        logger.info(
+          `Socket disconnected: user ${socket.userId} [reason=${reason}]`,
+        );
+      } catch (_) {
+        /* ignore */
+      }
     });
   });
 

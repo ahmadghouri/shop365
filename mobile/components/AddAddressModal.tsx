@@ -21,12 +21,14 @@ type AddAddressModalProps = {
   visible: boolean;
   onClose: () => void;
   editingAddress?: Address | null;
+  onSaved?: (address: Address) => void;
 };
 
 export function AddAddressModal({
   visible,
   onClose,
   editingAddress,
+  onSaved,
 }: AddAddressModalProps) {
   const createMutation = useCreateAddress();
   const updateMutation = useUpdateAddress();
@@ -94,11 +96,15 @@ export function AddAddressModal({
         payload.latitude = editingAddress.latitude;
         payload.longitude = editingAddress.longitude;
       }
-      if (editingAddress) {
-        await updateMutation.mutateAsync({ id: editingAddress._id, payload });
-      } else {
-        await createMutation.mutateAsync(payload);
-      }
+      const responseAddress = editingAddress
+        ? await updateMutation.mutateAsync({ id: editingAddress._id, payload })
+        : await createMutation.mutateAsync(payload);
+      const savedAddress: Address = {
+        ...(editingAddress || {}),
+        ...payload,
+        ...(responseAddress || {}),
+      } as Address;
+      onSaved?.(savedAddress);
       setLabel("");
       setAddress("");
       setCoords(null);

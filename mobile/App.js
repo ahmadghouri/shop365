@@ -1,55 +1,61 @@
-import './global.css';
-import { StatusBar, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useState, useEffect, useCallback } from 'react';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { PortalHost } from '@rn-primitives/portal';
-import { queryClient } from './lib/queryClient';
-import { SplashScreen } from './components/SplashScreen';
-import { LocationPermissionScreen } from './components/LocationPermissionScreen';
-import { WelcomeScreen } from './components/WelcomeScreen';
-import { RegisterScreen } from './components/RegisterScreen';
-import { LoginScreen } from './components/LoginScreen';
-import { FloatingCartBar } from './components/FloatingCartBar';
-import { BottomTabBar } from './components/home/BottomTabBar';
-import { connectSocket, disconnectSocket } from './lib/socketService';
-import { HomePage } from './pages/HomePage';
-import { CategoryDetailPage } from './pages/CategoryDetailPage';
-import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
-import { CartPage } from './pages/CartPage';
-import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { OrderHistoryPage } from './pages/OrderHistoryPage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { NotificationPage } from './pages/NotificationPage';
-import { OrderTrackingPage } from './pages/OrderTrackingPage';
-import { useAuthStore } from './lib/authStore';
-import { useCartStore } from './lib/cartStore';
-import { useNotificationStore } from './lib/notificationStore';
-import { fetchNotifications, toLocalNotifications } from './api/notifications/notification.service';
+import "./global.css";
+import { StatusBar, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useState, useEffect, useCallback } from "react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { PortalHost } from "@rn-primitives/portal";
+import { queryClient } from "./lib/queryClient";
+import { SplashScreen } from "./components/SplashScreen";
+import { LocationPermissionScreen } from "./components/LocationPermissionScreen";
+import { WelcomeScreen } from "./components/WelcomeScreen";
+import { RegisterScreen } from "./components/RegisterScreen";
+import { LoginScreen } from "./components/LoginScreen";
+import { FloatingCartBar } from "./components/FloatingCartBar";
+import { BottomTabBar } from "./components/home/BottomTabBar";
+import { connectSocket, disconnectSocket } from "./lib/socketService";
+import { HomePage } from "./pages/HomePage";
+import { CategoryDetailPage } from "./pages/CategoryDetailPage";
+import { BackendProductDetailPage } from "./pages/BackendProductDetailPage";
+import { CartPage } from "./pages/CartPage";
+import { MonthlyGroceryPage } from "./pages/MonthlyGroceryPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { OrderHistoryPage } from "./pages/OrderHistoryPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
+import { NotificationPage } from "./pages/NotificationPage";
+import { OrderTrackingPage } from "./pages/OrderTrackingPage";
+import { useAuthStore } from "./lib/authStore";
+import { useCartStore } from "./lib/cartStore";
+import { useNotificationStore } from "./lib/notificationStore";
+import {
+  fetchNotifications,
+  toLocalNotifications,
+} from "./api/notifications/notification.service";
 import {
   registerForPushNotificationsAsync,
   registerPushToken,
   setupPushNotificationListeners,
-} from './lib/pushNotifications';
+} from "./lib/pushNotifications";
 
 // Screens where the bottom tab bar should be visible
-const TAB_SCREENS = ['home', 'cart', 'monthly', 'orders', 'profile'];
+const TAB_SCREENS = ["home", "cart", "monthly", "orders", "profile"];
 
 function AppContent() {
-  const [screen, setScreen] = useState('Splash');
+  const [screen, setScreen] = useState("Splash");
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeProduct, setActiveProduct] = useState(null);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState("home");
   const [showCheckout, setShowCheckout] = useState(false);
   const [excludedOrderVendorIds, setExcludedOrderVendorIds] = useState([]);
   const [monthlyReturnToCart, setMonthlyReturnToCart] = useState(false);
-  const [cartSelectedCardId, setCartSelectedCardId] = useState('');
+  const [isPackageCartOpen, setIsPackageCartOpen] = useState(false);
+  const [cartSelectedCardId, setCartSelectedCardId] = useState("");
   const [trackingOrder, setTrackingOrder] = useState(null);
   const { isAuthenticated, loadToken } = useAuthStore();
   const loadCart = useCartStore((s) => s.loadCart);
 
-  useEffect(() => { loadToken(); }, []);
+  useEffect(() => {
+    loadToken();
+  }, []);
   useEffect(() => {
     if (isAuthenticated) {
       loadCart();
@@ -57,18 +63,27 @@ function AppContent() {
       if (token) connectSocket(token);
       registerForPushNotificationsAsync()
         .then((pushToken) => pushToken && registerPushToken(pushToken))
-        .catch((error) => console.warn('Push token registration failed', error));
+        .catch((error) =>
+          console.warn("Push token registration failed", error),
+        );
       fetchNotifications(1, 20)
-        .then((res) => useNotificationStore.getState().setNotifications(toLocalNotifications(res.data)))
+        .then((res) =>
+          useNotificationStore
+            .getState()
+            .setNotifications(toLocalNotifications(res.data)),
+        )
         .catch(() => {});
     } else {
       disconnectSocket();
     }
   }, [isAuthenticated]);
-  useEffect(() => setupPushNotificationListeners(() => setActiveTab('notifications')), []);
+  useEffect(
+    () => setupPushNotificationListeners(() => setActiveTab("notifications")),
+    [],
+  );
   useEffect(() => {
-    if (screen === 'Splash') {
-      const timer = setTimeout(() => setScreen('Location'), 2500);
+    if (screen === "Splash") {
+      const timer = setTimeout(() => setScreen("Location"), 2500);
       return () => clearTimeout(timer);
     }
   }, [screen]);
@@ -76,8 +91,12 @@ function AppContent() {
   const navigateForward = useCallback((target) => setScreen(target), []);
   const navigateBack = useCallback((target) => setScreen(target), []);
 
-  if (screen === 'Splash') {
-    return <View style={{ flex: 1 }}><SplashScreen /></View>;
+  if (screen === "Splash") {
+    return (
+      <View style={{ flex: 1 }}>
+        <SplashScreen />
+      </View>
+    );
   }
 
   if (isAuthenticated) {
@@ -99,8 +118,15 @@ function AppContent() {
         <View style={{ flex: 1 }}>
           <CheckoutPage
             excludeVendorIds={excludedOrderVendorIds}
-            onBack={() => { setExcludedOrderVendorIds([]); setShowCheckout(false); }}
-            onSuccess={() => { setExcludedOrderVendorIds([]); setShowCheckout(false); setActiveTab('cart'); }}
+            onBack={() => {
+              setExcludedOrderVendorIds([]);
+              setShowCheckout(false);
+            }}
+            onSuccess={() => {
+              setExcludedOrderVendorIds([]);
+              setShowCheckout(false);
+              setActiveTab("cart");
+            }}
           />
         </View>
       );
@@ -114,9 +140,18 @@ function AppContent() {
             previewImage={activeProduct.image}
             onBack={() => setActiveProduct(null)}
             onAddToCart={() => {}}
-            onBuyNow={() => { setActiveProduct(null); setActiveTab('cart'); }}
+            onBuyNow={() => {
+              setActiveProduct(null);
+              setActiveTab("cart");
+            }}
           />
-          <FloatingCartBar onPress={() => { setActiveProduct(null); setActiveTab('cart'); }} bottom={104} />
+          <FloatingCartBar
+            onPress={() => {
+              setActiveProduct(null);
+              setActiveTab("cart");
+            }}
+            bottom={104}
+          />
         </View>
       );
     }
@@ -130,9 +165,17 @@ function AppContent() {
             subtitle={activeCategory.subtitle}
             onBack={() => setActiveCategory(null)}
             onProductPress={(product) => setActiveProduct(product)}
-            onCartPress={() => { setActiveCategory(null); setActiveTab('cart'); }}
+            onCartPress={() => {
+              setActiveCategory(null);
+              setActiveTab("cart");
+            }}
           />
-          <FloatingCartBar onPress={() => { setActiveCategory(null); setActiveTab('cart'); }} />
+          <FloatingCartBar
+            onPress={() => {
+              setActiveCategory(null);
+              setActiveTab("cart");
+            }}
+          />
         </View>
       );
     }
@@ -140,41 +183,50 @@ function AppContent() {
     // Main tab screens
     const renderTab = () => {
       switch (activeTab) {
-        case 'cart':
+        case "cart":
           return (
             <CartPage
-              onBack={() => setActiveTab('home')}
+              onBack={() => setActiveTab("home")}
               onCheckout={(vendorIds) => {
                 setExcludedOrderVendorIds(vendorIds || []);
                 setShowCheckout(true);
               }}
               onMonthlyGrocery={() => {
                 setMonthlyReturnToCart(true);
-                setActiveTab('list');
+                setActiveTab("list");
               }}
             />
           );
-        case 'list':
+        case "list":
           return (
             <MonthlyGroceryPage
-              onBack={() => setActiveTab(monthlyReturnToCart ? 'cart' : 'home')}
-              onGoToCart={() => { setMonthlyReturnToCart(false); setActiveTab('cart'); }}
+              onBack={() => setActiveTab(monthlyReturnToCart ? "cart" : "home")}
+              onGoToCart={() => {
+                setMonthlyReturnToCart(false);
+                setActiveTab("cart");
+              }}
+              onPackageCartChange={setIsPackageCartOpen}
             />
           );
-        case 'orders':
-          return <OrderHistoryPage onBack={() => setActiveTab('home')} onTrackOrder={(order) => setTrackingOrder(order)} />;
-        case 'profile':
+        case "orders":
+          return (
+            <OrderHistoryPage
+              onBack={() => setActiveTab("home")}
+              onTrackOrder={(order) => setTrackingOrder(order)}
+            />
+          );
+        case "profile":
           return (
             <ProfilePage
-              onLogout={() => setActiveTab('home')}
-              onBack={() => setActiveTab('home')}
-              onOrderHistory={() => setActiveTab('orders')}
+              onLogout={() => setActiveTab("home")}
+              onBack={() => setActiveTab("home")}
+              onOrderHistory={() => setActiveTab("orders")}
             />
           );
-        case 'notifications':
+        case "notifications":
           return (
             <NotificationPage
-              onBack={() => setActiveTab('home')}
+              onBack={() => setActiveTab("home")}
               onTrackOrder={(orderId) => setTrackingOrder({ _id: orderId })}
             />
           );
@@ -183,11 +235,14 @@ function AppContent() {
             <HomePage
               onCategoryPress={(category) => setActiveCategory(category)}
               onProductPress={(product) => setActiveProduct(product)}
-              onCartPress={() => setActiveTab('cart')}
-              onListPress={() => { setMonthlyReturnToCart(false); setActiveTab('list'); }}
-              onOrdersPress={() => setActiveTab('orders')}
-              onProfilePress={() => setActiveTab('profile')}
-              onNotificationPress={() => setActiveTab('notifications')}
+              onCartPress={() => setActiveTab("cart")}
+              onListPress={() => {
+                setMonthlyReturnToCart(false);
+                setActiveTab("list");
+              }}
+              onOrdersPress={() => setActiveTab("orders")}
+              onProfilePress={() => setActiveTab("profile")}
+              onNotificationPress={() => setActiveTab("notifications")}
             />
           );
       }
@@ -196,17 +251,17 @@ function AppContent() {
     return (
       <View style={{ flex: 1 }}>
         {renderTab()}
-        {activeTab !== 'cart' && (
+        {activeTab !== "cart" && !isPackageCartOpen && (
           <BottomTabBar
             activeTab={activeTab}
-            onHomePress={() => setActiveTab('home')}
-            onListPress={() => setActiveTab('list')}
-            onOrdersPress={() => setActiveTab('orders')}
-            onProfilePress={() => setActiveTab('profile')}
+            onHomePress={() => setActiveTab("home")}
+            onListPress={() => setActiveTab("list")}
+            onOrdersPress={() => setActiveTab("orders")}
+            onProfilePress={() => setActiveTab("profile")}
           />
         )}
-        {activeTab === 'home' && (
-          <FloatingCartBar onPress={() => setActiveTab('cart')} bottom={88} />
+        {activeTab === "home" && (
+          <FloatingCartBar onPress={() => setActiveTab("cart")} bottom={88} />
         )}
       </View>
     );
@@ -214,25 +269,32 @@ function AppContent() {
 
   const renderScreen = () => {
     switch (screen) {
-      case 'Location':
-        return <LocationPermissionScreen onDone={() => navigateForward('Welcome')} />;
-      case 'Register':
+      case "Location":
+        return (
+          <LocationPermissionScreen onDone={() => navigateForward("Welcome")} />
+        );
+      case "Register":
         return (
           <RegisterScreen
             onSuccess={() => {}}
-            onLogin={() => navigateBack('Login')}
+            onLogin={() => navigateBack("Login")}
           />
         );
-      case 'Login':
+      case "Login":
         return (
           <LoginScreen
             onSuccess={() => {}}
-            onRegister={() => navigateForward('Register')}
-            onForgotPassword={() => console.log('Forgot password')}
+            onRegister={() => navigateForward("Register")}
+            onForgotPassword={() => console.log("Forgot password")}
           />
         );
       default:
-        return <WelcomeScreen onRegister={() => navigateForward('Register')} onLogin={() => navigateForward('Login')} />;
+        return (
+          <WelcomeScreen
+            onRegister={() => navigateForward("Register")}
+            onLogin={() => navigateForward("Login")}
+          />
+        );
     }
   };
 
@@ -245,7 +307,11 @@ export default function App() {
       <SafeAreaProvider>
         <PortalHost />
         <AppContent />
-        <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="dark-content"
+        />
       </SafeAreaProvider>
     </QueryClientProvider>
   );

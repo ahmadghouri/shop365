@@ -5,8 +5,10 @@ import {
     deleteMonthlyGroceryCard,
     getMonthlyGroceryCard,
     getMonthlyGroceryCards,
+    getMonthlyGrocerySummary,
     removeMonthlyGroceryItem,
     updateMonthlyGroceryItem,
+    updateMonthlyGroceryCard,
     type CreateMonthlyGroceryCardPayload,
 } from './monthly-grocery.service';
 
@@ -86,6 +88,23 @@ export function useRemoveMonthlyGroceryItem() {
     return useMutation({
         mutationFn: ({ cardId, itemId }: { cardId: string; itemId: string }) =>
             removeMonthlyGroceryItem(cardId, itemId),
+        onSuccess: (card) => refresh(card._id),
+    });
+}
+
+export function useMonthlyGrocerySummary(cardId: string) {
+    return useQuery({
+        queryKey: [...monthlyGroceryKeys.detail(cardId), 'summary'],
+        queryFn: () => getMonthlyGrocerySummary(cardId),
+        enabled: Boolean(cardId),
+    });
+}
+
+export function useUpdateMonthlyGroceryCard() {
+    const refresh = useRefreshCards();
+    return useMutation({
+        mutationFn: ({ cardId, name, autoOrderEnabled, autoOrderDate }: { cardId: string; name: string; autoOrderEnabled: boolean; autoOrderDate?: string | null }) =>
+            updateMonthlyGroceryCard(cardId, name, autoOrderEnabled, autoOrderDate),
         onSuccess: (card) => refresh(card._id),
     });
 }

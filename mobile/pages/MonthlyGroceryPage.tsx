@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Modal,
     Pressable,
     ScrollView,
     Text,
@@ -20,35 +21,39 @@ import { AddProductToListPage } from './AddProductToListPage';
 import { MonthlyGroceryListCard } from '@/components/monthly-grocery/MonthlyGroceryListCard';
 import { PackageDetailView } from '@/components/monthly-grocery/PackageDetailView';
 import { CreateMonthlyListModal } from '@/components/monthly-grocery/CreateMonthlyListModal';
+import { ConfirmActionModal } from '@/components/reusable/ConfirmActionModal';
+import { GradientPill } from '@/components/reusable/GradientPill';
 
 type MonthlyGroceryPageProps = {
     onBack?: () => void;
     onGoToCart?: () => void;
+    onPackageCartChange?: (open: boolean) => void;
 };
 
-export function MonthlyGroceryPage({ onBack, onGoToCart }: MonthlyGroceryPageProps) {
+export function MonthlyGroceryPage({ onBack, onGoToCart, onPackageCartChange }: MonthlyGroceryPageProps) {
     const { data: cards = [], isLoading, isError, refetch } = useMonthlyGroceryCards();
     const [openedCardId, setOpenedCardId] = useState('');
     const [checkoutCardId, setCheckoutCardId] = useState('');
     const [addProductCardId, setAddProductCardId] = useState('');
     const [showCreate, setShowCreate] = useState(false);
+    const [menuCard, setMenuCard] = useState<MonthlyGroceryCard | null>(null);
+    const [editCard, setEditCard] = useState<MonthlyGroceryCard | null>(null);
+    const [deleteCardTarget, setDeleteCardTarget] = useState<MonthlyGroceryCard | null>(null);
 
     const deleteCard = useDeleteMonthlyGroceryCard();
 
     const openedCard = cards.find((card) => card._id === openedCardId);
 
     const handleDelete = (card: MonthlyGroceryCard) => {
-        Alert.alert('Delete this list?', `${card.name} and all saved items will be removed.`, [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Delete',
-                style: 'destructive',
-                onPress: async () => {
-                    await deleteCard.mutateAsync(card._id);
-                    if (openedCardId === card._id) setOpenedCardId('');
-                },
-            },
-        ]);
+        setDeleteCardTarget(card);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteCardTarget) return;
+        const card = deleteCardTarget;
+        await deleteCard.mutateAsync(card._id);
+        if (openedCardId === card._id) setOpenedCardId('');
+        setDeleteCardTarget(null);
     };
 
     const handleOrderList = (card: MonthlyGroceryCard) => {
@@ -58,6 +63,7 @@ export function MonthlyGroceryPage({ onBack, onGoToCart }: MonthlyGroceryPagePro
             return;
         }
         setCheckoutCardId(card._id);
+        onPackageCartChange?.(true);
     };
 
     const checkoutCard = cards.find((card) => card._id === checkoutCardId);
@@ -75,7 +81,10 @@ export function MonthlyGroceryPage({ onBack, onGoToCart }: MonthlyGroceryPagePro
         return (
             <MonthlyPackageCartPage
                 card={checkoutCard}
-                onBack={() => setCheckoutCardId('')}
+                onBack={() => {
+                    setCheckoutCardId('');
+                    onPackageCartChange?.(false);
+                }}
             />
         );
     }
@@ -101,7 +110,7 @@ export function MonthlyGroceryPage({ onBack, onGoToCart }: MonthlyGroceryPagePro
                     >
                         <ChevronLeft size={23} color="#171717" />
                     </Pressable>
-                    <Text className="ml-4 text-2xl font-lufga-bold text-slate-950">Monthly Packages</Text>
+                    <Text className="ml-4 flex-1 text-2xl font-lufga-bold text-slate-950">Monthly Packages</Text>
                 </View>
 
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -117,10 +126,15 @@ export function MonthlyGroceryPage({ onBack, onGoToCart }: MonthlyGroceryPagePro
 
                     <View className="mb-3 mt-7 flex-row items-center justify-between px-5">
                         <Text className="text-lg font-lufga-bold text-slate-950">Your lists</Text>
-                        <Pressable className="flex-row items-center active:opacity-60" onPress={() => setShowCreate(true)}>
-                            <Plus size={17} color="#b77900" strokeWidth={2.8} />
-                            <Text className="ml-1 font-lufga-semibold text-amber-700">New list</Text>
-                        </Pressable>
+                        <GradientPill className="h-10 rounded-full">
+                            <Pressable
+                                className="flex-1 flex-row items-center px-4 active:opacity-80"
+                                onPress={() => setShowCreate(true)}
+                            >
+                                <Plus size={16} color="#171717" strokeWidth={2.8} />
+                                <Text className="ml-1.5 font-lufga-bold text-slate-950">New list</Text>
+                            </Pressable>
+                        </GradientPill>
                     </View>
 
                     {isLoading ? (
@@ -152,19 +166,66 @@ export function MonthlyGroceryPage({ onBack, onGoToCart }: MonthlyGroceryPagePro
                                     key={card._id}
                                     card={card}
                                     onOpen={() => setOpenedCardId(card._id)}
-                                    onDelete={() => handleDelete(card)}
+                                    onMenu={() => setMenuCard(card)}
                                     onOrder={() => handleOrderList(card)}
                                 />
                             ))}
                         </View>
                     )}
-                    <View className="h-10" />
+                    <View className="h-32" />
                 </ScrollView>
 
                 <CreateMonthlyListModal
                     visible={showCreate}
                     onClose={() => setShowCreate(false)}
                     onCreated={(card) => setOpenedCardId(card._id)}
+                />
+                <CreateMonthlyListModal
+                    visible={Boolean(editCard)}
+                    editingCard={editCard}
+                    onClose={() => setEditCard(null)}
+                    onCreated={() => undefined}
+                    onUpdated={() => setEditCard(null)}
+                />
+                <Modal
+                    visible={Boolean(menuCard)}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setMenuCard(null)}
+                >
+                    <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setMenuCard(null)}>
+                        <Pressable className="rounded-t-[30px] bg-white px-5 pb-9 pt-5" onPress={(event) => event.stopPropagation()}>
+                            <Text className="text-xl font-lufga-bold text-slate-950">{menuCard?.name}</Text>
+                            <Text className="mt-1 text-sm font-lufga text-slate-400">Manage this grocery list</Text>
+                            <Pressable
+                                className="mt-5 flex-row items-center rounded-2xl bg-slate-50 px-4 py-4 active:opacity-70"
+                                onPress={() => {
+                                    setEditCard(menuCard);
+                                    setMenuCard(null);
+                                }}
+                            >
+                                <Text className="font-lufga-semibold text-slate-900">Edit List</Text>
+                            </Pressable>
+                            <Pressable
+                                className="mt-3 flex-row items-center rounded-2xl bg-red-50 px-4 py-4 active:opacity-70"
+                                onPress={() => {
+                                    const card = menuCard;
+                                    setMenuCard(null);
+                                    if (card) handleDelete(card);
+                                }}
+                            >
+                                <Text className="font-lufga-semibold text-red-600">Delete List</Text>
+                            </Pressable>
+                        </Pressable>
+                    </Pressable>
+                </Modal>
+                <ConfirmActionModal
+                    visible={Boolean(deleteCardTarget)}
+                    title="Delete this list?"
+                    message={deleteCardTarget ? `${deleteCardTarget.name} and all saved items will be removed.` : ''}
+                    confirmLabel="Delete"
+                    onClose={() => setDeleteCardTarget(null)}
+                    onConfirm={confirmDelete}
                 />
             </SafeAreaView>
         </AppBackground>

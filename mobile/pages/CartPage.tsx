@@ -1,20 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Plus, ShoppingBasket } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
 import { MonthlyCardSelector } from '@/components/MonthlyCardSelector';
 import { CartItem } from '@/components/cart/CartItem';
+import { MinimumOrderNotMetModal } from '@/components/cart/MinimumOrderNotMetModal';
 import { useMonthlyGroceryCards } from '@/api/monthly-grocery/useMonthlyGroceryQueries';
 import { useCartStore } from '@/lib/cartStore';
 
@@ -204,29 +195,12 @@ export function CartPage({ onBack, onCheckout, onMonthlyGrocery }: CartPageProps
                     </View>
                 )}
 
-                <AlertDialog open={minimumOpen} onOpenChange={setMinimumOpen}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Minimum Order Not Met</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                {blockedVendors.map((v) => (
-                                    <Text key={v.name} className="mb-1 font-lufga text-slate-600">
-                                        {v.name}: add Rs {(v.minimumOrder - v.subtotal).toLocaleString()} more{'\n'}
-                                        <Text className="text-xs">min Rs {v.minimumOrder.toLocaleString()}</Text>
-                                    </Text>
-                                ))}
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-full" onPress={() => setMinimumOpen(false)}>
-                                <Text>Add More Items</Text>
-                            </AlertDialogCancel>
-                            <AlertDialogAction className="rounded-full bg-[#EAB308] text-slate-900 active:bg-[#EAB308]" onPress={proceedWithoutBlocked}>
-                                <Text>Order Without These</Text>
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <MinimumOrderNotMetModal
+                    open={minimumOpen}
+                    vendors={blockedVendors}
+                    onClose={() => setMinimumOpen(false)}
+                    onCheckoutWithout={proceedWithoutBlocked}
+                />
             </SafeAreaView>
         </AppBackground>
     );

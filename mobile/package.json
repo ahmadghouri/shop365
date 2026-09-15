@@ -63,6 +63,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
+    "react-native-ui-datepicker": "^3.3.0",
     "react-native-web": "^0.21.2",
     "react-native-webview": "13.16.1",
     "socket.io-client": "^4.8.1",
@@ -77,6 +78,9 @@
     "web": "expo start --web"
   },
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "devDependencies": {
     "@types/react": "^19.2.18",
     "eas-cli": "^24.3.0",

@@ -27,7 +27,12 @@ import {
 } from "@/api/addresses/useAddressQueries";
 import type { Address } from "@/api/addresses/address.service";
 
-export function LocationAddressManager() {
+type LocationAddressManagerProps = {
+  onAddressSelected?: (address: Address) => void;
+  onAddressChanged?: (address: Address) => void;
+};
+
+export function LocationAddressManager({ onAddressSelected, onAddressChanged }: LocationAddressManagerProps) {
   const { data: addresses = [], isLoading } = useAddresses();
   const activateMutation = useActivateAddress();
   const deleteMutation = useDeleteAddress();
@@ -59,7 +64,10 @@ export function LocationAddressManager() {
     setEditingAddress(null);
   };
 
-  const handleActivate = (addr: Address) => activateMutation.mutate(addr._id);
+  const handleActivate = async (addr: Address) => {
+    await activateMutation.mutateAsync(addr._id);
+    onAddressSelected?.(addr);
+  };
 
   const handleDelete = (addr: Address) => {
     Alert.alert("Remove address?", `"${addr.label}" will be deleted.`, [
@@ -207,6 +215,7 @@ export function LocationAddressManager() {
         visible={showModal}
         onClose={closeModal}
         editingAddress={editingAddress}
+        onSaved={onAddressChanged}
       />
     </View>
   );

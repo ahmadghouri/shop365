@@ -45,19 +45,16 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePagePro
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [showAddressManager, setShowAddressManager] = useState(false);
     const uploadAvatar = useUpdateAvatarMutation();
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const handleLogout = () => {
-        Alert.alert('Logout', 'Are you sure you want to logout?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Logout',
-                style: 'destructive',
-                onPress: async () => {
-                    await logout();
-                    onLogout?.();
-                },
-            },
-        ]);
+        setShowLogoutConfirm(true);
+    };
+
+    const confirmLogout = async () => {
+        setShowLogoutConfirm(false);
+        await logout();
+        onLogout?.();
     };
 
     const handlePickAvatar = async () => {
@@ -115,7 +112,11 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePagePro
                     <Text className="ml-3 text-2xl font-lufga-bold text-slate-950">My Profile</Text>
                 </View>
 
-                <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+                <ScrollView
+                    className="flex-1"
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 120 }}
+                >
                     {/* Hero card with gradient avatar */}
                     <View className="mx-5 mt-2 overflow-hidden rounded-[28px] bg-[#1D1D1D] shadow-sm shadow-slate-300">
                         <View className="absolute -right-16 -top-20 h-48 w-48 rounded-full bg-amber-400/20" />
@@ -211,13 +212,49 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePagePro
                     </View>
 
                     {/* App version */}
-                    <View className="items-center pb-10 pt-2">
+                    <View className="items-center pb-2 pt-2">
                         <Text className="text-xs font-lufga text-slate-300">SHOP365 · v1.0.0</Text>
                     </View>
                 </ScrollView>
             </SafeAreaView>
 
             <LocationPickerModal visible={showMapPicker} onClose={() => setShowMapPicker(false)} />
+
+            <Modal
+                visible={showLogoutConfirm}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowLogoutConfirm(false)}
+            >
+                <Pressable
+                    className="flex-1 items-center justify-center bg-black/50 px-6"
+                    onPress={() => setShowLogoutConfirm(false)}
+                >
+                    <Pressable
+                        className="w-full max-w-md rounded-3xl bg-white p-6"
+                        onPress={(event) => event.stopPropagation()}
+                    >
+                        <Text className="text-2xl font-lufga-bold text-slate-900">Logout?</Text>
+                        <Text className="mt-2 text-base leading-6 font-lufga text-slate-500">
+                            Are you sure you want to logout from your account?
+                        </Text>
+                        <View className="mt-6 flex-row gap-3">
+                            <Pressable
+                                className="flex-1 items-center justify-center rounded-full border border-slate-200 py-3 active:opacity-70"
+                                onPress={() => setShowLogoutConfirm(false)}
+                            >
+                                <Text className="font-lufga-semibold text-slate-700">Cancel</Text>
+                            </Pressable>
+                            <Pressable
+                                className="flex-1 items-center justify-center rounded-full bg-red-500 py-3 active:opacity-80"
+                                onPress={confirmLogout}
+                            >
+                                <Text className="font-lufga-semibold text-white">Logout</Text>
+                            </Pressable>
+                        </View>
+                    </Pressable>
+                </Pressable>
+            </Modal>
 
             {/* Address Manager Modal */}
             {showAddressManager && (

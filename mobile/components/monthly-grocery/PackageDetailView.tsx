@@ -1,6 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import DateTimePicker, { type DateType, useDefaultStyles } from 'react-native-ui-datepicker';
 import {
+    Alert,
     Image,
+    Modal,
     Pressable,
     ScrollView,
     Text,
@@ -8,8 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppBackground } from '@/components/AppBackground';
+import { LocationAddressManager } from '@/components/LocationAddressManager';
+import { GradientPill } from '@/components/reusable/GradientPill';
 import {
+    Calendar,
     ChevronLeft,
+    MapPin,
     Minus,
     PackageOpen,
     Plus,
@@ -17,10 +24,13 @@ import {
 } from 'lucide-react-native';
 import {
     getMonthlyProductImage,
+    updateMonthlyGroceryAddress,
     type MonthlyGroceryCard,
 } from '@/api/monthly-grocery/monthly-grocery.service';
+import type { Address } from '@/api/addresses/address.service';
 import {
     useRemoveMonthlyGroceryItem,
+    useUpdateMonthlyGroceryCard,
     useUpdateMonthlyGroceryItem,
 } from '@/api/monthly-grocery/useMonthlyGroceryQueries';
 import { cardTotal } from './cardTotal';
@@ -33,11 +43,66 @@ type PackageDetailViewProps = {
 };
 
 export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: PackageDetailViewProps) {
+    const linkedAddress = typeof card.address_id === 'object' && card.address_id ? card.address_id : null;
+    const linkedAddressId = linkedAddress?._id || (typeof card.address_id === 'string' ? card.address_id : null);
+    const [showAddressModal, setShowAddressModal] = useState(false);
+    const [showAutoOrderPicker, setShowAutoOrderPicker] = useState(false);
+    const [autoOrderDate, setAutoOrderDate] = useState(card.auto_order_date ? new Date(card.auto_order_date) : null);
+    const [draftAutoOrderDate, setDraftAutoOrderDate] = useState<Date | null>(autoOrderDate);
+    const [selectedAddressLabel, setSelectedAddressLabel] = useState(card.address_name || linkedAddress?.label || 'Address');
     const updateItem = useUpdateMonthlyGroceryItem();
     const removeItem = useRemoveMonthlyGroceryItem();
+    const updateCard = useUpdateMonthlyGroceryCard();
+    const calendarStyles = useDefaultStyles();
     const items = card.items;
     const completed = items.filter((item) => item.checked).length;
     const total = useMemo(() => cardTotal(card), [card]);
+
+    const handleAddressSelected = async (address: Address) => {
+        try {
+            await updateMonthlyGroceryAddress(card._id, address._id);
+            setSelectedAddressLabel(address.label);
+            setShowAddressModal(false);
+        } catch {
+            Alert.alert('Could not save address', 'Please try selecting the address again.');
+        }
+    };
+
+    const handleAddressChanged = (address: Address) => {
+        if (address._id === linkedAddressId) setSelectedAddressLabel(address.label);
+    };
+
+    const handleAutoOrderDate = ({ date }: { date: DateType }) => {
+        if (!date) return;
+        const nextDate = date instanceof Date
+            ? date
+            : typeof date === 'object' && 'toDate' in date
+                ? date.toDate()
+                : new Date(date);
+        nextDate.setHours(0, 0, 0, 0);
+        setDraftAutoOrderDate(nextDate);
+    };
+
+    const saveAutoOrderDate = async () => {
+        if (!draftAutoOrderDate) return;
+        setAutoOrderDate(draftAutoOrderDate);
+        setShowAutoOrderPicker(false);
+        await updateCard.mutateAsync({
+            cardId: card._id,
+            name: card.name,
+            autoOrderEnabled: true,
+            autoOrderDate: draftAutoOrderDate.toISOString(),
+        });
+    };
+
+    const openAutoOrderPicker = () => {
+        setDraftAutoOrderDate(autoOrderDate || new Date());
+        setShowAutoOrderPicker(true);
+    };
+
+    const autoOrderLabel = autoOrderDate
+        ? autoOrderDate.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })
+        : 'Set date';
 
     return (
         <AppBackground>
@@ -50,6 +115,15 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
                         <Text className="text-xl font-lufga-bold text-slate-950" numberOfLines={1}>{card.name}</Text>
                         <Text className="mt-0.5 text-xs font-lufga text-slate-400">{completed} of {items.length} completed</Text>
                     </View>
+                    <Pressable
+                        className="mr-2 flex-row items-center rounded-full bg-amber-50 px-3 py-2 active:opacity-70"
+                        onPress={() => setShowAddressModal(true)}
+                    >
+                        <MapPin size={15} color="#b77900" />
+                        <Text className="ml-1 max-w-20 text-xs font-lufga-semibold text-amber-700" numberOfLines={1}>
+                            {selectedAddressLabel}
+                        </Text>
+                    </Pressable>
                     <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-red-50" onPress={onDelete}>
                         <Trash2 size={18} color="#ef4444" />
                     </Pressable>
@@ -63,14 +137,32 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
                             <Text className="font-lufga text-slate-300">{items.length} saved products</Text>
                             <Text className="text-lg font-lufga-bold text-amber-300">Rs {total.toLocaleString()}</Text>
                         </View>
+                        <Pressable
+                            className="mt-5 flex-row items-center justify-between rounded-2xl bg-white/10 px-4 py-3 active:bg-white/20"
+                            onPress={openAutoOrderPicker}
+                            disabled={updateCard.isPending}
+                        >
+                            <View className="flex-row items-center">
+                                <Calendar size={18} color="#FCD34D" />
+                                <View className="ml-3">
+                                    <Text className="text-sm font-lufga-semibold text-white">Auto-order</Text>
+                                    <Text className="mt-0.5 text-xs font-lufga text-slate-300">
+                                        {autoOrderDate ? `Next order: ${autoOrderLabel}` : 'Choose your next order date'}
+                                    </Text>
+                                </View>
+                            </View>
+                            <Text className="font-lufga-semibold text-amber-300">{autoOrderLabel}</Text>
+                        </Pressable>
                     </View>
 
                     <View className="mb-3 mt-6 flex-row items-center justify-between px-5">
                         <Text className="text-lg font-lufga-bold text-slate-950">Products</Text>
-                        <Pressable className="flex-row items-center active:opacity-60" onPress={onGoToCart}>
-                            <Plus size={15} color="#b77900" strokeWidth={2.8} />
-                            <Text className="ml-1 font-lufga-semibold text-amber-700">Add from Cart</Text>
-                        </Pressable>
+                        <GradientPill className="h-10 rounded-full">
+                            <Pressable className="flex-1 flex-row items-center px-4 active:opacity-80" onPress={onGoToCart}>
+                                <Plus size={15} color="#171717" strokeWidth={2.8} />
+                                <Text className="ml-1.5 font-lufga-bold text-slate-950">Add from Cart</Text>
+                            </Pressable>
+                        </GradientPill>
                     </View>
 
                     {items.length === 0 ? (
@@ -161,6 +253,72 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
                     )}
                 </ScrollView>
             </SafeAreaView>
+            <Modal
+                visible={showAddressModal}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowAddressModal(false)}
+            >
+                <Pressable
+                    className="flex-1 justify-end bg-black/45"
+                    onPress={() => setShowAddressModal(false)}
+                >
+                    <Pressable
+                        className="max-h-[78%] rounded-t-[32px] bg-white px-5 pb-8 pt-4"
+                        onPress={(event) => event.stopPropagation()}
+                    >
+                        <View className="mb-4 flex-row items-center justify-between">
+                            <View>
+                                <Text className="text-2xl font-lufga-bold text-slate-950">Choose Address</Text>
+                                <Text className="mt-1 text-sm font-lufga text-slate-400">Select a saved delivery address</Text>
+                            </View>
+                            <Pressable
+                                className="h-10 w-10 items-center justify-center rounded-full bg-slate-100 active:opacity-60"
+                                onPress={() => setShowAddressModal(false)}
+                            >
+                                <ChevronLeft size={20} color="#334155" />
+                            </Pressable>
+                        </View>
+                        <View className="h-[480px]">
+                            <LocationAddressManager
+                                onAddressSelected={handleAddressSelected}
+                                onAddressChanged={handleAddressChanged}
+                            />
+                        </View>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+            {showAutoOrderPicker && (
+                <Modal
+                    visible
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setShowAutoOrderPicker(false)}
+                >
+                    <Pressable className="flex-1 items-center justify-center bg-black/45 px-5" onPress={() => setShowAutoOrderPicker(false)}>
+                        <Pressable className="w-full rounded-3xl bg-white p-5" onPress={(event) => event.stopPropagation()}>
+                            <Text className="text-xl font-lufga-bold text-slate-950">Choose auto-order date</Text>
+                            <Text className="mt-1 text-sm font-lufga text-slate-500">Select the date for the next order.</Text>
+                            <View className="mt-4">
+                                <DateTimePicker
+                                    mode="single"
+                                    date={draftAutoOrderDate || new Date()}
+                                    minDate={new Date()}
+                                    onChange={handleAutoOrderDate}
+                                    styles={calendarStyles}
+                                />
+                            </View>
+                            <Pressable
+                                className="mt-4 items-center justify-center rounded-full bg-[#EAB308] py-4 active:opacity-80"
+                                onPress={saveAutoOrderDate}
+                                disabled={!draftAutoOrderDate || updateCard.isPending}
+                            >
+                                <Text className="font-lufga-bold text-slate-950">Save date</Text>
+                            </Pressable>
+                        </Pressable>
+                    </Pressable>
+                </Modal>
+            )}
         </AppBackground>
     );
 }

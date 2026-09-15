@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAddresses, createAddress, activateAddress, deleteAddress, updateAddress, type AddressPayload } from './address.service';
+import { monthlyGroceryKeys } from '@/api/monthly-grocery/useMonthlyGroceryQueries';
 
 const KEY = ['addresses'];
 
@@ -27,7 +28,10 @@ export function useUpdateAddress() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<AddressPayload> }) => updateAddress(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: monthlyGroceryKeys.all });
+    },
   });
 }
 

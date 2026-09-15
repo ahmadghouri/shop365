@@ -24,11 +24,29 @@ export type MonthlyGroceryCard = {
     id?: string;
     name: string;
     items: MonthlyGroceryItem[];
+    address_id?: string | { _id: string; label: string; address: string } | null;
+    address_name?: string | null;
+    auto_order_enabled?: boolean;
+    auto_order_date?: string | null;
     createdAt?: string;
+};
+
+export type MonthlyGrocerySummary = {
+    subtotal: number;
+    delivery: number;
+    total: number;
+    vendors: Array<{
+        business_id: string;
+        name: string;
+        subtotal: number;
+        delivery_fee: number;
+        minimum_order: number;
+    }>;
 };
 
 export type CreateMonthlyGroceryCardPayload = {
     name: string;
+    auto_order_enabled?: boolean;
 };
 
 export function getMonthlyProductImage(product?: MonthlyGroceryProduct | null) {
@@ -88,4 +106,23 @@ export async function updateMonthlyGroceryItem(
 export async function removeMonthlyGroceryItem(cardId: string, itemId: string) {
     const response = await api.delete(`/monthly-grocery-cards/${cardId}/items/${itemId}`);
     return response.data.data.card as MonthlyGroceryCard;
+}
+
+export async function updateMonthlyGroceryAddress(cardId: string, addressId: string): Promise<MonthlyGroceryCard> {
+    const response = await api.patch(`/monthly-grocery-cards/${cardId}/address`, { address_id: addressId });
+    return response.data.data.card;
+}
+
+export async function getMonthlyGrocerySummary(cardId: string): Promise<MonthlyGrocerySummary> {
+    const response = await api.get(`/monthly-grocery-cards/${cardId}/summary`);
+    return response.data.data;
+}
+
+export async function updateMonthlyGroceryCard(cardId: string, name: string, autoOrderEnabled?: boolean, autoOrderDate?: string | null): Promise<MonthlyGroceryCard> {
+    const response = await api.patch(`/monthly-grocery-cards/${cardId}`, {
+        name,
+        auto_order_enabled: autoOrderEnabled,
+        auto_order_date: autoOrderDate,
+    });
+    return response.data.data.card;
 }

@@ -1,0 +1,91 @@
+name: Backend Node CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "Backend-Node/**"
+      - ".github/workflows/backend-node-ci.yml"
+
+  pull_request:
+    branches: [master]
+    paths:
+      - "Backend-Node/**"
+      - ".github/workflows/backend-node-ci.yml"
+
+defaults:
+  run:
+    working-directory: Backend-Node
+
+jobs:
+  ci:
+    name: Start Check
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: Backend-Node/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check server starts without errors
+        run: |
+          code=0
+
+          timeout 10s node src/server.js || code=$?
+
+          # 124 = timeout, expected because server should keep running
+          # 0 = server exited successfully
+          if [ "$code" != "124" ] && [ "$code" != "0" ]; then
+            echo "Server failed to start (exit code: $code)"
+            exit 1
+          fi
+
+          echo "Server started successfully"
+        env:
+          NODE_ENV: test
+          PORT: 8000
+          MONGODB_URI: mongodb://localhost:27017/shop365-ci
+          JWT_SECRET: ci-test-secret
+          JWT_EXPIRES_IN: 1d
+          LOG_LEVEL: error
+
+  auto-merge:
+    name: Auto Merge PR
+    needs: ci
+
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == false
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}

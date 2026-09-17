@@ -15,18 +15,16 @@ import {
     Camera,
     ChevronLeft,
     ChevronRight,
-    CircleHelp,
     CreditCard,
-    Heart,
-    History,
+    Languages,
+    LockKeyhole,
     LogOut,
-    Mail,
-    Map,
     MapPin,
     Phone,
     Shield,
-    ShoppingBag,
     Star,
+    Sun,
+    UserRound,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/lib/authStore';
 import { AppBackground } from '@/components/AppBackground';
@@ -38,9 +36,10 @@ type ProfilePageProps = {
     onLogout?: () => void;
     onBack?: () => void;
     onOrderHistory?: () => void;
+    onEditProfile?: () => void;
 };
 
-export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePageProps) {
+export function ProfilePage({ onLogout, onBack, onOrderHistory, onEditProfile }: ProfilePageProps) {
     const { user, updateUser, logout } = useAuthStore();
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [showAddressManager, setShowAddressManager] = useState(false);
@@ -157,47 +156,25 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory }: ProfilePagePro
                         </View>
                     </View>
 
-                    {/* Personal Info Card */}
-                    <View className="mx-5 mt-5 rounded-[28px] bg-white p-1 shadow-sm shadow-slate-100">
-                        <Text className="px-4 pb-2 pt-4 text-xs font-lufga-semibold uppercase tracking-widest text-slate-400">Personal Information</Text>
-
-                        <ProfileRow icon={<Phone size={18} color="#b77900" />} label="Phone" value={phone} />
-                        <ProfileRow icon={<Mail size={18} color="#b77900" />} label="Email" value={email} />
-                        <ProfileRow
-                            icon={<MapPin size={18} color="#b77900" />}
-                            label="Address"
-                            value={address}
-                            last
-                            action={
-                                <Pressable
-                                    className="flex-row items-center rounded-full bg-amber-50 px-3 py-1.5 active:opacity-70"
-                                    onPress={() => setShowAddressManager(true)}
-                                >
-                                    <Map size={14} color="#b77900" />
-                                    <Text className="ml-1 text-xs font-lufga-semibold text-amber-700">Manage</Text>
-                                </Pressable>
-                            }
-                        />
-                    </View>
-
-                    {/* Quick Actions */}
-                    <View className="mx-5 mt-5 rounded-[28px] bg-white p-1 shadow-sm shadow-slate-100">
-                        <Text className="px-4 pb-2 pt-4 text-xs font-lufga-semibold uppercase tracking-widest text-slate-400">Activity</Text>
-
-                        <ActionRow icon={<ShoppingBag size={18} color="#334155" />} label="My Orders" onPress={onOrderHistory} />
-                        <ActionRow icon={<Heart size={18} color="#ef4444" />} label="Wishlist" />
-                        <ActionRow icon={<History size={18} color="#6366f1" />} label="Order History" />
-                        <ActionRow icon={<CreditCard size={18} color="#0ea5e9" />} label="Payment Methods" />
-                        <ActionRow icon={<Star size={18} color="#f59e0b" />} label="My Reviews" last />
-                    </View>
-
                     {/* Settings */}
-                    <View className="mx-5 mt-5 rounded-[28px] bg-white p-1 shadow-sm shadow-slate-100">
-                        <Text className="px-4 pb-2 pt-4 text-xs font-lufga-semibold uppercase tracking-widest text-slate-400">Settings</Text>
+                    <View className="mx-5 mt-5">
+                        <Text className="mb-3 text-base font-lufga-semibold text-slate-950">General</Text>
 
-                        <ActionRow icon={<Bell size={18} color="#8b5cf6" />} label="Notifications" />
-                        <ActionRow icon={<Shield size={18} color="#10b981" />} label="Privacy & Security" />
-                        <ActionRow icon={<CircleHelp size={18} color="#64748b" />} label="Help & Support" last />
+                        <ActionRow card icon={<UserRound size={18} color="#171717" />} label="Edit Profile" onPress={onEditProfile} />
+                        <ActionRow card icon={<LockKeyhole size={18} color="#171717" />} label="Change Password" />
+                        <ActionRow card icon={<Bell size={18} color="#171717" />} label="Notifications" />
+                        <ActionRow card icon={<Shield size={18} color="#171717" />} label="Security" />
+                        <ActionRow card icon={<Sun size={18} color="#171717" />} label="Theme" />
+                        <ActionRow card icon={<Languages size={18} color="#171717" />} label="Language" />
+                        <ActionRow card icon={<Star size={18} color="#171717" />} label="My Reviews" />
+                        <ActionRow card icon={<CreditCard size={18} color="#171717" />} label="Payment Methods" />
+                        <ActionRow
+                            card
+                            icon={<MapPin size={18} color="#171717" />}
+                            label="Address"
+                            onPress={() => setShowAddressManager(true)}
+                            last
+                        />
                     </View>
 
                     {/* Logout */}
@@ -308,9 +285,9 @@ function ProfileRow({
     );
 }
 
-function ActionRow({ icon, label, last, onPress }: { icon: React.ReactNode; label: string; last?: boolean; onPress?: () => void }) {
+function ActionRow({ icon, label, last, onPress, card }: { icon: React.ReactNode; label: string; last?: boolean; onPress?: () => void; card?: boolean }) {
     return (
-        <Pressable onPress={onPress} className={`flex-row items-center px-4 py-4 active:bg-slate-50 ${last ? '' : 'border-b border-slate-100'}`}>
+        <Pressable onPress={onPress} className={`flex-row items-center px-4 ${card ? 'mb-2 rounded-2xl bg-white py-3 shadow-sm shadow-slate-200' : `py-4 active:bg-slate-50 ${last ? '' : 'border-b border-slate-100'}`}`}>
             <View className="h-10 w-10 items-center justify-center rounded-2xl bg-slate-100">
                 {icon}
             </View>

@@ -22,6 +22,10 @@ export function toPakistanE164(value: string): string {
     return `+92${sanitizePakistanPhoneDigits(value)}`;
 }
 
+export function toPakistanLocal(value: string): string {
+    return `0${sanitizePakistanPhoneDigits(value)}`;
+}
+
 export function validatePakistanPhoneNumber(value: string): string | null {
     const digits = sanitizePakistanPhoneDigits(value);
     if (!digits) return 'Phone number is required';

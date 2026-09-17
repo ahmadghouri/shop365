@@ -20,6 +20,7 @@ import { CartPage } from './pages/CartPage';
 import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { EditProfilePage } from './pages/EditProfilePage';
+import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { NotificationPage } from './pages/NotificationPage';
@@ -49,6 +50,7 @@ function AppContent() {
     const [cartSelectedCardId, setCartSelectedCardId] = useState('');
     const [trackingOrder, setTrackingOrder] = useState(null);
     const [showEditProfile, setShowEditProfile] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
     const { isAuthenticated, loadToken } = useAuthStore();
     const loadCart = useCartStore((s) => s.loadCart);
 
@@ -152,6 +154,10 @@ function AppContent() {
             return <EditProfilePage onBack={() => setShowEditProfile(false)} />;
         }
 
+        if (showChangePassword) {
+            return <ChangePasswordPage onBack={() => setShowChangePassword(false)} />;
+        }
+
         if (activeCategory) {
             return (
                 <View style={{ flex: 1 }}>
@@ -218,6 +224,7 @@ function AppContent() {
                             onBack={() => setActiveTab('home')}
                             onOrderHistory={() => setActiveTab('orders')}
                             onEditProfile={() => setShowEditProfile(true)}
+                            onChangePassword={() => setShowChangePassword(true)}
                         />
                     );
                 case 'notifications':

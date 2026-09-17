@@ -17,4 +17,9 @@ const updatePasswordSchema = z.object({
   password: z.string().min(4),
 });
 
-module.exports = { registerSchema, loginSchema, updatePasswordSchema };
+const changePasswordSchema = z.object({
+  current_password: z.string().min(1),
+  password: z.string().min(4),
+});
+
+module.exports = { registerSchema, loginSchema, updatePasswordSchema, changePasswordSchema };

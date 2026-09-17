@@ -3,9 +3,23 @@ const { hashPassword, comparePassword } = require('../../utils/password');
 const { generateToken } = require('../../utils/jwt');
 const { UserRole } = require('../../common/enums');
 
+function phoneCandidates(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.startsWith('0092')) {
+    return [`0${digits.slice(4)}`, `+92${digits.slice(4)}`];
+  }
+  if (digits.startsWith('92')) {
+    return [`0${digits.slice(2)}`, `+${digits}`];
+  }
+  if (digits.startsWith('0')) {
+    return [digits, `+92${digits.slice(1)}`];
+  }
+  return [digits, `+92${digits}`];
+}
+
 class AuthService {
   async register(data) {
-    const existing = await User.findOne({ phone_no: data.phone_no });
+    const existing = await User.findOne({ phone_no: { $in: phoneCandidates(data.phone_no) } });
     if (existing) {
       const error = new Error('Phone number already registered');
       error.statusCode = 409;
@@ -25,7 +39,7 @@ class AuthService {
   }
 
   async login(data) {
-    let user = await User.findOne({ phone_no: data.phone_no });
+    let user = await User.findOne({ phone_no: { $in: phoneCandidates(data.phone_no) } });
     if (!user || !(await comparePassword(data.password, user.password))) {
       const error = new Error('Invalid credentials');
       error.statusCode = 401;
@@ -36,7 +50,9 @@ class AuthService {
     if (user.household_id && String(user.household_id).match(/^[0-9a-fA-F]{24}$/)) {
       try {
         user = await user.populate('household_id');
-      } catch (_) { /* skip if populate fails */ }
+      } catch (_) {
+        /* skip if populate fails */
+      }
     }
 
     const token = generateToken({ id: user._id.toString(), role: user.role });

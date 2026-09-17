@@ -6,6 +6,7 @@ import { useLoginMutation } from '@/api/auth/useLoginMutation';
 import { AppBackground } from '@/components/AppBackground';
 import { GlassCard } from '@/components/reusable/GlassCard';
 import { GradientPill } from '@/components/reusable/GradientPill';
+import { formatPakistanPhoneNumber, sanitizePakistanPhoneDigits, toPakistanLocal, validatePakistanPhoneNumber } from '@/lib/pakistanPhone';
 
 type LoginScreenProps = {
     onSuccess?: () => void;
@@ -24,8 +25,9 @@ export function LoginScreen({ onSuccess, onRegister, onForgotPassword }: LoginSc
 
     const handleLogin = () => {
         setValidationError('');
-        if (!phone || phone.length !== 11) {
-            setValidationError('Phone number must be 11 digits');
+        const phoneError = validatePakistanPhoneNumber(phone);
+        if (phoneError) {
+            setValidationError(phoneError);
             return;
         }
         if (!password || password.length < 4) {
@@ -33,7 +35,7 @@ export function LoginScreen({ onSuccess, onRegister, onForgotPassword }: LoginSc
             return;
         }
         loginMutation.mutate(
-            { phone_no: phone, password },
+            { phone_no: toPakistanLocal(phone), password },
             {
                 onSuccess: () => { if (onSuccess) onSuccess(); },
                 onError: (err: any) => {
@@ -133,15 +135,16 @@ export function LoginScreen({ onSuccess, onRegister, onForgotPassword }: LoginSc
                             {/* Phone Number */}
                             <View className="mb-5 mx-4">
                                 <Text className="text-base font-normal font-lufga text-slate-800 mb-2">Phone Number</Text>
-                                <View className="bg-white rounded-full px-5 h-14 justify-center shadow-sm">
+                                <View className="flex-row items-center bg-white rounded-full px-5 h-14 justify-center shadow-sm">
+                                    <Text className="border-r border-slate-200 pr-3 text-base font-lufga-semibold text-slate-700">+92</Text>
                                     <TextInput
-                                        className="text-base text-slate-800"
-                                        placeholder="0300-1234567"
+                                        className="flex-1 px-3 text-base text-slate-800"
+                                        placeholder="300 1234567"
                                         placeholderTextColor="#9ca3af"
                                         keyboardType="phone-pad"
                                         maxLength={11}
-                                        value={phone}
-                                        onChangeText={setPhone}
+                                        value={formatPakistanPhoneNumber(phone).replace(/^\+92\s?/, '')}
+                                        onChangeText={(value) => setPhone(sanitizePakistanPhoneDigits(value))}
                                     />
                                 </View>
                             </View>

@@ -37,9 +37,10 @@ type ProfilePageProps = {
     onBack?: () => void;
     onOrderHistory?: () => void;
     onEditProfile?: () => void;
+    onChangePassword?: () => void;
 };
 
-export function ProfilePage({ onLogout, onBack, onOrderHistory, onEditProfile }: ProfilePageProps) {
+export function ProfilePage({ onLogout, onBack, onOrderHistory, onEditProfile, onChangePassword }: ProfilePageProps) {
     const { user, updateUser, logout } = useAuthStore();
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [showAddressManager, setShowAddressManager] = useState(false);
@@ -161,7 +162,7 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory, onEditProfile }:
                         <Text className="mb-3 text-base font-lufga-semibold text-slate-950">General</Text>
 
                         <ActionRow card icon={<UserRound size={18} color="#171717" />} label="Edit Profile" onPress={onEditProfile} />
-                        <ActionRow card icon={<LockKeyhole size={18} color="#171717" />} label="Change Password" />
+                        <ActionRow card icon={<LockKeyhole size={18} color="#171717" />} label="Change Password" onPress={onChangePassword} />
                         <ActionRow card icon={<Bell size={18} color="#171717" />} label="Notifications" />
                         <ActionRow card icon={<Shield size={18} color="#171717" />} label="Security" />
                         <ActionRow card icon={<Sun size={18} color="#171717" />} label="Theme" />

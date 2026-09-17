@@ -27,3 +27,10 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
     const response = await api.post<AuthResponse>('/register', payload);
     return response.data;
 }
+
+export async function changePassword(currentPassword: string, password: string): Promise<void> {
+    await api.post('/change-password', {
+        current_password: currentPassword,
+        password,
+    });
+}

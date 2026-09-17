@@ -13,14 +13,13 @@ on:
       - "Backend-Node/**"
       - ".github/workflows/backend-node-ci.yml"
 
-defaults:
-  run:
-    working-directory: Backend-Node
-
 jobs:
   ci:
     name: Start Check
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Backend-Node
 
     services:
       mongodb:
@@ -50,16 +49,11 @@ jobs:
       - name: Check server starts without errors
         run: |
           code=0
-
           timeout 10s node src/server.js || code=$?
-
-          # 124 = timeout, expected because server should keep running
-          # 0 = server exited successfully
           if [ "$code" != "124" ] && [ "$code" != "0" ]; then
             echo "Server failed to start (exit code: $code)"
             exit 1
           fi
-
           echo "Server started successfully"
         env:
           NODE_ENV: test
@@ -72,17 +66,11 @@ jobs:
   auto-merge:
     name: Auto Merge PR
     needs: ci
-
-    if: >
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.draft == false
-
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
       pull-requests: write
-
     steps:
       - name: Enable auto-merge
         run: gh pr merge --auto --squash "${{ github.event.pull_request.number }}"

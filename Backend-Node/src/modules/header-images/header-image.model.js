@@ -9,7 +9,7 @@ const headerImageSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 headerImageSchema.virtual('image_url').get(function () {
-  return `/be/uploads/${this.image_path}`;
+  return `/uploads/${this.image_path}`;
 });
 
 headerImageSchema.set('toJSON', {

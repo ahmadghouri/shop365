@@ -11,7 +11,7 @@ const perscriptionSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 perscriptionSchema.virtual('full_image_url').get(function () {
-  return `/be/uploads/${this.image_url}`;
+  return `/uploads/${this.image_url}`;
 });
 
 perscriptionSchema.set('toJSON', {

@@ -1,7 +1,7 @@
 const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
 const { JWT_SECRET, CORS_ORIGINS, NODE_ENV } = require("../config/env");
 const logger = require("../config/logger");
+const { verifyToken } = require("../utils/jwt");
 const Notification = require("../modules/notifications/notification.model");
 const User = require("../modules/users/user.model");
 const { sendExpoPush } = require("./expo-push.service");
@@ -70,11 +70,12 @@ function initSocket(httpServer) {
         logger.warn(`Socket rejected: invalid token (${err.message})`);
         return next(new Error("Invalid token"));
       }
-      const uid = String(payload.id || payload._id || payload.sub);
-      if (!uid) {
+      const rawUid = payload.id || payload._id || payload.sub;
+      if (!rawUid) {
         logger.warn("Socket rejected: no id in JWT payload");
         return next(new Error("Invalid token"));
       }
+      const uid = String(rawUid);
       // Confirm user actually exists in DB (matches express auth middleware behaviour)
       try {
         const user = await User.findById(uid).select("_id").lean();

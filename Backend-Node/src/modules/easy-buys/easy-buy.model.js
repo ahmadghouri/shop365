@@ -8,7 +8,7 @@ const easyBuySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 easyBuySchema.virtual('image_url').get(function () {
-  return this.image ? `/be/uploads/${this.image}` : null;
+  return this.image ? `/uploads/${this.image}` : null;
 });
 
 easyBuySchema.set('toJSON', {

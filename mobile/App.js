@@ -12,7 +12,11 @@ import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { FloatingCartBar } from './components/FloatingCartBar';
 import { BottomTabBar } from './components/home/BottomTabBar';
-import { connectSocket, disconnectSocket, setSecurityNotificationHandler } from './lib/socketService';
+import {
+    connectSocket,
+    disconnectSocket,
+    setSecurityNotificationHandler,
+} from './lib/socketService';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
@@ -22,6 +26,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { EditProfilePage } from './pages/EditProfilePage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { SecurityPage } from './components/security/SecurityPage';
+import { ThemePage } from './pages/ThemePage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { NotificationPage } from './pages/NotificationPage';
@@ -53,6 +58,7 @@ function AppContent() {
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [showSecurity, setShowSecurity] = useState(false);
+    const [showTheme, setShowTheme] = useState(false);
     const { isAuthenticated, loadToken } = useAuthStore();
     const loadCart = useCartStore((s) => s.loadCart);
 
@@ -76,13 +82,17 @@ function AppContent() {
             disconnectSocket();
         }
     }, [isAuthenticated]);
-    useEffect(() => setupPushNotificationListeners((data) => {
-        if (data?.type === 'security') {
-            setShowSecurity(true);
-        } else {
-            setActiveTab('notifications');
-        }
-    }), []);
+    useEffect(
+        () =>
+            setupPushNotificationListeners((data) => {
+                if (data?.type === 'security') {
+                    setShowSecurity(true);
+                } else {
+                    setActiveTab('notifications');
+                }
+            }),
+        []
+    );
 
     // Live socket security notifications → open SecurityPage immediately
     useEffect(() => {
@@ -172,7 +182,16 @@ function AppContent() {
         }
 
         if (showSecurity) {
-            return <SecurityPage onBack={() => setShowSecurity(false)} onLogout={() => setActiveTab('home')} />;
+            return (
+                <SecurityPage
+                    onBack={() => setShowSecurity(false)}
+                    onLogout={() => setActiveTab('home')}
+                />
+            );
+        }
+
+        if (showTheme) {
+            return <ThemePage onBack={() => setShowTheme(false)} />;
         }
 
         if (activeCategory) {
@@ -243,6 +262,7 @@ function AppContent() {
                             onEditProfile={() => setShowEditProfile(true)}
                             onChangePassword={() => setShowChangePassword(true)}
                             onSecurity={() => setShowSecurity(true)}
+                            onTheme={() => setShowTheme(true)}
                         />
                     );
                 case 'notifications':

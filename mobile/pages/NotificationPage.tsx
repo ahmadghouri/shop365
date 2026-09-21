@@ -19,11 +19,13 @@ import {
 type NotificationPageProps = {
   onBack?: () => void;
   onTrackOrder?: (orderId: string) => void;
+  onSecurity?: () => void;
 };
 
 export function NotificationPage({
   onBack,
   onTrackOrder,
+  onSecurity,
 }: NotificationPageProps) {
   const {
     notifications,
@@ -81,7 +83,11 @@ export function NotificationPage({
 
   const handleNotifPress = (notif: Notification) => {
     markRead(notif.id);
-    markNotificationRead(notif.id).catch(() => {});
+    markNotificationRead(notif.id).catch(() => { });
+    if (notif.type === 'security') {
+      onSecurity?.();
+      return;
+    }
     if (
       notif.reference_type === "order" &&
       notif.reference_id &&
@@ -93,7 +99,7 @@ export function NotificationPage({
 
   const handleMarkAllRead = () => {
     markAllRead();
-    markAllNotificationsRead().catch(() => {});
+    markAllNotificationsRead().catch(() => { });
   };
 
   return (

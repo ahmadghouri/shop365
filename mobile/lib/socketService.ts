@@ -5,6 +5,12 @@ import { useNotificationStore } from "./notificationStore";
 
 let socket: Socket | null = null;
 let reconnectCount = 0;
+let onSecurityNotification: (() => void) | null = null;
+
+/** Register a callback to open SecurityPage when a 'security' notification arrives via socket */
+export function setSecurityNotificationHandler(cb: () => void) {
+  onSecurityNotification = cb;
+}
 
 export function connectSocket(token: string) {
   if (socket?.connected) return;
@@ -118,6 +124,9 @@ export function connectSocket(token: string) {
 
   socket.on("notification", (payload) => {
     useNotificationStore.getState().addNotification(payload);
+    if (payload?.type === 'security' && onSecurityNotification) {
+      onSecurityNotification();
+    }
   });
 }
 

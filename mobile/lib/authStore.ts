@@ -8,6 +8,7 @@ type User = {
     name?: string;
     image?: string;
     address?: string;
+    date_of_birth?: string;
     street?: string;
     area?: string;
     city?: string;

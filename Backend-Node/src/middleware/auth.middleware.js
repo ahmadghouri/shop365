@@ -1,5 +1,6 @@
 const { verifyToken } = require('../utils/jwt');
 const User = require('../modules/users/user.model');
+const LoginSession = require('../modules/auth/login-session.model');
 
 async function authenticate(req, res, next) {
   try {
@@ -10,6 +11,10 @@ async function authenticate(req, res, next) {
 
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
+    const session = decoded.sid
+      ? await LoginSession.findOne({ _id: decoded.sid, user_id: decoded.id, revoked_at: null, logged_out_at: null })
+      : null;
+    if (decoded.sid && !session) return res.status(401).json({ message: 'Session revoked' });
     const user = await User.findById(decoded.id);
 
     if (!user) {
@@ -17,6 +22,7 @@ async function authenticate(req, res, next) {
     }
 
     req.user = user;
+    req.loginSession = session;
     next();
   } catch (error) {
     res.status(401).json({ message: 'Invalid or expired token' });

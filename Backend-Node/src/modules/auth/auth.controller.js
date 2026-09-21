@@ -18,7 +18,11 @@ async function register(req, res, next) {
 
 async function login(req, res, next) {
   try {
-    const { user, token } = await authService.login(req.body);
+    const { user, token } = await authService.login({
+      ...req.body,
+      ip_address: req.ip,
+      user_agent: req.get('user-agent') || '',
+    });
     // Match Laravel: returns user with notifications
     res.json({ message: 'Login Successfull', token, data: user.toJSON() });
   } catch (error) {

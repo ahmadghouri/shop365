@@ -12,7 +12,7 @@ import { RegisterScreen } from './components/RegisterScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { FloatingCartBar } from './components/FloatingCartBar';
 import { BottomTabBar } from './components/home/BottomTabBar';
-import { connectSocket, disconnectSocket } from './lib/socketService';
+import { connectSocket, disconnectSocket, setSecurityNotificationHandler } from './lib/socketService';
 import { HomePage } from './pages/HomePage';
 import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { BackendProductDetailPage } from './pages/BackendProductDetailPage';
@@ -21,6 +21,7 @@ import { MonthlyGroceryPage } from './pages/MonthlyGroceryPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { EditProfilePage } from './pages/EditProfilePage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import { SecurityPage } from './components/security/SecurityPage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { NotificationPage } from './pages/NotificationPage';
@@ -51,6 +52,7 @@ function AppContent() {
     const [trackingOrder, setTrackingOrder] = useState(null);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
+    const [showSecurity, setShowSecurity] = useState(false);
     const { isAuthenticated, loadToken } = useAuthStore();
     const loadCart = useCartStore((s) => s.loadCart);
 
@@ -74,7 +76,18 @@ function AppContent() {
             disconnectSocket();
         }
     }, [isAuthenticated]);
-    useEffect(() => setupPushNotificationListeners(() => setActiveTab('notifications')), []);
+    useEffect(() => setupPushNotificationListeners((data) => {
+        if (data?.type === 'security') {
+            setShowSecurity(true);
+        } else {
+            setActiveTab('notifications');
+        }
+    }), []);
+
+    // Live socket security notifications → open SecurityPage immediately
+    useEffect(() => {
+        setSecurityNotificationHandler(() => setShowSecurity(true));
+    }, []);
     useEffect(() => {
         if (screen === 'Splash') {
             const timer = setTimeout(() => setScreen('Location'), 2500);
@@ -158,6 +171,10 @@ function AppContent() {
             return <ChangePasswordPage onBack={() => setShowChangePassword(false)} />;
         }
 
+        if (showSecurity) {
+            return <SecurityPage onBack={() => setShowSecurity(false)} onLogout={() => setActiveTab('home')} />;
+        }
+
         if (activeCategory) {
             return (
                 <View style={{ flex: 1 }}>
@@ -225,6 +242,7 @@ function AppContent() {
                             onOrderHistory={() => setActiveTab('orders')}
                             onEditProfile={() => setShowEditProfile(true)}
                             onChangePassword={() => setShowChangePassword(true)}
+                            onSecurity={() => setShowSecurity(true)}
                         />
                     );
                 case 'notifications':
@@ -232,6 +250,7 @@ function AppContent() {
                         <NotificationPage
                             onBack={() => setActiveTab('home')}
                             onTrackOrder={(orderId) => setTrackingOrder({ _id: orderId })}
+                            onSecurity={() => setShowSecurity(true)}
                         />
                     );
                 default: // home

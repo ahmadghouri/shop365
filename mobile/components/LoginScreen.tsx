@@ -7,6 +7,8 @@ import { AppBackground } from '@/components/AppBackground';
 import { GlassCard } from '@/components/reusable/GlassCard';
 import { GradientPill } from '@/components/reusable/GradientPill';
 import { formatPakistanPhoneNumber, sanitizePakistanPhoneDigits, toPakistanLocal, validatePakistanPhoneNumber } from '@/lib/pakistanPhone';
+import { useLocation } from '@/lib/useLocation';
+import { getLoginDeviceName } from '@/lib/deviceInfo';
 
 type LoginScreenProps = {
     onSuccess?: () => void;
@@ -22,8 +24,9 @@ export function LoginScreen({ onSuccess, onRegister, onForgotPassword }: LoginSc
     const [validationError, setValidationError] = useState('');
 
     const loginMutation = useLoginMutation();
+    const { detectLocation } = useLocation();
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         setValidationError('');
         const phoneError = validatePakistanPhoneNumber(phone);
         if (phoneError) {
@@ -34,8 +37,19 @@ export function LoginScreen({ onSuccess, onRegister, onForgotPassword }: LoginSc
             setValidationError('Password must be at least 4 characters');
             return;
         }
+        const location = await detectLocation();
         loginMutation.mutate(
-            { phone_no: toPakistanLocal(phone), password },
+            {
+                phone_no: toPakistanLocal(phone),
+                password,
+                platform: Platform.OS === 'web' ? 'web' : Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'unknown',
+                device: getLoginDeviceName(),
+                geo: {
+                    city: location?.city || location?.address || '',
+                    latitude: location?.latitude ?? null,
+                    longitude: location?.longitude ?? null,
+                },
+            },
             {
                 onSuccess: () => { if (onSuccess) onSuccess(); },
                 onError: (err: any) => {

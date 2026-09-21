@@ -7,6 +7,8 @@ import { AppBackground } from '@/components/AppBackground';
 import { GlassCard } from '@/components/reusable/GlassCard';
 import { GradientPill } from '@/components/reusable/GradientPill';
 import { formatPakistanPhoneNumber, sanitizePakistanPhoneDigits, toPakistanLocal, validatePakistanPhoneNumber } from '@/lib/pakistanPhone';
+import { useLocation } from '@/lib/useLocation';
+import { getLoginDeviceName } from '@/lib/deviceInfo';
 
 type RegisterScreenProps = {
     onSuccess?: () => void;
@@ -25,8 +27,9 @@ export function RegisterScreen({ onSuccess, onLogin }: RegisterScreenProps) {
     const [validationError, setValidationError] = useState('');
 
     const registerMutation = useRegisterMutation();
+    const { detectLocation } = useLocation();
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         setValidationError('');
         if (!name || name.trim().length < 2) {
             setValidationError('Name must be at least 2 characters');
@@ -45,8 +48,21 @@ export function RegisterScreen({ onSuccess, onLogin }: RegisterScreenProps) {
             setValidationError('Passwords do not match');
             return;
         }
+        const location = await detectLocation();
         registerMutation.mutate(
-            { name, phone_no: toPakistanLocal(phone), email: email || undefined, password },
+            {
+                name,
+                phone_no: toPakistanLocal(phone),
+                email: email || undefined,
+                password,
+                platform: Platform.OS === 'web' ? 'web' : Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'unknown',
+                device: getLoginDeviceName(),
+                geo: {
+                    city: location?.city || location?.address || '',
+                    latitude: location?.latitude ?? null,
+                    longitude: location?.longitude ?? null,
+                },
+            },
             {
                 onSuccess: () => { if (onSuccess) onSuccess(); },
                 onError: (err: any) => {

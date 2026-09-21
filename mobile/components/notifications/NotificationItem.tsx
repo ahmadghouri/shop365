@@ -1,12 +1,12 @@
 import { Pressable, Text, View } from "react-native";
 import LottieView from "lottie-react-native";
 import { useEffect, useRef } from "react";
-import { Bell, ShoppingBag, Star, Tag, Truck } from "lucide-react-native";
+import { Bell, ShoppingBag, Star, Tag, Truck, ShieldAlert } from "lucide-react-native";
 import { GlassCard } from "@/components/reusable/GlassCard";
 import { AppColors } from "@/components/reusable/colors";
 import type { Notification } from "@/lib/notificationStore";
 
-type NotifType = "order" | "promo" | "delivery" | "review" | "general";
+type NotifType = "order" | "promo" | "delivery" | "review" | "general" | "security";
 
 const TYPE_META: Record<NotifType, { Icon: any; bg: string; color: string }> = {
   order: { Icon: ShoppingBag, bg: "#FEF9C3", color: "#B45309" },
@@ -14,6 +14,7 @@ const TYPE_META: Record<NotifType, { Icon: any; bg: string; color: string }> = {
   promo: { Icon: Tag, bg: "#DCFCE7", color: "#15803D" },
   review: { Icon: Star, bg: "#FEE2E2", color: "#B91C1C" },
   general: { Icon: Bell, bg: "#F1F5F9", color: "#475569" },
+  security: { Icon: ShieldAlert, bg: "#FEF2F2", color: "#DC2626" },
 };
 
 export type NotificationItemProps = {
@@ -36,7 +37,7 @@ function LottieIcon({
       try {
         ref.current?.reset();
         ref.current?.play();
-      } catch {}
+      } catch { }
     }, 16);
     return () => clearTimeout(t);
   }, [source]);
@@ -55,7 +56,7 @@ function LottieIcon({
 }
 
 export function NotificationItem({ notif, onPress }: NotificationItemProps) {
-  const { Icon, bg, color } = TYPE_META[notif.type];
+  const { Icon, bg, color } = TYPE_META[notif.type as NotifType] ?? TYPE_META.general;
   const text = `${notif.title ?? ""} ${notif.body ?? ""}`.toLowerCase();
   const bizType = notif.metadata?.business_type?.toLowerCase();
   const businessName = (notif.metadata?.business_name ?? "").toLowerCase();

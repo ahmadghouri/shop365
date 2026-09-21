@@ -2,6 +2,8 @@ const User = require('../users/user.model');
 const { hashPassword, comparePassword } = require('../../utils/password');
 const { generateToken } = require('../../utils/jwt');
 const { UserRole } = require('../../common/enums');
+const LoginSession = require('./login-session.model');
+const { notifyUser } = require('../../services/socket.service');
 
 function phoneCandidates(phone) {
   const digits = String(phone || '').replace(/\D/g, '');
@@ -34,7 +36,19 @@ class AuthService {
       role: UserRole.END_USER,
     });
 
-    const token = generateToken({ id: user._id.toString(), role: user.role });
+    const session = await LoginSession.create({
+      user_id: user._id,
+      platform: data.platform || 'unknown',
+      device: data.device || 'Unknown device',
+      ip_address: data.ip_address || '',
+      user_agent: data.user_agent || '',
+      geo: {
+        city:      data.geo?.city      || data.location || '',
+        latitude:  data.geo?.latitude  ?? data.latitude  ?? null,
+        longitude: data.geo?.longitude ?? data.longitude ?? null,
+      },
+    });
+    const token = generateToken({ id: user._id.toString(), role: user.role, sid: session._id.toString() });
     return { user, token };
   }
 
@@ -55,7 +69,58 @@ class AuthService {
       }
     }
 
-    const token = generateToken({ id: user._id.toString(), role: user.role });
+    const sessionData = {
+      platform:      data.platform || 'unknown',
+      device:        data.device   || 'Unknown device',
+      ip_address:    data.ip_address || '',
+      user_agent:    data.user_agent || '',
+      geo: {
+        city:      data.geo?.city      || data.location || '',
+        latitude:  data.geo?.latitude  ?? data.latitude  ?? null,
+        longitude: data.geo?.longitude ?? data.longitude ?? null,
+      },
+      logged_in_at:  new Date(),
+      logged_out_at: null,
+      revoked_at:    null,
+    };
+
+    // Only reuse sessions that are still ACTIVE (not logged out, not revoked)
+    // If the matching session was logged out → it stays in history, a new one is created
+    const existingActive = await LoginSession.findOneAndUpdate(
+      {
+        user_id:       user._id,
+        device:        sessionData.device,
+        ip_address:    sessionData.ip_address,
+        logged_out_at: null,   // only active sessions
+        revoked_at:    null,   // not force-revoked
+      },
+      { $set: sessionData },
+      { new: true },
+    );
+
+    const session = existingActive ?? await LoginSession.create({ user_id: user._id, ...sessionData });
+
+    // Notify all other active sessions of this user about the new login
+    // Only when a brand-new session was created (not a known-device refresh)
+    if (!existingActive) {
+      const city = sessionData.geo?.city || '';
+      const locationStr = city ? `, from ${city}` : '';
+      // Fire-and-forget — do not await so login response is not delayed
+      notifyUser(user._id, {
+        type: 'security',
+        title: 'New login to your account',
+        body: `A new login was detected on ${sessionData.device}${locationStr}.`,
+        metadata: {
+          device:   sessionData.device,
+          platform: sessionData.platform,
+          city,
+          latitude:  sessionData.geo?.latitude  ?? null,
+          longitude: sessionData.geo?.longitude ?? null,
+        },
+      });
+    }
+
+    const token = generateToken({ id: user._id.toString(), role: user.role, sid: session._id.toString() });
     return { user, token };
   }
 

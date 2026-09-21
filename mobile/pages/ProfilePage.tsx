@@ -31,6 +31,7 @@ import { AppBackground } from '@/components/AppBackground';
 import { LocationPickerModal } from '@/components/LocationPickerModal';
 import { LocationAddressManager } from '@/components/LocationAddressManager';
 import { useUpdateAvatarMutation } from '@/api/users/useUpdateAvatarMutation';
+import { logoutCurrentSession } from '@/api/auth/auth.service';
 
 type ProfilePageProps = {
     onLogout?: () => void;
@@ -38,9 +39,10 @@ type ProfilePageProps = {
     onOrderHistory?: () => void;
     onEditProfile?: () => void;
     onChangePassword?: () => void;
+    onSecurity?: () => void;
 };
 
-export function ProfilePage({ onLogout, onBack, onOrderHistory, onEditProfile, onChangePassword }: ProfilePageProps) {
+export function ProfilePage({ onLogout, onBack, onOrderHistory, onEditProfile, onChangePassword, onSecurity }: ProfilePageProps) {
     const { user, updateUser, logout } = useAuthStore();
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [showAddressManager, setShowAddressManager] = useState(false);
@@ -53,6 +55,11 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory, onEditProfile, o
 
     const confirmLogout = async () => {
         setShowLogoutConfirm(false);
+        try {
+            await logoutCurrentSession();
+        } catch {
+            // Local logout still clears the account if the server is unreachable.
+        }
         await logout();
         onLogout?.();
     };
@@ -164,7 +171,7 @@ export function ProfilePage({ onLogout, onBack, onOrderHistory, onEditProfile, o
                         <ActionRow card icon={<UserRound size={18} color="#171717" />} label="Edit Profile" onPress={onEditProfile} />
                         <ActionRow card icon={<LockKeyhole size={18} color="#171717" />} label="Change Password" onPress={onChangePassword} />
                         <ActionRow card icon={<Bell size={18} color="#171717" />} label="Notifications" />
-                        <ActionRow card icon={<Shield size={18} color="#171717" />} label="Security" />
+                        <ActionRow card icon={<Shield size={18} color="#171717" />} label="Security" onPress={onSecurity} />
                         <ActionRow card icon={<Sun size={18} color="#171717" />} label="Theme" />
                         <ActionRow card icon={<Languages size={18} color="#171717" />} label="Language" />
                         <ActionRow card icon={<Star size={18} color="#171717" />} label="My Reviews" />

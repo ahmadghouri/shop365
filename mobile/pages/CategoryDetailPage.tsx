@@ -58,12 +58,12 @@ export function CategoryDetailPage({
     const { data, isLoading, isError, refetch } = useCategoryProducts(
         categoryId,
         activeFilter,
-        debouncedSearch,
+        debouncedSearch
     );
 
     const filters = useMemo(
         () => ['All', ...(data?.types || []).filter((type) => type !== 'All')],
-        [data?.types],
+        [data?.types]
     );
 
     useEffect(() => {
@@ -73,19 +73,20 @@ export function CategoryDetailPage({
     }, [activeFilter, filters]);
 
     const products = useMemo<Product[]>(
-        () => (data?.products || []).map((product: any) => {
-            const imageUri = productImageUri(product);
-            return {
-                id: String(product.id || product._id),
-                name: product.title,
-                store: product.business_id?.name || 'SHOP365 Provider',
-                price: Number(product.final_price ?? product.price ?? 0),
-                tag: product.type,
-                imageUri,
-                image: imageUri ? { uri: imageUri } : undefined,
-            };
-        }),
-        [data?.products],
+        () =>
+            (data?.products || []).map((product: any) => {
+                const imageUri = productImageUri(product);
+                return {
+                    id: String(product.id || product._id),
+                    name: product.title,
+                    store: product.business_id?.name || 'SHOP365 Provider',
+                    price: Number(product.final_price ?? product.price ?? 0),
+                    tag: product.type,
+                    imageUri,
+                    image: imageUri ? { uri: imageUri } : undefined,
+                };
+            }),
+        [data?.products]
     );
 
     return (
@@ -117,7 +118,10 @@ export function CategoryDetailPage({
                         </View>
                     ) : isError ? (
                         <View className="items-center px-5 py-12">
-                            <Text className="font-lufga text-center text-red-600" onPress={() => refetch()}>
+                            <Text
+                                className="font-lufga text-center text-red-600"
+                                onPress={() => refetch()}
+                            >
                                 Failed to load products. Tap to try again.
                             </Text>
                         </View>
@@ -128,19 +132,45 @@ export function CategoryDetailPage({
                             </Text>
                         </View>
                     ) : (
-                        <View className="flex-row flex-wrap justify-between px-5">
-                            {products.map((product) => (
-                                <ProductCard
-                                    key={product.id}
-                                    name={product.name}
-                                    store={product.store}
-                                    price={product.price}
-                                    image={product.image}
-                                    imageUri={product.imageUri}
-                                    onPress={() => onProductPress?.(product)}
-                                    onAddToCart={() => onAddToCart?.(product)}
-                                />
-                            ))}
+                        <View className="px-5">
+                            {(() => {
+                                const rows: Product[][] = [];
+                                for (let i = 0; i < products.length; i += 2) {
+                                    rows.push(products.slice(i, i + 2));
+                                }
+                                return rows.map((row, rowIndex) => (
+                                    <View key={rowIndex} className="flex-row" style={{ gap: 8 }}>
+                                        {row[0] && (
+                                            <View className="flex-1">
+                                                <ProductCard
+                                                    key={row[0].id}
+                                                    name={row[0].name}
+                                                    store={row[0].store}
+                                                    price={row[0].price}
+                                                    image={row[0].image}
+                                                    imageUri={row[0].imageUri}
+                                                    onPress={() => onProductPress?.(row[0])}
+                                                    onAddToCart={() => onAddToCart?.(row[0])}
+                                                />
+                                            </View>
+                                        )}
+                                        {row[1] && (
+                                            <View className="flex-1">
+                                                <ProductCard
+                                                    key={row[1].id}
+                                                    name={row[1].name}
+                                                    store={row[1].store}
+                                                    price={row[1].price}
+                                                    image={row[1].image}
+                                                    imageUri={row[1].imageUri}
+                                                    onPress={() => onProductPress?.(row[1])}
+                                                    onAddToCart={() => onAddToCart?.(row[1])}
+                                                />
+                                            </View>
+                                        )}
+                                    </View>
+                                ));
+                            })()}
                         </View>
                     )}
 

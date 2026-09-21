@@ -4,6 +4,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { PortalHost } from '@rn-primitives/portal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 import { queryClient } from './lib/queryClient';
 import { SplashScreen } from './components/SplashScreen';
 import { LocationPermissionScreen } from './components/LocationPermissionScreen';
@@ -100,7 +102,19 @@ function AppContent() {
     }, []);
     useEffect(() => {
         if (screen === 'Splash') {
-            const timer = setTimeout(() => setScreen('Location'), 2500);
+            const timer = setTimeout(async () => {
+                try {
+                    const { status } = await Location.getForegroundPermissionsAsync();
+                    const onboarded = await AsyncStorage.getItem('location_onboarded');
+                    if (status === 'granted' || onboarded === '1') {
+                        setScreen('Welcome');
+                    } else {
+                        setScreen('Location');
+                    }
+                } catch {
+                    setScreen('Location');
+                }
+            }, 2500);
             return () => clearTimeout(timer);
         }
     }, [screen]);

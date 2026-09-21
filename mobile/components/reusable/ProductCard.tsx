@@ -15,7 +15,16 @@ type ProductCardProps = {
     onAddToCart?: () => void;
 };
 
-export function ProductCard({ name, store, price, productId, image, imageUri, onPress, onAddToCart }: ProductCardProps) {
+export function ProductCard({
+    name,
+    store,
+    price,
+    productId,
+    image,
+    imageUri,
+    onPress,
+    onAddToCart,
+}: ProductCardProps) {
     const { addItem } = useCartStore();
 
     const handleAddToCart = async () => {
@@ -34,16 +43,11 @@ export function ProductCard({ name, store, price, productId, image, imageUri, on
         onAddToCart?.();
     };
     return (
-        <Pressable
-            className="w-[190px] mb-4 rounded-3xl active:opacity-90"
-            onPress={onPress}
-        >
-            <GlassCard variant='light' className='rounded-xl'>
+        <Pressable className="w-full mb-4 rounded-3xl active:opacity-90" onPress={onPress}>
+            <GlassCard variant="light" className="rounded-xl">
                 {/* Image Area */}
                 <View className="relative w-full aspect-[175/129] p-1.5">
-                    <ProductShapeImage
-                        source={imageUri ? { uri: imageUri } : image}
-                    />
+                    <ProductShapeImage source={imageUri ? { uri: imageUri } : image} />
 
                     {/* Add Button with white notch cutout */}
                     <View className="absolute -bottom-2 -right-2 w-[72px] h-[72px] rounded-[36px] items-center justify-center">
@@ -58,8 +62,15 @@ export function ProductCard({ name, store, price, productId, image, imageUri, on
 
                 {/* Info */}
                 <View className="px-2 pt-3 pb-2">
-                    <Text className="text-lg font-lufga text-app-dark" numberOfLines={1}>{name}</Text>
-                    <Text className="text-sm font-lufga font-light text-slate-400 mt-0.5" numberOfLines={1}>{store}</Text>
+                    <Text className="text-lg font-lufga text-app-dark" numberOfLines={1}>
+                        {name}
+                    </Text>
+                    <Text
+                        className="text-sm font-lufga font-light text-slate-400 mt-0.5"
+                        numberOfLines={1}
+                    >
+                        {store}
+                    </Text>
                     <Text className="text-2xl font-lufga font-semibold text-slate-800 text-right mt-3">
                         {price.toLocaleString()}
                     </Text>

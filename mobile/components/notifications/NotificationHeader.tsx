@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 import { BellOff, ChevronLeft } from "lucide-react-native";
 import { AppColors } from "@/components/reusable/colors";
+import { GradientPill } from "@/components/reusable/GradientPill";
 
 export type NotificationHeaderProps = {
   unreadCount: number;
@@ -36,15 +37,17 @@ export function NotificationHeader({
         </View>
       </View>
       {unreadCount > 0 && (
-        <Pressable
-          className="flex-row items-center rounded-full bg-amber-50 px-3 py-2 active:opacity-70"
-          onPress={onMarkAllRead}
-        >
-          <BellOff size={14} color={AppColors.yellow} />
-          <Text className="ml-1.5 text-xs font-lufga-semibold text-amber-700">
-            Mark all read
-          </Text>
-        </Pressable>
+        <GradientPill className="h-9 rounded-full">
+          <Pressable
+            className="h-full flex-row items-center justify-center px-3.5 active:opacity-70"
+            onPress={onMarkAllRead}
+          >
+            <BellOff size={14} color={AppColors.dark} />
+            <Text className="ml-1.5 text-xs font-lufga-semibold text-slate-900">
+              Mark all read
+            </Text>
+          </Pressable>
+        </GradientPill>
       )}
     </View>
   );

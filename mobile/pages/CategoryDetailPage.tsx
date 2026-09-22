@@ -140,7 +140,7 @@ export function CategoryDetailPage({
                                 }
                                 return rows.map((row, rowIndex) => (
                                     <View key={rowIndex} className="flex-row" style={{ gap: 8 }}>
-                                        {row[0] && (
+                                        {row[0] ? (
                                             <View className="flex-1">
                                                 <ProductCard
                                                     key={row[0].id}
@@ -153,8 +153,10 @@ export function CategoryDetailPage({
                                                     onAddToCart={() => onAddToCart?.(row[0])}
                                                 />
                                             </View>
+                                        ) : (
+                                            <View className="flex-1" />
                                         )}
-                                        {row[1] && (
+                                        {row[1] ? (
                                             <View className="flex-1">
                                                 <ProductCard
                                                     key={row[1].id}
@@ -167,6 +169,8 @@ export function CategoryDetailPage({
                                                     onAddToCart={() => onAddToCart?.(row[1])}
                                                 />
                                             </View>
+                                        ) : (
+                                            <View className="flex-1" />
                                         )}
                                     </View>
                                 ));

@@ -35,24 +35,24 @@ export function TopSellingProducts({
     const marginTop = isUltraTinyScreen
         ? 'mt-4'
         : isTinyScreen
-          ? 'mt-4.5'
-          : isSmallScreen
-            ? 'mt-5'
-            : 'mt-6';
+            ? 'mt-4.5'
+            : isSmallScreen
+                ? 'mt-5'
+                : 'mt-6';
     const headingSize = isUltraTinyScreen
         ? 'text-lg'
         : isTinyScreen
-          ? 'text-[17px]'
-          : isSmallScreen
-            ? 'text-xl'
-            : 'text-2xl';
+            ? 'text-[17px]'
+            : isSmallScreen
+                ? 'text-xl'
+                : 'text-2xl';
     const marginBottom = isUltraTinyScreen
         ? 'mb-2'
         : isTinyScreen
-          ? 'mb-2.5'
-          : isSmallScreen
-            ? 'mb-3'
-            : 'mb-4';
+            ? 'mb-2.5'
+            : isSmallScreen
+                ? 'mb-3'
+                : 'mb-4';
     const rowGap = isUltraTinyScreen ? 4 : isTinyScreen ? 5 : isSmallScreen ? 6 : 8;
 
     return (
@@ -65,7 +65,7 @@ export function TopSellingProducts({
             <View>
                 {rows.map((row, rowIndex) => (
                     <View key={rowIndex} className="flex-row" style={{ gap: rowGap }}>
-                        {row[0] && (
+                        {row[0] ? (
                             <View className="flex-1">
                                 <ProductCard
                                     key={row[0].id}
@@ -79,8 +79,10 @@ export function TopSellingProducts({
                                     onAddToCart={() => onAddToCart?.(row[0])}
                                 />
                             </View>
+                        ) : (
+                            <View className="flex-1" />
                         )}
-                        {row[1] && (
+                        {row[1] ? (
                             <View className="flex-1">
                                 <ProductCard
                                     key={row[1].id}
@@ -94,6 +96,8 @@ export function TopSellingProducts({
                                     onAddToCart={() => onAddToCart?.(row[1])}
                                 />
                             </View>
+                        ) : (
+                            <View className="flex-1" />
                         )}
                     </View>
                 ))}

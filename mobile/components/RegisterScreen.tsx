@@ -162,9 +162,9 @@ export function RegisterScreen({ onSuccess, onLogin }: RegisterScreenProps) {
                             {/* Full Name */}
                             <View className="mb-5 mx-4">
                                 <Text className="text-base font-normal font-lufga text-slate-800 mb-2">Full Name</Text>
-                                <View className="flex-row items-center bg-white rounded-full px-5 h-14 justify-center shadow-sm">
+                                <View className="flex-row items-center bg-white rounded-full px-5 h-14 shadow-sm">
                                     <TextInput
-                                        className="text-base text-slate-800"
+                                        className="flex-1 text-base text-slate-800"
                                         placeholder="John Doe"
                                         placeholderTextColor="#9ca3af"
                                         autoCapitalize="words"
@@ -177,10 +177,10 @@ export function RegisterScreen({ onSuccess, onLogin }: RegisterScreenProps) {
                             {/* Phone Number */}
                             <View className="mb-5 mx-4">
                                 <Text className="text-base font-normal font-lufga text-slate-800 mb-2">Phone Number</Text>
-                                <View className="bg-white rounded-full px-5 h-14 justify-center shadow-sm">
+                                <View className="flex-row items-center bg-white rounded-full px-5 h-14 shadow-sm">
                                     <Text className="border-r border-slate-200 pr-3 text-base font-lufga-semibold text-slate-700">+92</Text>
                                     <TextInput
-                                        className="flex-1 px-3 text-base text-slate-800"
+                                        className="flex-1 pl-3 text-base text-slate-800"
                                         placeholder="300 1234567"
                                         placeholderTextColor="#9ca3af"
                                         keyboardType="phone-pad"

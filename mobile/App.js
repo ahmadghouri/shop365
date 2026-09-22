@@ -1,5 +1,5 @@
 import './global.css';
-import { StatusBar, View } from 'react-native';
+import { StatusBar, View, useWindowDimensions } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -63,6 +63,12 @@ function AppContent() {
     const [showTheme, setShowTheme] = useState(false);
     const { isAuthenticated, loadToken } = useAuthStore();
     const loadCart = useCartStore((s) => s.loadCart);
+    const { width } = useWindowDimensions();
+    const isSmallScreen = width < 380;
+    const isTinyScreen = width < 340;
+    const isUltraTinyScreen = width < 320;
+    const cartBottomHome = isUltraTinyScreen ? 68 : isTinyScreen ? 72 : isSmallScreen ? 78 : 88;
+    const cartBottomDetail = isUltraTinyScreen ? 84 : isTinyScreen ? 88 : isSmallScreen ? 94 : 104;
 
     useEffect(() => {
         loadToken();
@@ -187,7 +193,7 @@ function AppContent() {
                             setActiveProduct(null);
                             setActiveTab('cart');
                         }}
-                        bottom={104}
+                        bottom={cartBottomDetail}
                     />
                 </View>
             );
@@ -324,7 +330,7 @@ function AppContent() {
                     />
                 )}
                 {activeTab === 'home' && (
-                    <FloatingCartBar onPress={() => setActiveTab('cart')} bottom={88} />
+                    <FloatingCartBar onPress={() => setActiveTab('cart')} bottom={cartBottomHome} />
                 )}
             </View>
         );

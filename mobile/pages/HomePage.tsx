@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
+import { View, ScrollView, RefreshControl, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE_URL } from '@/api/client';
 import { AppBackground } from '@/components/AppBackground';
@@ -57,12 +57,26 @@ function productPrice(product: any) {
     return Math.max(0, basePrice - (basePrice * discount) / 100);
 }
 
-export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListPress, onOrdersPress, onProfilePress, onScrollChange, onNotificationPress }: HomePageProps) {
+export function HomePage({
+    onCategoryPress,
+    onProductPress,
+    onCartPress,
+    onListPress,
+    onOrdersPress,
+    onProfilePress,
+    onScrollChange,
+    onNotificationPress,
+}: HomePageProps) {
     const { data: categoryData, refetch: refetchCategories } = useCategories();
     const { data: randomProductData, refetch: refetchProducts } = useRandomProducts();
     const { data: businessData, refetch: refetchBusinesses } = useBusinesses();
     const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [refreshing, setRefreshing] = useState(false);
+    const { width } = useWindowDimensions();
+    const isSmallScreen = width < 380;
+    const isTinyScreen = width < 340;
+    const isUltraTinyScreen = width < 320;
+    const bottomSpacerHeight = isUltraTinyScreen ? 'h-20' : isTinyScreen ? 'h-22' : isSmallScreen ? 'h-24' : 'h-28';
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -84,9 +98,12 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
         return (categoryData ?? [])
             .filter((category: any) => category.status !== 'inactive')
             .map((category: any) => {
-                const path = category.image_url || (category.image ? `/uploads/${category.image}` : '');
+                const path =
+                    category.image_url || (category.image ? `/uploads/${category.image}` : '');
                 const imageUri = path
-                    ? (/^https?:\/\//.test(path) ? path : `${API_BASE_URL}${path}`)
+                    ? /^https?:\/\//.test(path)
+                        ? path
+                        : `${API_BASE_URL}${path}`
                     : undefined;
 
                 return {
@@ -105,7 +122,10 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
             return (group.products || []).map((product: any) => {
                 const imageUri = backendImageUri(product);
                 const businessId = String(
-                    product.business_id?._id || product.business_id?.id || product.business_id || groupBusinessId
+                    product.business_id?._id ||
+                        product.business_id?.id ||
+                        product.business_id ||
+                        groupBusinessId
                 );
                 const storeName =
                     product.business_id?.name ||
@@ -131,7 +151,12 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
                     className="flex-1"
                     showsVerticalScrollIndicator={false}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#EAB308" colors={['#EAB308']} />
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={handleRefresh}
+                            tintColor="#EAB308"
+                            colors={['#EAB308']}
+                        />
                     }
                 >
                     <HomeHeader onNotificationPress={onNotificationPress} />
@@ -139,7 +164,7 @@ export function HomePage({ onCategoryPress, onProductPress, onCartPress, onListP
                     <PromoBanner discount="10%" storeName="SHOP365 Mart" />
                     <MonthlyGroceryHomeCard onPress={onListPress} />
                     <TopSellingProducts products={products} onProductPress={onProductPress} />
-                    <View className="h-28" />
+                    <View className={bottomSpacerHeight} />
                 </ScrollView>
             </SafeAreaView>
         </AppBackground>

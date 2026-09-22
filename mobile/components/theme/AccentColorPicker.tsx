@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { GlassCard } from '@/components/reusable/GlassCard';
 
 export type AccentColor = {
@@ -16,34 +16,72 @@ type AccentColorPickerProps = {
 };
 
 export function AccentColorPicker({ colors, selectedId, onSelect }: AccentColorPickerProps) {
+    const { width } = useWindowDimensions();
+    const isTiny = width < 340;
+    const isSmall = width < 380;
+    const cardPad = isTiny ? 12 : isSmall ? 14 : 20;
+    const swatchBox = isTiny ? 52 : isSmall ? 58 : 64;
+    const dotSize = isTiny ? 24 : isSmall ? 28 : 32;
+    const labelSize = isTiny ? 10 : isSmall ? 11 : 14;
+    const badgeSize = isTiny ? 16 : isSmall ? 18 : 20;
+
     return (
-        <GlassCard variant="light" className="rounded-3xl p-5">
-            <View className="flex-row flex-wrap gap-3 justify-between">
+        <GlassCard variant="light" className="rounded-3xl">
+            <View style={{ padding: cardPad, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                 {colors.map((color) => {
                     const selected = selectedId === color.id;
                     return (
                         <Pressable
                             key={color.id}
-                            className="items-center active:opacity-80 w-[30%] mb-1"
+                            style={{ width: '30%', alignItems: 'center', marginBottom: isTiny ? 10 : 14 }}
+                            className="active:opacity-80"
                             onPress={() => onSelect(color.id)}
                         >
-                            <View className="relative">
+                            <View style={{ position: 'relative' }}>
                                 <View
-                                    className={`h-16 w-16 items-center justify-center rounded-2xl border-[1.5px] ${selected ? 'border-slate-900' : 'border-transparent'}`}
-                                    style={{ backgroundColor: color.swatchLight }}
+                                    style={{
+                                        height: swatchBox,
+                                        width: swatchBox,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: 16,
+                                        backgroundColor: color.swatchLight,
+                                        borderWidth: 1.5,
+                                        borderColor: selected ? '#0f172a' : 'transparent',
+                                    }}
                                 >
                                     <View
-                                        className="h-8 w-8 rounded-full"
-                                        style={{ backgroundColor: color.swatch }}
+                                        style={{
+                                            height: dotSize,
+                                            width: dotSize,
+                                            borderRadius: dotSize / 2,
+                                            backgroundColor: color.swatch,
+                                        }}
                                     />
                                 </View>
                                 {selected && (
-                                    <View className="absolute -top-1 -right-1 h-5 w-5 items-center justify-center rounded-full bg-slate-900">
-                                        <Text className="text-[10px] font-lufga-bold text-white">✓</Text>
+                                    <View
+                                        style={{
+                                            position: 'absolute',
+                                            top: -4,
+                                            right: -4,
+                                            height: badgeSize,
+                                            width: badgeSize,
+                                            borderRadius: badgeSize / 2,
+                                            backgroundColor: '#0f172a',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        <Text style={{ fontSize: isTiny ? 8 : 10, color: '#fff', fontWeight: '700' }}>✓</Text>
                                     </View>
                                 )}
                             </View>
-                            <Text className="mt-2 text-sm font-lufga-semibold text-slate-700">
+                            <Text
+                                style={{ fontSize: labelSize, marginTop: isTiny ? 5 : 8 }}
+                                className="font-lufga-semibold text-slate-700"
+                                numberOfLines={1}
+                            >
                                 {color.name}
                             </Text>
                         </Pressable>

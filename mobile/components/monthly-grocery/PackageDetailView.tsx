@@ -7,6 +7,7 @@ import {
     Pressable,
     ScrollView,
     Text,
+    useWindowDimensions,
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -58,6 +59,24 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
     const completed = items.filter((item) => item.checked).length;
     const total = useMemo(() => cardTotal(card), [card]);
 
+    const { width } = useWindowDimensions();
+    const isTiny = width < 340;
+    const isSmall = width < 380;
+    const pad = isTiny ? 14 : isSmall ? 16 : 20;
+    const iconBtnSize = isTiny ? 38 : isSmall ? 40 : 44;
+    const iconSize = isTiny ? 18 : isSmall ? 20 : 23;
+    const headerTitleSize = isTiny ? 15 : isSmall ? 17 : 20;
+    const headerSubSize = isTiny ? 10 : 12;
+    const bannerPad = isTiny ? 14 : isSmall ? 16 : 20;
+    const bannerTitleSize = isTiny ? 18 : isSmall ? 20 : 24;
+    const bannerSubSize = isTiny ? 11 : isSmall ? 12 : 13;
+    const sectionTitleSize = isTiny ? 15 : isSmall ? 16 : 18;
+    const thumbSize = isTiny ? 68 : isSmall ? 72 : 80;
+    const productTitleSize = isTiny ? 13 : isSmall ? 14 : 15;
+    const productPriceSize = isTiny ? 13 : isSmall ? 14 : 16;
+    const qtyBtnSize = isTiny ? 26 : 28;
+    const qtyIconSize = isTiny ? 12 : 14;
+
     const handleAddressSelected = async (address: Address) => {
         try {
             await updateMonthlyGroceryAddress(card._id, address._id);
@@ -107,141 +126,213 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
     return (
         <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
-                <View className="flex-row items-center bg-white/80 px-5 py-3">
-                    <Pressable className="h-11 w-11 items-center justify-center rounded-2xl bg-slate-50" onPress={onBack}>
-                        <ChevronLeft size={23} color="#171717" />
+                {/* ── Header ── */}
+                <View
+                    style={{ paddingHorizontal: pad }}
+                    className="flex-row items-center bg-white/80 py-3"
+                >
+                    <Pressable
+                        style={{ height: iconBtnSize, width: iconBtnSize }}
+                        className="items-center justify-center rounded-2xl bg-slate-50"
+                        onPress={onBack}
+                    >
+                        <ChevronLeft size={iconSize} color="#171717" />
                     </Pressable>
-                    <View className="ml-4 flex-1">
-                        <Text className="text-xl font-lufga-bold text-slate-950" numberOfLines={1}>{card.name}</Text>
-                        <Text className="mt-0.5 text-xs font-lufga text-slate-400">{completed} of {items.length} completed</Text>
+                    <View className="ml-3 flex-1">
+                        <Text
+                            style={{ fontSize: headerTitleSize }}
+                            className="font-lufga-bold text-slate-950"
+                            numberOfLines={1}
+                        >
+                            {card.name}
+                        </Text>
+                        <Text style={{ fontSize: headerSubSize, marginTop: 2 }} className="font-lufga text-slate-400">
+                            {completed} of {items.length} completed
+                        </Text>
                     </View>
                     <Pressable
-                        className="mr-2 flex-row items-center rounded-full bg-amber-50 px-3 py-2 active:opacity-70"
+                        style={{ paddingHorizontal: isTiny ? 8 : 12, paddingVertical: isTiny ? 6 : 8, marginRight: isTiny ? 6 : 8 }}
+                        className="flex-row items-center rounded-full bg-amber-50 active:opacity-70"
                         onPress={() => setShowAddressModal(true)}
                     >
-                        <MapPin size={15} color="#b77900" />
-                        <Text className="ml-1 max-w-20 text-xs font-lufga-semibold text-amber-700" numberOfLines={1}>
+                        <MapPin size={isTiny ? 13 : 15} color="#b77900" />
+                        <Text
+                            style={{ fontSize: isTiny ? 10 : 12, marginLeft: 4, maxWidth: isTiny ? 56 : 80 }}
+                            className="font-lufga-semibold text-amber-700"
+                            numberOfLines={1}
+                        >
                             {selectedAddressLabel}
                         </Text>
                     </Pressable>
-                    <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-red-50" onPress={onDelete}>
-                        <Trash2 size={18} color="#ef4444" />
+                    <Pressable
+                        style={{ height: iconBtnSize, width: iconBtnSize }}
+                        className="items-center justify-center rounded-full bg-red-50"
+                        onPress={onDelete}
+                    >
+                        <Trash2 size={isTiny ? 15 : 18} color="#ef4444" />
                     </Pressable>
                 </View>
 
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    <View className="mx-5 mt-5 rounded-[28px] bg-[#1D1D1D] p-5">
-                        <Text className="text-xs font-lufga-semibold uppercase tracking-widest text-amber-300">Grocery Package</Text>
-                        <Text className="mt-2 text-2xl font-lufga-bold text-white">{card.name}</Text>
-                        <View className="mt-5 flex-row items-center justify-between">
-                            <Text className="font-lufga text-slate-300">{items.length} saved products</Text>
-                            <Text className="text-lg font-lufga-bold text-amber-300">Rs {total.toLocaleString()}</Text>
+                    {/* ── Summary banner ── */}
+                    <View
+                        style={{ marginHorizontal: pad, padding: bannerPad, marginTop: isTiny ? 14 : 20 }}
+                        className="rounded-[28px] bg-[#1D1D1D]"
+                    >
+                        <Text style={{ fontSize: isTiny ? 9 : 11 }} className="font-lufga-semibold uppercase tracking-widest text-amber-300">
+                            Grocery Package
+                        </Text>
+                        <Text style={{ fontSize: bannerTitleSize, marginTop: isTiny ? 6 : 8 }} className="font-lufga-bold text-white">
+                            {card.name}
+                        </Text>
+                        <View style={{ marginTop: isTiny ? 12 : 20 }} className="flex-row items-center justify-between">
+                            <Text style={{ fontSize: bannerSubSize }} className="font-lufga text-slate-300">
+                                {items.length} saved products
+                            </Text>
+                            <Text style={{ fontSize: isTiny ? 15 : 18 }} className="font-lufga-bold text-amber-300">
+                                Rs {total.toLocaleString()}
+                            </Text>
                         </View>
                         <Pressable
-                            className="mt-5 flex-row items-center justify-between rounded-2xl bg-white/10 px-4 py-3 active:bg-white/20"
+                            style={{ marginTop: isTiny ? 12 : 20, paddingHorizontal: isTiny ? 12 : 16, paddingVertical: isTiny ? 10 : 12 }}
+                            className="flex-row items-center justify-between rounded-2xl bg-white/10 active:bg-white/20"
                             onPress={openAutoOrderPicker}
                             disabled={updateCard.isPending}
                         >
-                            <View className="flex-row items-center">
-                                <Calendar size={18} color="#FCD34D" />
-                                <View className="ml-3">
-                                    <Text className="text-sm font-lufga-semibold text-white">Auto-order</Text>
-                                    <Text className="mt-0.5 text-xs font-lufga text-slate-300">
+                            <View className="flex-1 flex-row items-center">
+                                <Calendar size={isTiny ? 15 : 18} color="#FCD34D" />
+                                <View style={{ marginLeft: isTiny ? 8 : 12 }} className="flex-1">
+                                    <Text style={{ fontSize: isTiny ? 12 : 14 }} className="font-lufga-semibold text-white">
+                                        Auto-order
+                                    </Text>
+                                    <Text style={{ fontSize: isTiny ? 10 : 12, marginTop: 2 }} className="font-lufga text-slate-300" numberOfLines={1}>
                                         {autoOrderDate ? `Next order: ${autoOrderLabel}` : 'Choose your next order date'}
                                     </Text>
                                 </View>
                             </View>
-                            <Text className="font-lufga-semibold text-amber-300">{autoOrderLabel}</Text>
+                            <Text style={{ fontSize: isTiny ? 11 : 13, marginLeft: 8 }} className="font-lufga-semibold text-amber-300" numberOfLines={1}>
+                                {autoOrderLabel}
+                            </Text>
                         </Pressable>
                     </View>
 
-                    <View className="mb-3 mt-6 flex-row items-center justify-between px-5">
-                        <Text className="text-lg font-lufga-bold text-slate-950">Products</Text>
-                        <GradientPill className="h-10 rounded-full">
-                            <Pressable className="flex-1 flex-row items-center px-4 active:opacity-80" onPress={onGoToCart}>
-                                <Plus size={15} color="#171717" strokeWidth={2.8} />
-                                <Text className="ml-1.5 font-lufga-bold text-slate-950">Add from Cart</Text>
+                    {/* ── Products section header ── */}
+                    <View
+                        style={{ paddingHorizontal: pad, marginTop: isTiny ? 18 : 24, marginBottom: isTiny ? 10 : 12 }}
+                        className="flex-row items-center justify-between"
+                    >
+                        <Text style={{ fontSize: sectionTitleSize }} className="font-lufga-bold text-slate-950">
+                            Products
+                        </Text>
+                        <GradientPill style={{ height: isTiny ? 36 : 40 }} className="rounded-full">
+                            <Pressable
+                                style={{ paddingHorizontal: isTiny ? 12 : 16 }}
+                                className="flex-1 flex-row items-center active:opacity-80"
+                                onPress={onGoToCart}
+                            >
+                                <Plus size={isTiny ? 13 : 15} color="#171717" strokeWidth={2.8} />
+                                <Text style={{ fontSize: isTiny ? 11 : 13, marginLeft: 6 }} className="font-lufga-bold text-slate-950">
+                                    Add from Cart
+                                </Text>
                             </Pressable>
                         </GradientPill>
                     </View>
 
+                    {/* ── Empty state ── */}
                     {items.length === 0 ? (
-                        <View className="mx-5 items-center rounded-[28px] bg-white px-6 py-10">
-                            <PackageOpen size={36} color="#b77900" />
-                            <Text className="mt-4 text-lg font-lufga-bold text-slate-950">This list is empty</Text>
-                            <Text className="mt-2 text-center text-sm font-lufga text-slate-500">Open your Cart and use "Add to Monthly Grocery" on Grocery products.</Text>
-                            <Pressable className="mt-5 rounded-full bg-[#FFC400] px-6 py-3" onPress={onGoToCart}>
-                                <Text className="font-lufga-bold text-slate-950">Go to Cart</Text>
+                        <View
+                            style={{ marginHorizontal: pad, paddingHorizontal: isTiny ? 16 : 24, paddingVertical: isTiny ? 28 : 40 }}
+                            className="items-center rounded-[28px] bg-white"
+                        >
+                            <PackageOpen size={isTiny ? 28 : 36} color="#b77900" />
+                            <Text style={{ fontSize: isTiny ? 15 : 18, marginTop: 16 }} className="font-lufga-bold text-slate-950">
+                                This list is empty
+                            </Text>
+                            <Text style={{ fontSize: isTiny ? 11 : 13, marginTop: 8, lineHeight: isTiny ? 16 : 20 }} className="text-center font-lufga text-slate-500">
+                                Open your Cart and use "Add to Monthly Grocery" on Grocery products.
+                            </Text>
+                            <Pressable
+                                style={{ marginTop: isTiny ? 16 : 20, paddingHorizontal: isTiny ? 18 : 24, paddingVertical: isTiny ? 10 : 12 }}
+                                className="rounded-full bg-[#FFC400]"
+                                onPress={onGoToCart}
+                            >
+                                <Text style={{ fontSize: isTiny ? 12 : 14 }} className="font-lufga-bold text-slate-950">
+                                    Go to Cart
+                                </Text>
                             </Pressable>
                         </View>
                     ) : (
-                        <View className="gap-3 px-5 pb-10">
+                        <View style={{ gap: isTiny ? 10 : 12, paddingHorizontal: pad, paddingBottom: 40 }}>
                             {items.map((item) => {
                                 const product = item.product_id;
                                 if (!product) return null;
                                 const imageUri = getMonthlyProductImage(product);
                                 const price = Number(product.final_price ?? product.price ?? 0);
                                 return (
-                                    <View key={item._id} className="rounded-3xl bg-white p-3">
+                                    <View key={item._id} style={{ padding: isTiny ? 10 : 12 }} className="rounded-3xl bg-white">
                                         <View className="flex-row items-center">
-                                            <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
+                                            {/* Thumbnail */}
+                                            <View
+                                                style={{ height: thumbSize, width: thumbSize }}
+                                                className="items-center justify-center overflow-hidden rounded-2xl bg-slate-100"
+                                            >
                                                 {imageUri ? (
-                                                    <Image source={{ uri: imageUri }} className="h-full w-full" resizeMode="contain" />
+                                                    <Image
+                                                        source={{ uri: imageUri }}
+                                                        style={{ width: thumbSize, height: thumbSize }}
+                                                        resizeMode="contain"
+                                                    />
                                                 ) : (
-                                                    <Text className="text-2xl">🛒</Text>
+                                                    <Text style={{ fontSize: isTiny ? 20 : 24 }}>🛒</Text>
                                                 )}
                                             </View>
 
-                                            <View className="ml-3 flex-1">
-                                                <Text className="text-[15px] font-lufga-semibold text-slate-900" numberOfLines={1}>
+                                            {/* Info */}
+                                            <View style={{ marginLeft: isTiny ? 10 : 12 }} className="flex-1">
+                                                <Text style={{ fontSize: productTitleSize }} className="font-lufga-semibold text-slate-900" numberOfLines={1}>
                                                     {product.title}
                                                 </Text>
-                                                <Text className="mt-0.5 text-xs font-lufga text-slate-400" numberOfLines={1}>
+                                                <Text style={{ fontSize: isTiny ? 10 : 12, marginTop: 2 }} className="font-lufga text-slate-400" numberOfLines={1}>
                                                     {product.business_id?.name || 'Grocery Provider'}
                                                 </Text>
                                                 {item.variant?.name && (
-                                                    <Text className="mt-1 text-xs font-lufga-medium text-amber-700" numberOfLines={1}>
+                                                    <Text style={{ fontSize: isTiny ? 10 : 12, marginTop: 4 }} className="font-lufga-medium text-amber-700" numberOfLines={1}>
                                                         {item.variant.name}
                                                     </Text>
                                                 )}
-                                                <Text className="mt-2 text-base font-lufga-semibold text-slate-900">
+                                                <Text style={{ fontSize: productPriceSize, marginTop: isTiny ? 6 : 8 }} className="font-lufga-semibold text-slate-900">
                                                     Rs {((item.variant?.price || price) * item.quantity).toLocaleString()}
                                                 </Text>
                                             </View>
 
-                                            <View className="items-center gap-2">
+                                            {/* Controls */}
+                                            <View style={{ marginLeft: 8 }} className="items-center gap-2">
                                                 <Pressable
                                                     accessibilityLabel={`Remove ${product.title}`}
                                                     className="active:opacity-60"
                                                     onPress={() => removeItem.mutate({ cardId: card._id, itemId: item._id })}
                                                 >
-                                                    <Trash2 size={18} color="#ef4444" />
+                                                    <Trash2 size={isTiny ? 15 : 18} color="#ef4444" />
                                                 </Pressable>
                                                 <View className="flex-row items-center rounded-full bg-slate-100 p-1">
                                                     <Pressable
                                                         disabled={item.quantity <= 1}
-                                                        className="h-7 w-7 items-center justify-center rounded-full bg-white disabled:opacity-40"
-                                                        onPress={() => updateItem.mutate({
-                                                            cardId: card._id,
-                                                            itemId: item._id,
-                                                            updates: { quantity: item.quantity - 1 },
-                                                        })}
+                                                        style={{ height: qtyBtnSize, width: qtyBtnSize }}
+                                                        className="items-center justify-center rounded-full bg-white disabled:opacity-40"
+                                                        onPress={() => updateItem.mutate({ cardId: card._id, itemId: item._id, updates: { quantity: item.quantity - 1 } })}
                                                     >
-                                                        <Minus size={14} color="#1e293b" strokeWidth={2.5} />
+                                                        <Minus size={qtyIconSize} color="#1e293b" strokeWidth={2.5} />
                                                     </Pressable>
-                                                    <Text className="mx-2 min-w-4 text-center text-sm font-lufga-medium text-slate-900">
+                                                    <Text style={{ fontSize: isTiny ? 12 : 14, minWidth: isTiny ? 14 : 16 }} className="text-center font-lufga-medium text-slate-900">
                                                         {item.quantity}
                                                     </Text>
                                                     <Pressable
                                                         disabled={updateItem.isPending}
-                                                        className="h-7 w-7 items-center justify-center rounded-full bg-[#EAB308] disabled:opacity-50"
-                                                        onPress={() => updateItem.mutate({
-                                                            cardId: card._id,
-                                                            itemId: item._id,
-                                                            updates: { quantity: item.quantity + 1 },
-                                                        })}
+                                                        style={{ height: qtyBtnSize, width: qtyBtnSize }}
+                                                        className="items-center justify-center rounded-full bg-[#EAB308] disabled:opacity-50"
+                                                        onPress={() => updateItem.mutate({ cardId: card._id, itemId: item._id, updates: { quantity: item.quantity + 1 } })}
                                                     >
-                                                        <Plus size={14} color="#111827" strokeWidth={2.5} />
+                                                        <Plus size={qtyIconSize} color="#111827" strokeWidth={2.5} />
                                                     </Pressable>
                                                 </View>
                                             </View>
@@ -251,35 +342,37 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
                             })}
                         </View>
                     )}
+                    <View className="h-8" />
                 </ScrollView>
             </SafeAreaView>
+
+            {/* ── Address modal ── */}
             <Modal
                 visible={showAddressModal}
                 transparent
                 animationType="slide"
                 onRequestClose={() => setShowAddressModal(false)}
             >
-                <Pressable
-                    className="flex-1 justify-end bg-black/45"
-                    onPress={() => setShowAddressModal(false)}
-                >
+                <Pressable className="flex-1 justify-end bg-black/45" onPress={() => setShowAddressModal(false)}>
                     <Pressable
-                        className="max-h-[78%] rounded-t-[32px] bg-white px-5 pb-8 pt-4"
+                        style={{ paddingHorizontal: pad, paddingBottom: isTiny ? 24 : 32, paddingTop: isTiny ? 14 : 16 }}
+                        className="max-h-[78%] rounded-t-[32px] bg-white"
                         onPress={(event) => event.stopPropagation()}
                     >
-                        <View className="mb-4 flex-row items-center justify-between">
+                        <View style={{ marginBottom: isTiny ? 12 : 16 }} className="flex-row items-center justify-between">
                             <View>
-                                <Text className="text-2xl font-lufga-bold text-slate-950">Choose Address</Text>
-                                <Text className="mt-1 text-sm font-lufga text-slate-400">Select a saved delivery address</Text>
+                                <Text style={{ fontSize: isTiny ? 18 : 22 }} className="font-lufga-bold text-slate-950">Choose Address</Text>
+                                <Text style={{ fontSize: isTiny ? 11 : 13, marginTop: 4 }} className="font-lufga text-slate-400">Select a saved delivery address</Text>
                             </View>
                             <Pressable
-                                className="h-10 w-10 items-center justify-center rounded-full bg-slate-100 active:opacity-60"
+                                style={{ height: iconBtnSize, width: iconBtnSize }}
+                                className="items-center justify-center rounded-full bg-slate-100 active:opacity-60"
                                 onPress={() => setShowAddressModal(false)}
                             >
-                                <ChevronLeft size={20} color="#334155" />
+                                <ChevronLeft size={iconSize} color="#334155" />
                             </Pressable>
                         </View>
-                        <View className="h-[480px]">
+                        <View style={{ height: isTiny ? 380 : 480 }}>
                             <LocationAddressManager
                                 onAddressSelected={handleAddressSelected}
                                 onAddressChanged={handleAddressChanged}
@@ -288,6 +381,8 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
                     </Pressable>
                 </Pressable>
             </Modal>
+
+            {/* ── Auto-order date picker modal ── */}
             {showAutoOrderPicker && (
                 <Modal
                     visible
@@ -295,11 +390,19 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
                     animationType="fade"
                     onRequestClose={() => setShowAutoOrderPicker(false)}
                 >
-                    <Pressable className="flex-1 items-center justify-center bg-black/45 px-5" onPress={() => setShowAutoOrderPicker(false)}>
-                        <Pressable className="w-full rounded-3xl bg-white p-5" onPress={(event) => event.stopPropagation()}>
-                            <Text className="text-xl font-lufga-bold text-slate-950">Choose auto-order date</Text>
-                            <Text className="mt-1 text-sm font-lufga text-slate-500">Select the date for the next order.</Text>
-                            <View className="mt-4">
+                    <Pressable
+                        style={{ paddingHorizontal: pad }}
+                        className="flex-1 items-center justify-center bg-black/45"
+                        onPress={() => setShowAutoOrderPicker(false)}
+                    >
+                        <Pressable
+                            style={{ padding: isTiny ? 16 : 20 }}
+                            className="w-full rounded-3xl bg-white"
+                            onPress={(event) => event.stopPropagation()}
+                        >
+                            <Text style={{ fontSize: isTiny ? 17 : 20 }} className="font-lufga-bold text-slate-950">Choose auto-order date</Text>
+                            <Text style={{ fontSize: isTiny ? 11 : 13, marginTop: 4 }} className="font-lufga text-slate-500">Select the date for the next order.</Text>
+                            <View style={{ marginTop: isTiny ? 12 : 16 }}>
                                 <DateTimePicker
                                     mode="single"
                                     date={draftAutoOrderDate || new Date()}
@@ -309,11 +412,12 @@ export function PackageDetailView({ card, onBack, onDelete, onGoToCart }: Packag
                                 />
                             </View>
                             <Pressable
-                                className="mt-4 items-center justify-center rounded-full bg-[#EAB308] py-4 active:opacity-80"
+                                style={{ marginTop: isTiny ? 12 : 16, paddingVertical: isTiny ? 12 : 16 }}
+                                className="items-center justify-center rounded-full bg-[#EAB308] active:opacity-80"
                                 onPress={saveAutoOrderDate}
                                 disabled={!draftAutoOrderDate || updateCard.isPending}
                             >
-                                <Text className="font-lufga-bold text-slate-950">Save date</Text>
+                                <Text style={{ fontSize: isTiny ? 13 : 15 }} className="font-lufga-bold text-slate-950">Save date</Text>
                             </Pressable>
                         </Pressable>
                     </Pressable>

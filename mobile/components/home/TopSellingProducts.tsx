@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, useWindowDimensions } from 'react-native';
 import { ProductCard } from '@/components/reusable/ProductCard';
 
 type Product = {
@@ -21,19 +21,51 @@ export function TopSellingProducts({
     onProductPress,
     onAddToCart,
 }: TopSellingProductsProps) {
+    const { width } = useWindowDimensions();
+    const isSmallScreen = width < 380;
+    const isTinyScreen = width < 340;
+    const isUltraTinyScreen = width < 320;
+
     const rows: Product[][] = [];
     for (let i = 0; i < products.length; i += 2) {
         rows.push(products.slice(i, i + 2));
     }
+
+    const paddingX = isUltraTinyScreen ? 'px-3' : isSmallScreen ? 'px-4' : 'px-5';
+    const marginTop = isUltraTinyScreen
+        ? 'mt-4'
+        : isTinyScreen
+            ? 'mt-4.5'
+            : isSmallScreen
+                ? 'mt-5'
+                : 'mt-6';
+    const headingSize = isUltraTinyScreen
+        ? 'text-lg'
+        : isTinyScreen
+            ? 'text-[17px]'
+            : isSmallScreen
+                ? 'text-xl'
+                : 'text-2xl';
+    const marginBottom = isUltraTinyScreen
+        ? 'mb-2'
+        : isTinyScreen
+            ? 'mb-2.5'
+            : isSmallScreen
+                ? 'mb-3'
+                : 'mb-4';
+    const rowGap = isUltraTinyScreen ? 4 : isTinyScreen ? 5 : isSmallScreen ? 6 : 8;
+
     return (
-        <View className="px-5 mt-6">
-            <Text className="text-2xl font-medium font-lufga text-[#111827] mb-4">
+        <View className={`${paddingX} ${marginTop}`}>
+            <Text
+                className={`${headingSize} font-medium font-lufga text-[#111827] ${marginBottom}`}
+            >
                 Top Selling products
             </Text>
             <View>
                 {rows.map((row, rowIndex) => (
-                    <View key={rowIndex} className="flex-row" style={{ gap: 8 }}>
-                        {row[0] && (
+                    <View key={rowIndex} className="flex-row" style={{ gap: rowGap }}>
+                        {row[0] ? (
                             <View className="flex-1">
                                 <ProductCard
                                     key={row[0].id}
@@ -47,8 +79,10 @@ export function TopSellingProducts({
                                     onAddToCart={() => onAddToCart?.(row[0])}
                                 />
                             </View>
+                        ) : (
+                            <View className="flex-1" />
                         )}
-                        {row[1] && (
+                        {row[1] ? (
                             <View className="flex-1">
                                 <ProductCard
                                     key={row[1].id}
@@ -62,6 +96,8 @@ export function TopSellingProducts({
                                     onAddToCart={() => onAddToCart?.(row[1])}
                                 />
                             </View>
+                        ) : (
+                            <View className="flex-1" />
                         )}
                     </View>
                 ))}

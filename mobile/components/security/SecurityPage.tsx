@@ -119,10 +119,16 @@ export function SecurityPage({ onBack, onLogout }: SecurityPageProps) {
         try {
             setLogoutInFlight(true);
             const isMatch = matchesSameDeviceOrIp(session);
-            const snapshot = sessions.filter((s) => isMatch(s));
-            const needsRevoke = Array.from(
-                new Map(snapshot.map((s) => [s._id, s])).values()
-            ).filter((s) => s.is_active !== false && !s.logged_out_at);
+            const ids = new Set(
+                sessions.filter((s) => isMatch(s)).map((s) => s._id)
+            );
+            ids.add(session._id);
+            const needsRevoke = Array.from(ids)
+                .map((id) => sessions.find((s) => s._id === id))
+                .filter(
+                    (s): s is LoginSession =>
+                        Boolean(s) && s.is_active !== false && !s.logged_out_at
+                );
 
             for (const t of needsRevoke) {
                 try {
@@ -132,10 +138,11 @@ export function SecurityPage({ onBack, onLogout }: SecurityPageProps) {
                 }
             }
 
+            const revokedIds = new Set(needsRevoke.map((s) => s._id));
             const now = new Date().toISOString();
             setSessions((current) =>
                 current.map((s) =>
-                    isMatch(s) && !s.logged_out_at
+                    revokedIds.has(s._id) && !s.logged_out_at
                         ? { ...s, logged_out_at: now, is_active: false }
                         : s
                 )

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, MapPin, Minus, Plus, Store, Ticket, Trash2 } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
@@ -43,6 +43,24 @@ export function MonthlyPackageCartPage({ card, onBack }: MonthlyPackageCartPageP
     const delivery = summary?.delivery ?? 0;
     const total = summary?.total ?? subtotal + delivery;
 
+    const { width } = useWindowDimensions();
+    const isTiny = width < 340;
+    const isSmall = width < 380;
+    const pad = isTiny ? 14 : isSmall ? 16 : 20;
+    const iconBtnSize = isTiny ? 38 : isSmall ? 40 : 44;
+    const iconSize = isTiny ? 18 : isSmall ? 20 : 23;
+    const headerTitleSize = isTiny ? 18 : isSmall ? 20 : 24;
+    const headerSubSize = isTiny ? 10 : 12;
+    const thumbSize = isTiny ? 68 : isSmall ? 72 : 80;
+    const productTitleSize = isTiny ? 13 : isSmall ? 14 : 15;
+    const productPriceSize = isTiny ? 13 : isSmall ? 14 : 16;
+    const qtyBtnSize = isTiny ? 26 : 28;
+    const qtyIconSize = isTiny ? 12 : 14;
+    const summaryFontSize = isTiny ? 12 : isSmall ? 13 : 14;
+    const checkoutBarPb = isTiny ? 16 : isSmall ? 20 : 28;
+    const checkoutBtnHeight = isTiny ? 50 : isSmall ? 52 : 56;
+    const checkoutFontSize = isTiny ? 13 : isSmall ? 14 : 16;
+
     const handleAddressSelected = async (address: Address) => {
         try {
             await updateMonthlyGroceryAddress(card._id, address._id);
@@ -65,148 +83,206 @@ export function MonthlyPackageCartPage({ card, onBack }: MonthlyPackageCartPageP
     return (
         <AppBackground>
             <SafeAreaView className="flex-1 bg-transparent" edges={['top', 'left', 'right']}>
-                <View className="flex-row items-center border-b border-slate-100 bg-white px-5 py-3">
-                    <Pressable className="h-11 w-11 items-center justify-center rounded-2xl bg-slate-50" onPress={onBack}>
-                        <ChevronLeft size={23} color="#171717" />
+                {/* ── Header ── */}
+                <View
+                    style={{ paddingHorizontal: pad }}
+                    className="flex-row items-center border-b border-slate-100 bg-white py-3"
+                >
+                    <Pressable
+                        style={{ height: iconBtnSize, width: iconBtnSize }}
+                        className="items-center justify-center rounded-2xl bg-slate-50"
+                        onPress={onBack}
+                    >
+                        <ChevronLeft size={iconSize} color="#171717" />
                     </Pressable>
-                    <View className="ml-4 flex-1">
-                        <Text className="text-2xl font-lufga-bold text-slate-950">Package Cart</Text>
-                        <Text className="mt-0.5 text-xs font-lufga text-slate-400" numberOfLines={1}>{card.name}</Text>
+                    <View className="ml-3 flex-1">
+                        <Text style={{ fontSize: headerTitleSize }} className="font-lufga-bold text-slate-950">
+                            Package Cart
+                        </Text>
+                        <Text style={{ fontSize: headerSubSize, marginTop: 2 }} className="font-lufga text-slate-400" numberOfLines={1}>
+                            {card.name}
+                        </Text>
                     </View>
                     <Pressable
-                        className="flex-row items-center rounded-full bg-amber-50 px-3 py-2 active:opacity-70"
+                        style={{ paddingHorizontal: isTiny ? 8 : 12, paddingVertical: isTiny ? 6 : 8 }}
+                        className="flex-row items-center rounded-full bg-amber-50 active:opacity-70"
                         onPress={() => setShowAddressModal(true)}
                     >
-                        <MapPin size={15} color="#b77900" />
-                        <Text className="ml-1 max-w-20 text-xs font-lufga-semibold text-amber-700" numberOfLines={1}>
+                        <MapPin size={isTiny ? 13 : 15} color="#b77900" />
+                        <Text
+                            style={{ fontSize: isTiny ? 10 : 12, marginLeft: 4, maxWidth: isTiny ? 56 : 80 }}
+                            className="font-lufga-semibold text-amber-700"
+                            numberOfLines={1}
+                        >
                             {selectedAddressLabel}
                         </Text>
                     </Pressable>
                 </View>
 
-                <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    <View className="gap-4 px-5 pt-5">
-                        {card.items.map((item) => {
-                            const product = item.product_id;
-                            if (!product) return null;
-                            const imageUri = getMonthlyProductImage(product);
-                            return (
-                                <View key={item._id} className="rounded-3xl bg-white p-3">
-                                    <View className="mb-3 flex-row items-center border-b border-slate-100 pb-3">
-                                        <View className="h-8 w-8 items-center justify-center rounded-xl bg-amber-100">
-                                            <Store size={16} color="#b77900" />
-                                        </View>
-                                        <Text className="ml-2 flex-1 text-sm font-lufga-semibold text-slate-800" numberOfLines={1}>
+                <ScrollView
+                    className="flex-1"
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: pad, paddingTop: isTiny ? 14 : 20, gap: isTiny ? 12 : 16 }}
+                >
+                    {/* ── Item cards ── */}
+                    {card.items.map((item) => {
+                        const product = item.product_id;
+                        if (!product) return null;
+                        const imageUri = getMonthlyProductImage(product);
+                        return (
+                            <View key={item._id} style={{ padding: isTiny ? 10 : 12 }} className="rounded-3xl bg-white">
+                                {/* Vendor row */}
+                                <View style={{ marginBottom: isTiny ? 10 : 12, paddingBottom: isTiny ? 10 : 12 }} className="flex-row items-center border-b border-slate-100">
+                                    <View
+                                        style={{ height: isTiny ? 30 : 32, width: isTiny ? 30 : 32 }}
+                                        className="items-center justify-center rounded-xl bg-amber-100"
+                                    >
+                                        <Store size={isTiny ? 14 : 16} color="#b77900" />
+                                    </View>
+                                    <Text style={{ fontSize: isTiny ? 11 : 13, marginLeft: isTiny ? 6 : 8 }} className="flex-1 font-lufga-semibold text-slate-800" numberOfLines={1}>
+                                        {product.business_id?.name || 'Grocery Provider'}
+                                    </Text>
+                                </View>
+
+                                {/* Product row */}
+                                <View className="flex-row items-center">
+                                    <View
+                                        style={{ height: thumbSize, width: thumbSize }}
+                                        className="items-center justify-center overflow-hidden rounded-2xl bg-slate-100"
+                                    >
+                                        {imageUri ? (
+                                            <Image source={{ uri: imageUri }} style={{ width: thumbSize, height: thumbSize }} resizeMode="contain" />
+                                        ) : (
+                                            <Text style={{ fontSize: isTiny ? 20 : 24 }}>🛒</Text>
+                                        )}
+                                    </View>
+
+                                    <View style={{ marginLeft: isTiny ? 10 : 12 }} className="flex-1">
+                                        <Text style={{ fontSize: productTitleSize }} className="font-lufga-semibold text-slate-900" numberOfLines={1}>
+                                            {product.title}
+                                        </Text>
+                                        <Text style={{ fontSize: isTiny ? 10 : 12, marginTop: 2 }} className="font-lufga text-slate-400" numberOfLines={1}>
                                             {product.business_id?.name || 'Grocery Provider'}
                                         </Text>
+                                        <Text style={{ fontSize: productPriceSize, marginTop: isTiny ? 6 : 8 }} className="font-lufga-semibold text-slate-900">
+                                            Rs {itemPrice(item).toLocaleString()}
+                                        </Text>
                                     </View>
-                                    <View className="flex-row items-center">
-                                        <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
-                                            {imageUri ? (
-                                                <Image source={{ uri: imageUri }} className="h-full w-full" resizeMode="contain" />
-                                            ) : (
-                                                <Text className="text-2xl">🛒</Text>
-                                            )}
-                                        </View>
 
-                                        <View className="ml-3 flex-1">
-                                            <Text className="text-[15px] font-lufga-semibold text-slate-900" numberOfLines={1}>
-                                                {product.title}
-                                            </Text>
-                                            <Text className="mt-0.5 text-xs font-lufga text-slate-400" numberOfLines={1}>
-                                                {product.business_id?.name || 'Grocery Provider'}
-                                            </Text>
-                                            <Text className="mt-2 text-base font-lufga-semibold text-slate-900">
-                                                Rs {itemPrice(item).toLocaleString()}
-                                            </Text>
-                                        </View>
-
-                                        <View className="items-center gap-2">
+                                    <View style={{ marginLeft: 8 }} className="items-center gap-2">
+                                        <Pressable
+                                            accessibilityLabel={`Remove ${product.title}`}
+                                            className="active:opacity-60"
+                                            onPress={() => removeItem.mutate({ cardId: card._id, itemId: item._id })}
+                                        >
+                                            <Trash2 size={isTiny ? 15 : 18} color="#ef4444" />
+                                        </Pressable>
+                                        <View className="flex-row items-center rounded-full bg-slate-100 p-1">
                                             <Pressable
-                                                accessibilityLabel={`Remove ${product.title}`}
-                                                className="active:opacity-60"
-                                                onPress={() => removeItem.mutate({ cardId: card._id, itemId: item._id })}
+                                                disabled={item.quantity <= 1 || updateItem.isPending}
+                                                style={{ height: qtyBtnSize, width: qtyBtnSize }}
+                                                className="items-center justify-center rounded-full bg-white disabled:opacity-40"
+                                                onPress={() => changeQuantity(item, item.quantity - 1)}
                                             >
-                                                <Trash2 size={18} color="#ef4444" />
+                                                <Minus size={qtyIconSize} color="#1e293b" strokeWidth={2.5} />
                                             </Pressable>
-                                            <View className="flex-row items-center rounded-full bg-slate-100 p-1">
-                                                <Pressable
-                                                    disabled={item.quantity <= 1 || updateItem.isPending}
-                                                    className="h-7 w-7 items-center justify-center rounded-full bg-white disabled:opacity-40"
-                                                    onPress={() => changeQuantity(item, item.quantity - 1)}
-                                                >
-                                                    <Minus size={14} color="#1e293b" strokeWidth={2.5} />
-                                                </Pressable>
-                                                <Text className="mx-2 min-w-4 text-center text-sm font-lufga-medium text-slate-900">
-                                                    {item.quantity}
-                                                </Text>
-                                                <Pressable
-                                                    disabled={updateItem.isPending}
-                                                    className="h-7 w-7 items-center justify-center rounded-full bg-[#EAB308] disabled:opacity-50"
-                                                    onPress={() => changeQuantity(item, item.quantity + 1)}
-                                                >
-                                                    <Plus size={14} color="#111827" strokeWidth={2.5} />
-                                                </Pressable>
-                                            </View>
+                                            <Text style={{ fontSize: isTiny ? 12 : 14, minWidth: isTiny ? 14 : 16 }} className="text-center font-lufga-medium text-slate-900">
+                                                {item.quantity}
+                                            </Text>
+                                            <Pressable
+                                                disabled={updateItem.isPending}
+                                                style={{ height: qtyBtnSize, width: qtyBtnSize }}
+                                                className="items-center justify-center rounded-full bg-[#EAB308] disabled:opacity-50"
+                                                onPress={() => changeQuantity(item, item.quantity + 1)}
+                                            >
+                                                <Plus size={qtyIconSize} color="#111827" strokeWidth={2.5} />
+                                            </Pressable>
                                         </View>
                                     </View>
                                 </View>
-                            );
-                        })}
-
-                        <View className="flex-row items-center rounded-[24px] bg-white p-3">
-                            <View className="h-11 w-11 items-center justify-center rounded-xl bg-pink-50">
-                                <Ticket size={20} color="#ec4899" />
                             </View>
-                            <TextInput
-                                className="ml-3 flex-1 font-lufga text-slate-950"
-                                value={coupon}
-                                onChangeText={setCoupon}
-                                placeholder="Add coupon code"
-                                placeholderTextColor="#94a3b8"
-                                autoCapitalize="characters"
-                            />
-                            <Pressable
-                                className="rounded-xl bg-[#171717] px-5 py-3"
-                                onPress={() => Alert.alert('Coupon', coupon.trim() ? 'Coupon will be verified at checkout.' : 'Enter a coupon code first.')}
-                            >
-                                <Text className="font-lufga-bold text-white">Apply</Text>
-                            </Pressable>
+                        );
+                    })}
+
+                    {/* ── Coupon ── */}
+                    <View style={{ padding: isTiny ? 10 : 12 }} className="flex-row items-center rounded-[24px] bg-white">
+                        <View
+                            style={{ height: isTiny ? 38 : 44, width: isTiny ? 38 : 44 }}
+                            className="items-center justify-center rounded-xl bg-pink-50"
+                        >
+                            <Ticket size={isTiny ? 17 : 20} color="#ec4899" />
                         </View>
+                        <TextInput
+                            style={{ marginLeft: isTiny ? 8 : 12, fontSize: isTiny ? 12 : 14 }}
+                            className="flex-1 font-lufga text-slate-950"
+                            value={coupon}
+                            onChangeText={setCoupon}
+                            placeholder="Add coupon code"
+                            placeholderTextColor="#94a3b8"
+                            autoCapitalize="characters"
+                        />
+                        <Pressable
+                            style={{ paddingHorizontal: isTiny ? 14 : 20, paddingVertical: isTiny ? 10 : 12 }}
+                            className="rounded-xl bg-[#171717]"
+                            onPress={() => Alert.alert('Coupon', coupon.trim() ? 'Coupon will be verified at checkout.' : 'Enter a coupon code first.')}
+                        >
+                            <Text style={{ fontSize: isTiny ? 12 : 14 }} className="font-lufga-bold text-white">
+                                Apply
+                            </Text>
+                        </Pressable>
+                    </View>
 
-                        <View className="rounded-3xl bg-white/90 p-5">
-                            <Text className="mb-4 text-base font-lufga-semibold text-slate-900">Order Summary</Text>
-                            <View className="flex-row justify-between py-1">
-                                <Text className="text-sm font-lufga text-slate-500">Subtotal</Text>
-                                <Text className="text-sm font-lufga-semibold text-slate-900">Rs {subtotal.toLocaleString()}</Text>
-                            </View>
-                            <View className="flex-row justify-between py-1">
-                                <Text className="text-sm font-lufga text-slate-500">Delivery charges</Text>
-                                <Text className="text-sm font-lufga-semibold text-emerald-600">
-                                    {delivery > 0 ? `Rs ${delivery.toLocaleString()}` : 'Free'}
-                                </Text>
-                            </View>
-                            <View className="mt-4 flex-row items-center justify-between border-t border-slate-100 pt-4">
-                                <Text className="text-base font-lufga-semibold text-slate-900">Total</Text>
-                                <Text className="text-2xl font-lufga-bold text-slate-950">Rs {total.toLocaleString()}</Text>
-                            </View>
+                    {/* ── Order summary ── */}
+                    <View style={{ padding: isTiny ? 14 : isSmall ? 16 : 20 }} className="rounded-3xl bg-white/90">
+                        <Text style={{ fontSize: summaryFontSize + 2, marginBottom: isTiny ? 12 : 16 }} className="font-lufga-semibold text-slate-900">
+                            Order Summary
+                        </Text>
+                        <View className="flex-row justify-between py-1">
+                            <Text style={{ fontSize: summaryFontSize }} className="font-lufga text-slate-500">Subtotal</Text>
+                            <Text style={{ fontSize: summaryFontSize }} className="font-lufga-semibold text-slate-900">
+                                Rs {subtotal.toLocaleString()}
+                            </Text>
+                        </View>
+                        <View className="flex-row justify-between py-1">
+                            <Text style={{ fontSize: summaryFontSize }} className="font-lufga text-slate-500">Delivery charges</Text>
+                            <Text style={{ fontSize: summaryFontSize }} className="font-lufga-semibold text-emerald-600">
+                                {delivery > 0 ? `Rs ${delivery.toLocaleString()}` : 'Free'}
+                            </Text>
+                        </View>
+                        <View style={{ marginTop: isTiny ? 12 : 16, paddingTop: isTiny ? 12 : 16 }} className="flex-row items-center justify-between border-t border-slate-100">
+                            <Text style={{ fontSize: summaryFontSize + 2 }} className="font-lufga-semibold text-slate-900">Total</Text>
+                            <Text style={{ fontSize: isTiny ? 20 : isSmall ? 22 : 24 }} className="font-lufga-bold text-slate-950">
+                                Rs {total.toLocaleString()}
+                            </Text>
                         </View>
                     </View>
-                    <View className="h-32" />
+
+                    <View style={{ height: isTiny ? 90 : 110 }} />
                 </ScrollView>
 
-                <View className="absolute bottom-0 left-0 right-0 border-t border-slate-100 bg-white px-5 pb-7 pt-3">
-                    <GradientPill className="h-14 rounded-2xl">
+                {/* ── Checkout bar ── */}
+                <View
+                    style={{ paddingHorizontal: pad, paddingBottom: checkoutBarPb, paddingTop: isTiny ? 10 : 12 }}
+                    className="absolute bottom-0 left-0 right-0 border-t border-slate-100 bg-white"
+                >
+                    <GradientPill style={{ height: checkoutBtnHeight }} className="rounded-2xl">
                         <Pressable
-                            className="flex-1 flex-row items-center justify-between px-5 active:opacity-85"
+                            style={{ paddingHorizontal: isTiny ? 16 : 20 }}
+                            className="flex-1 flex-row items-center justify-between active:opacity-85"
                             onPress={() => Alert.alert('Monthly Package Checkout', `${card.name} is ready for checkout.`)}
                         >
-                            <Text className="text-base font-lufga-bold text-slate-950">Proceed to checkout</Text>
-                            <Text className="text-base font-lufga-bold text-slate-950">Rs {total.toLocaleString()} →</Text>
+                            <Text style={{ fontSize: checkoutFontSize }} className="font-lufga-bold text-slate-950">
+                                Proceed to checkout
+                            </Text>
+                            <Text style={{ fontSize: checkoutFontSize }} className="font-lufga-bold text-slate-950">
+                                Rs {total.toLocaleString()} →
+                            </Text>
                         </Pressable>
                     </GradientPill>
                 </View>
             </SafeAreaView>
+
+            {/* ── Address modal ── */}
             <Modal
                 visible={showAddressModal}
                 transparent
@@ -215,22 +291,28 @@ export function MonthlyPackageCartPage({ card, onBack }: MonthlyPackageCartPageP
             >
                 <Pressable className="flex-1 justify-end bg-black/45" onPress={() => setShowAddressModal(false)}>
                     <Pressable
-                        className="max-h-[78%] rounded-t-[32px] bg-white px-5 pb-8 pt-4"
+                        style={{ paddingHorizontal: pad, paddingBottom: isTiny ? 24 : 32, paddingTop: isTiny ? 14 : 16 }}
+                        className="max-h-[78%] rounded-t-[32px] bg-white"
                         onPress={(event) => event.stopPropagation()}
                     >
-                        <View className="mb-4 flex-row items-center justify-between">
+                        <View style={{ marginBottom: isTiny ? 12 : 16 }} className="flex-row items-center justify-between">
                             <View>
-                                <Text className="text-2xl font-lufga-bold text-slate-950">Choose Address</Text>
-                                <Text className="mt-1 text-sm font-lufga text-slate-400">Select a saved delivery address</Text>
+                                <Text style={{ fontSize: isTiny ? 18 : 22 }} className="font-lufga-bold text-slate-950">
+                                    Choose Address
+                                </Text>
+                                <Text style={{ fontSize: isTiny ? 11 : 13, marginTop: 4 }} className="font-lufga text-slate-400">
+                                    Select a saved delivery address
+                                </Text>
                             </View>
                             <Pressable
-                                className="h-10 w-10 items-center justify-center rounded-full bg-slate-100 active:opacity-60"
+                                style={{ height: iconBtnSize, width: iconBtnSize }}
+                                className="items-center justify-center rounded-full bg-slate-100 active:opacity-60"
                                 onPress={() => setShowAddressModal(false)}
                             >
-                                <ChevronLeft size={20} color="#334155" />
+                                <ChevronLeft size={iconSize} color="#334155" />
                             </Pressable>
                         </View>
-                        <View className="h-[480px]">
+                        <View style={{ height: isTiny ? 380 : 480 }}>
                             <LocationAddressManager
                                 onAddressSelected={handleAddressSelected}
                                 onAddressChanged={handleAddressChanged}

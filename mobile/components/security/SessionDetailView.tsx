@@ -82,7 +82,7 @@ export function SessionDetailView({
                                 Last login: {formatLoginDate(session.logged_in_at)}
                             </Text>
 
-                            {!isCurrentSession ? (
+                            {!isCurrentSession && !isPastSession ? (
                                 <GradientPill className="rounded-full h-12 mt-5">
                                     <Pressable
                                         className="flex-1 items-center justify-center active:opacity-80"

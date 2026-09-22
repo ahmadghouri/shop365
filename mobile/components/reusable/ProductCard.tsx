@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { GlassCard } from './GlassCard';
+import { GradientPill } from './GradientPill';
 import ProductShapeImage from './ProductShapeImage';
 import { useCartStore } from '@/lib/cartStore';
 
@@ -51,12 +52,16 @@ export function ProductCard({
 
                     {/* Add Button with white notch cutout */}
                     <View className="absolute -bottom-2 -right-2 w-[72px] h-[72px] rounded-[36px] items-center justify-center">
-                        <Pressable
-                            className="w-12 h-12 rounded-[24px] bg-app-yellow items-center justify-center active:opacity-80"
-                            onPress={handleAddToCart}
-                        >
-                            <Plus size={24} color="#111827" />
-                        </Pressable>
+                        <View className="w-12 h-12 rounded-[24px] overflow-hidden">
+                            <GradientPill className="w-full h-full rounded-[24px]">
+                                <Pressable
+                                    className="w-full h-full items-center justify-center active:opacity-80"
+                                    onPress={handleAddToCart}
+                                >
+                                    <Plus size={24} color="#111827" />
+                                </Pressable>
+                            </GradientPill>
+                        </View>
                     </View>
                 </View>
 

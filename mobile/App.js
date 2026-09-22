@@ -82,11 +82,14 @@ function AppContent() {
                 .catch(() => {});
         } else {
             disconnectSocket();
+            setShowSecurity(false);
+            setActiveTab('home');
         }
     }, [isAuthenticated]);
     useEffect(
         () =>
             setupPushNotificationListeners((data) => {
+                if (!useAuthStore.getState().isAuthenticated) return;
                 if (data?.type === 'security') {
                     setShowSecurity(true);
                 } else {
@@ -98,7 +101,10 @@ function AppContent() {
 
     // Live socket security notifications → open SecurityPage immediately
     useEffect(() => {
-        setSecurityNotificationHandler(() => setShowSecurity(true));
+        setSecurityNotificationHandler(() => {
+            if (!useAuthStore.getState().isAuthenticated) return;
+            setShowSecurity(true);
+        });
     }, []);
     useEffect(() => {
         if (screen === 'Splash') {

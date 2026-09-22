@@ -78,13 +78,6 @@ export function ProfilePage({
     const backBtnSize = isTinyScreen ? 'h-9 w-9' : isSmallScreen ? 'h-10 w-10' : 'h-11 w-11';
     const backBtnRadius = isTinyScreen ? 'rounded-xl' : 'rounded-2xl';
     const backIconSize = isTinyScreen ? 20 : isSmallScreen ? 21 : 23;
-    const backIconSizeAlt = isTinyScreen ? 19 : isSmallScreen ? 20 : 22;
-    const backBtnSizeAlt = isTinyScreen
-        ? 'h-8.5 w-8.5'
-        : isSmallScreen
-          ? 'h-9.5 w-9.5'
-          : 'h-10 w-10';
-    const backBtnRadiusAlt = isTinyScreen ? 'rounded-xl' : 'rounded-full';
 
     const { user, updateUser, logout } = useAuthStore();
     const [showMapPicker, setShowMapPicker] = useState(false);
@@ -374,10 +367,10 @@ export function ProfilePage({
                                 className={`flex-row items-center ${sectionPaddingX} pt-2 pb-4 min-w-0`}
                             >
                                 <Pressable
-                                    className={`${backBtnSizeAlt} ${backBtnRadiusAlt} shrink-0 items-center justify-center bg-white/70 active:opacity-60 mr-3`}
+                                    className={`${backBtnSize} ${backBtnRadius} shrink-0 items-center justify-center bg-white/70 active:opacity-60 mr-3`}
                                     onPress={() => setShowAddressManager(false)}
                                 >
-                                    <ChevronLeft size={backIconSizeAlt} color="#1e293b" />
+                                    <ChevronLeft size={backIconSize} color="#1e293b" />
                                 </Pressable>
                                 <Text
                                     className={`flex-1 ${headerTitleSize} font-lufga-bold text-slate-900`}

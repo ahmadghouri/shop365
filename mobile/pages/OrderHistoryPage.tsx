@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import {
+    ActivityIndicator,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    Text,
+    View,
+    useWindowDimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
@@ -15,6 +23,17 @@ type OrderHistoryPageProps = {
 };
 
 export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps) {
+    const { width } = useWindowDimensions();
+    const isSmallScreen = width < 380;
+    const isTinyScreen = width < 340;
+
+    const headerTitleSize = isTinyScreen ? 'text-lg' : isSmallScreen ? 'text-xl' : 'text-2xl';
+    const headerPaddingX = isTinyScreen ? 'px-3' : isSmallScreen ? 'px-4' : 'px-5';
+    const contentPaddingX = isTinyScreen ? 'px-3' : isSmallScreen ? 'px-4' : 'px-5';
+    const backBtnSize = isTinyScreen ? 'h-9 w-9' : isSmallScreen ? 'h-10 w-10' : 'h-11 w-11';
+    const backBtnRadius = isTinyScreen ? 'rounded-xl' : 'rounded-2xl';
+    const backIconSize = isTinyScreen ? 20 : isSmallScreen ? 21 : 23;
+
     const { data: orders = [], isLoading, isError, refetch } = useOrders();
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const [trackingOrder, setTrackingOrder] = useState<Order | null>(null);
@@ -30,14 +49,20 @@ export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps
         <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 {/* Header */}
-                <View className="flex-row items-center px-5 pt-2 pb-4">
+                <View className={`flex-row items-center ${headerPaddingX} pt-2 pb-4 min-w-0`}>
                     <Pressable
-                        className="h-10 w-10 items-center justify-center rounded-full bg-white/70 active:opacity-60 mr-3"
+                        className={`${backBtnSize} ${backBtnRadius} shrink-0 items-center justify-center bg-white/70 active:opacity-60 mr-3`}
                         onPress={onBack}
                     >
-                        <ChevronLeft size={22} color="#1e293b" />
+                        <ChevronLeft size={backIconSize} color="#1e293b" />
                     </Pressable>
-                    <Text className="text-2xl font-lufga-bold text-slate-900">Order History</Text>
+                    <Text
+                        className={`flex-1 ${headerTitleSize} font-lufga-bold text-slate-900`}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        Order History
+                    </Text>
                 </View>
 
                 {/* Content */}
@@ -46,23 +71,34 @@ export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps
                         <ActivityIndicator size="large" color="#EAB308" />
                     </View>
                 ) : isError ? (
-                    <View className="flex-1 items-center justify-center px-10">
-                        <Text className="text-slate-500 font-lufga text-center mb-4">Could not load orders.</Text>
-                        <Pressable onPress={() => refetch()} className="rounded-full bg-amber-50 px-6 py-3">
+                    <View className={`flex-1 items-center justify-center ${contentPaddingX}`}>
+                        <Text className="text-slate-500 font-lufga text-center mb-4">
+                            Could not load orders.
+                        </Text>
+                        <Pressable
+                            onPress={() => refetch()}
+                            className={`rounded-full bg-amber-50 ${isTinyScreen ? 'px-5 py-2.5' : 'px-6 py-3'}`}
+                        >
                             <Text className="font-lufga-semibold text-amber-700">Retry</Text>
                         </Pressable>
                     </View>
                 ) : orders.length === 0 ? (
-                    <View className="flex-1 items-center justify-center px-10">
-                        <Text className="text-4xl mb-4">🛍️</Text>
-                        <Text className="text-lg font-lufga-semibold text-slate-700">No orders yet</Text>
-                        <Text className="text-sm font-lufga text-slate-400 text-center mt-1">
+                    <View className={`flex-1 items-center justify-center ${contentPaddingX}`}>
+                        <Text className={`${isTinyScreen ? 'text-3xl' : 'text-4xl'} mb-4`}>🛍️</Text>
+                        <Text
+                            className={`${isTinyScreen ? 'text-base' : 'text-lg'} font-lufga-semibold text-slate-700`}
+                        >
+                            No orders yet
+                        </Text>
+                        <Text
+                            className={`${isTinyScreen ? 'text-xs' : 'text-sm'} font-lufga text-slate-400 text-center mt-1`}
+                        >
                             Your order history will appear here.
                         </Text>
                     </View>
                 ) : (
                     <ScrollView
-                        className="flex-1 px-5"
+                        className={`flex-1 ${contentPaddingX}`}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
                             <RefreshControl
@@ -78,7 +114,9 @@ export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps
                                 key={order._id}
                                 order={order}
                                 onPress={() => setSelectedOrderId(order._id)}
-                                onTrack={() => (onTrackOrder ? onTrackOrder(order) : setTrackingOrder(order))}
+                                onTrack={() =>
+                                    onTrackOrder ? onTrackOrder(order) : setTrackingOrder(order)
+                                }
                             />
                         ))}
                         <View className="h-28" />
@@ -96,10 +134,7 @@ export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps
 
             {/* Tracking modal */}
             {trackingOrder && (
-                <OrderTrackingModal
-                    order={trackingOrder}
-                    onClose={() => setTrackingOrder(null)}
-                />
+                <OrderTrackingModal order={trackingOrder} onClose={() => setTrackingOrder(null)} />
             )}
         </AppBackground>
     );

@@ -1,144 +1,29 @@
-import { useMemo } from 'react';
-import { Image, Linking, Pressable, Text, View, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { useMemo, useRef, useState } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import {
-    Bike,
-    Check,
-    ChevronLeft,
-    CookingPot,
-    MessageCircle,
-    Phone,
-    ReceiptText,
-} from 'lucide-react-native';
+    Animated,
+    PanResponder,
+    Pressable,
+    Text,
+    View,
+    useWindowDimensions,
+} from 'react-native';
+import { GradientPill } from '@/components/reusable/GradientPill';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ChevronLeft } from 'lucide-react-native';
 import { useOrderDetail } from '@/api/orders/useOrderQueries';
 import type { Order } from '@/api/orders/order.service';
 import { statusToStep } from '@/components/orders/OrderTimeline';
+import { MapBackdrop } from '@/components/orders/tracking/MapBackdrop';
+import { TrackingStepper } from '@/components/orders/tracking/TrackingStepper';
+import { CourierCard } from '@/components/orders/tracking/CourierCard';
+import { formatTime, timelineStepToStage } from '@/components/orders/tracking/trackingConstants';
 
 type Props = {
     orderId: string;
     initialOrder?: Order;
     onBack?: () => void;
 };
-
-const LIME = '#C6F542';
-
-// A row of small dots between two stepper icons. Reached segments are lime,
-// the rest are muted grey, matching the design.
-function DottedConnector({ active }: { active: boolean }) {
-    return (
-        <View className="mx-1.5 flex-1 flex-row items-center justify-between">
-            {Array.from({ length: 7 }).map((_, i) => (
-                <View
-                    key={i}
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: active ? LIME : '#4A4A4A' }}
-                />
-            ))}
-        </View>
-    );
-}
-
-// The bottom-sheet stepper is a condensed 4-stage view of the full timeline.
-const STAGES = [
-    { key: 'placed', label: 'Order placed', Icon: ReceiptText },
-    { key: 'preparing', label: 'Preparing', Icon: CookingPot },
-    { key: 'on_the_way', label: 'On the way', Icon: Bike },
-    { key: 'delivered', label: 'Delivered', Icon: Check },
-];
-
-// Map the detailed timeline step (0..6) onto the 4 condensed stages.
-function timelineStepToStage(step: number): number {
-    if (step >= 6) return 3; // delivered
-    if (step >= 3) return 2; // picked up / out for delivery
-    if (step >= 2) return 1; // preparing
-    return 0; // placed / confirmed
-}
-
-function MapBackdrop({ width, height }: { width: number; height: number }) {
-    // A stylised map surface: soft base, a few "blocks" and roads, a dashed
-    // delivery route from the courier (yellow) to the destination (dark pin).
-    const startX = width * 0.24;
-    const startY = height * 0.82;
-    const endX = width * 0.72;
-    const endY = height * 0.2;
-
-    const route = `M ${startX} ${startY}
-        C ${startX} ${startY - 70}, ${width * 0.5} ${height * 0.72}, ${width * 0.42} ${height * 0.56}
-        S ${width * 0.34} ${height * 0.42}, ${width * 0.52} ${height * 0.36}
-        S ${endX} ${height * 0.34}, ${endX} ${endY}`;
-
-    return (
-        <Svg width={width} height={height}>
-            <Rect x={0} y={0} width={width} height={height} fill="#E9EDE9" />
-
-            {/* Faint street grid */}
-            {[0.18, 0.4, 0.62, 0.84].map((f) => (
-                <Rect
-                    key={`h${f}`}
-                    x={0}
-                    y={height * f}
-                    width={width}
-                    height={6}
-                    fill="#F4F6F3"
-                />
-            ))}
-            {[0.2, 0.46, 0.72].map((f) => (
-                <Rect
-                    key={`v${f}`}
-                    x={width * f}
-                    y={0}
-                    width={6}
-                    height={height}
-                    fill="#F4F6F3"
-                />
-            ))}
-
-            {/* A couple of park / block accents */}
-            <Rect
-                x={width * 0.06}
-                y={height * 0.24}
-                width={width * 0.24}
-                height={height * 0.12}
-                rx={10}
-                fill="#DDE6DB"
-            />
-            <Rect
-                x={width * 0.56}
-                y={height * 0.6}
-                width={width * 0.3}
-                height={height * 0.16}
-                rx={10}
-                fill="#DDE6DB"
-            />
-
-            {/* Delivery route */}
-            <Path
-                d={route}
-                stroke="#1A1A1A"
-                strokeWidth={4}
-                fill="none"
-                strokeLinecap="round"
-                strokeDasharray="1 12"
-            />
-
-            {/* Start (courier) marker */}
-            <Circle cx={startX} cy={startY} r={12} fill="#EAB308" opacity={0.25} />
-            <Circle cx={startX} cy={startY} r={7} fill="#EAB308" stroke="#fff" strokeWidth={2} />
-
-            {/* Destination marker */}
-            <Circle cx={endX} cy={endY} r={16} fill="#1A1A1A" />
-            <Circle cx={endX} cy={endY} r={5} fill="#fff" />
-        </Svg>
-    );
-}
-
-function formatTime(value?: string | null) {
-    if (!value) return '';
-    const at = new Date(value);
-    if (Number.isNaN(at.getTime())) return '';
-    return at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
 
 export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
     const { width, height } = useWindowDimensions();
@@ -149,8 +34,7 @@ export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
 
     const status = order?.status ?? 'pending';
     const cancelled = status === 'cancelled';
-    const timelineStep = statusToStep(status);
-    const currentStage = timelineStepToStage(timelineStep);
+    const currentStage = timelineStepToStage(statusToStep(status));
     const delivered = status === 'delivered';
 
     const shortId = orderId.slice(-6).toUpperCase();
@@ -179,143 +63,136 @@ export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
     const riderPhone = order?.rider?.phone_no;
     const riderImage = order?.rider?.image;
 
-    const mapHeight = Math.max(height * 0.62, 360);
+    // Collapsible bottom sheet using the built-in PanResponder (no native
+    // modules, so no rebuild needed). It snaps between two positions:
+    //   - open (0): full sheet visible
+    //   - collapsed: sheet slides down so that ONLY the ETA + status stepper
+    //     stay visible; the Order # and courier row drop below the screen.
+    //     It never dismisses the page — Back does that.
+    // Both heights are measured so the collapsed peek matches the real content.
+    const [sheetHeight, setSheetHeight] = useState(0);
+    const [topSectionHeight, setTopSectionHeight] = useState(0);
+
+    // How far to slide down when collapsed: hide everything below the ETA +
+    // stepper block, keeping that block on screen.
+    const collapsedOffset = Math.max(sheetHeight - topSectionHeight, 0);
+
+    const translateY = useRef(new Animated.Value(0)).current;
+    // Remember where the sheet currently rests so a drag starts from there.
+    const restY = useRef(0);
+    // The PanResponder is created once (its closures capture the first render's
+    // values), so we mirror the latest collapse distance into a ref and read
+    // that inside the responder to avoid a stale-closure bug.
+    const collapsedRef = useRef(0);
+    collapsedRef.current = collapsedOffset;
+
+    const onSheetLayout = (e: LayoutChangeEvent) => setSheetHeight(e.nativeEvent.layout.height);
+    const onTopSectionLayout = (e: LayoutChangeEvent) =>
+        // Include the drag handle above it plus a little breathing room.
+        setTopSectionHeight(e.nativeEvent.layout.height + 44);
+
+    const snapTo = (to: number) => {
+        restY.current = to;
+        Animated.spring(translateY, { toValue: to, useNativeDriver: true, bounciness: 4 }).start();
+    };
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: (_evt, gesture) =>
+                Math.abs(gesture.dy) > 6 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+            onPanResponderMove: (_evt, gesture) => {
+                const max = collapsedRef.current;
+                // Follow the finger, clamped between open (0) and collapsed.
+                translateY.setValue(Math.min(max, Math.max(0, restY.current + gesture.dy)));
+            },
+            onPanResponderRelease: (_evt, gesture) => {
+                const max = collapsedRef.current;
+                // Decide the nearest snap point using position + velocity.
+                const fastFlick = Math.abs(gesture.vy) > 1.2;
+                const current = restY.current + gesture.dy;
+                let target: number;
+                if (fastFlick) {
+                    target = gesture.dy > 0 ? max : 0;
+                } else {
+                    target = current > max / 2 ? max : 0;
+                }
+                snapTo(target);
+            },
+        })
+    ).current;
 
     return (
         <View className="flex-1 bg-[#111111]">
-            {/* Map */}
-            <View style={{ height: mapHeight }} className="w-full">
-                <MapBackdrop width={width} height={mapHeight} />
-
-                <SafeAreaView
-                    edges={['top', 'left']}
-                    className="absolute left-0 top-0"
-                    pointerEvents="box-none"
-                >
-                    <Pressable
-                        className="ml-4 mt-2 flex-row items-center rounded-full bg-[#141414] px-4 py-2.5 active:opacity-80"
-                        style={{
-                            shadowColor: '#000',
-                            shadowOpacity: 0.2,
-                            shadowRadius: 10,
-                            shadowOffset: { width: 0, height: 4 },
-                            elevation: 5,
-                        }}
-                        onPress={onBack}
-                    >
-                        <ChevronLeft size={18} color="#fff" />
-                        <Text className="ml-1 text-sm font-lufga-semibold text-white">Back</Text>
-                    </Pressable>
-                </SafeAreaView>
+            {/* Full-screen map: fills the whole screen so that when the bottom
+                sheet is dragged down, the map takes its place behind it. */}
+            <View className="absolute inset-0">
+                <MapBackdrop width={width} height={height} />
             </View>
 
-            {/* Bottom sheet */}
-            <View
-                className="flex-1 rounded-t-[32px] bg-[#141414] px-6 pt-6"
-                style={{ marginTop: -32 }}
+            {/* Back button */}
+            <SafeAreaView
+                edges={['top', 'left']}
+                className="absolute left-0 top-0"
+                pointerEvents="box-none"
             >
-                <SafeAreaView edges={['bottom']} className="flex-1">
-                    {/* ETA */}
-                    <Text className="text-center text-base font-lufga-bold text-white">
-                        {etaLabel}
-                    </Text>
-                    <Text className="mt-1 text-center text-[13px] font-lufga text-slate-400">
-                        {subLabel}
-                    </Text>
+                <Pressable
+                    className="ml-4 mt-2 flex-row items-center rounded-full bg-[#141414] px-4 py-2.5 active:opacity-80"
+                    style={{
+                        shadowColor: '#000',
+                        shadowOpacity: 0.2,
+                        shadowRadius: 10,
+                        shadowOffset: { width: 0, height: 4 },
+                        elevation: 5,
+                    }}
+                    onPress={onBack}
+                >
+                    <ChevronLeft size={18} color="#fff" />
+                    <Text className="ml-1 text-sm font-lufga-semibold text-white">Back</Text>
+                </Pressable>
+            </SafeAreaView>
 
-                    {/* Stepper */}
-                    <View className="mt-6 border-t border-b border-white/10 py-6">
-                        <View className="flex-row items-center justify-between">
-                            {STAGES.map((stage, index) => {
-                                const done = !cancelled && index < currentStage;
-                                const active = !cancelled && index === currentStage;
-                                const reached = done || active;
-                                const StageIcon = stage.Icon;
-                                const isLast = index === STAGES.length - 1;
-                                const finalStage = isLast;
+            {/* Bottom sheet — overlays the map at the bottom and slides away on drag */}
+            <Animated.View
+                onLayout={onSheetLayout}
+                className="absolute left-0 right-0 bottom-0 overflow-hidden rounded-t-[32px] px-6 pt-3"
+                style={{ transform: [{ translateY }] }}
+            >
+                {/* Gradient background fill (reusable GradientPill) */}
+                <GradientPill
+                    colors={['#1F2937', '#0B0B0B']}
+                    style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+                />
 
-                                return (
-                                    <View
-                                        key={stage.key}
-                                        className={`flex-row items-center ${isLast ? '' : 'flex-1'}`}
-                                    >
-                                        {finalStage ? (
-                                            // Delivered node: filled circle with a check
-                                            <View
-                                                className={`h-10 w-10 items-center justify-center rounded-full ${reached ? 'bg-[#C6F542]' : 'bg-[#3A3A3A]'}`}
-                                            >
-                                                <Check
-                                                    size={18}
-                                                    color={reached ? '#141414' : '#8A8A8A'}
-                                                    strokeWidth={3}
-                                                />
-                                            </View>
-                                        ) : (
-                                            <StageIcon
-                                                size={30}
-                                                color={reached ? LIME : '#6B7280'}
-                                                strokeWidth={2}
-                                            />
-                                        )}
-                                        {!isLast && (
-                                            <DottedConnector active={done} />
-                                        )}
-                                    </View>
-                                );
-                            })}
-                        </View>
+                {/* Drag handle — swipe down to collapse (reveal the map),
+                    swipe up to expand. The page is not dismissed by dragging. */}
+                <View {...panResponder.panHandlers} className="items-center pb-3 pt-1">
+                    <View className="h-1.5 w-12 rounded-full bg-white/25" />
+                </View>
+
+                <SafeAreaView edges={['bottom']}>
+                    {/* Top section — stays visible when collapsed: ETA + stepper */}
+                    <View onLayout={onTopSectionLayout}>
+                        <Text className="text-center text-base font-lufga-bold text-white">
+                            {etaLabel}
+                        </Text>
+                        <Text className="mt-1 text-center text-[13px] font-lufga text-slate-400">
+                            {subLabel}
+                        </Text>
+
+                        <TrackingStepper currentStage={currentStage} cancelled={cancelled} />
                     </View>
 
                     <Text className="mt-3 text-center text-[11px] font-lufga text-slate-500">
                         Order #{shortId}
                     </Text>
 
-                    {/* Courier row */}
-                    <View className="mt-auto mb-2 flex-row items-center rounded-3xl bg-[#1D1D1D] p-4">
-                        <View className="h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-slate-700">
-                            {riderImage ? (
-                                <Image
-                                    source={{ uri: riderImage }}
-                                    className="h-12 w-12"
-                                    resizeMode="cover"
-                                />
-                            ) : (
-                                <Text className="text-xs font-lufga text-slate-300">Rider</Text>
-                            )}
-                        </View>
-
-                        <View className="ml-3 flex-1 min-w-0">
-                            <Text
-                                className="text-sm font-lufga-bold text-white"
-                                numberOfLines={1}
-                                ellipsizeMode="tail"
-                            >
-                                {partnerName}
-                            </Text>
-                            <Text className="text-xs font-lufga text-slate-400">Courier</Text>
-                        </View>
-
-                        {/* Call */}
-                        <Pressable
-                            className="h-12 w-12 items-center justify-center rounded-full bg-white active:opacity-70"
-                            onPress={() =>
-                                riderPhone ? Linking.openURL(`tel:${riderPhone}`) : undefined
-                            }
-                        >
-                            <Phone size={19} color="#141414" />
-                        </Pressable>
-
-                        {/* Message */}
-                        <Pressable className="relative ml-2 h-12 w-12 items-center justify-center rounded-full bg-white active:opacity-70">
-                            <MessageCircle size={19} color="#141414" />
-                            <View
-                                className="absolute right-0.5 top-0.5 h-3 w-3 rounded-full border-2 border-[#1D1D1D]"
-                                style={{ backgroundColor: LIME }}
-                            />
-                        </Pressable>
-                    </View>
+                    <CourierCard
+                        partnerName={partnerName}
+                        riderPhone={riderPhone}
+                        riderImage={riderImage}
+                    />
                 </SafeAreaView>
-            </View>
+            </Animated.View>
         </View>
     );
 }

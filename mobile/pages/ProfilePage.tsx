@@ -13,7 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import {
     Bell,
+    Bike,
     Camera,
+    Car,
     ChevronLeft,
     ChevronRight,
     CreditCard,
@@ -44,6 +46,8 @@ type ProfilePageProps = {
     onChangePassword?: () => void;
     onSecurity?: () => void;
     onTheme?: () => void;
+    onRider?: () => void;
+    onDriver?: () => void;
 };
 
 export function ProfilePage({
@@ -54,6 +58,8 @@ export function ProfilePage({
     onChangePassword,
     onSecurity,
     onTheme,
+    onRider,
+    onDriver,
 }: ProfilePageProps) {
     const { width } = useWindowDimensions();
     const isSmallScreen = width < 380;
@@ -279,6 +285,24 @@ export function ProfilePage({
                             icon={<MapPin size={18} color="#b77900" />}
                             label="Address"
                             onPress={() => setShowAddressManager(true)}
+                        />
+                    </View>
+
+                    {/* Partner */}
+                    <View className={`${sectionPaddingX} mt-5`}>
+                        <Text className="mb-3 text-base font-lufga-semibold text-slate-950">
+                            Partner
+                        </Text>
+
+                        <ProfileSettingCard
+                            icon={<Bike size={18} color="#b77900" />}
+                            label="Become a Rider"
+                            onPress={onRider}
+                        />
+                        <ProfileSettingCard
+                            icon={<Car size={18} color="#b77900" />}
+                            label="Become a Driver"
+                            onPress={onDriver}
                         />
                     </View>
 

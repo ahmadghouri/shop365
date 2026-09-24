@@ -27,6 +27,8 @@ type Props = {
 
 export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
     const { width, height } = useWindowDimensions();
+    const isTinyScreen = width < 340;
+    const sheetPx = isTinyScreen ? 'px-4' : 'px-6';
     const { data: detail } = useOrderDetail(orderId);
     // Prefer the freshly fetched detail: it carries the ETA and populated
     // courier that the list payload in `initialOrder` may not have yet.
@@ -154,7 +156,7 @@ export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
             {/* Bottom sheet — overlays the map at the bottom and slides away on drag */}
             <Animated.View
                 onLayout={onSheetLayout}
-                className="absolute left-0 right-0 bottom-0 overflow-hidden rounded-t-[32px] px-6 pt-3"
+                className={`absolute left-0 right-0 bottom-0 overflow-hidden rounded-t-[32px] ${sheetPx} pt-3`}
                 style={{ transform: [{ translateY }] }}
             >
                 {/* Gradient background fill (reusable GradientPill) */}

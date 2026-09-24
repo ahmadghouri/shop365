@@ -4,6 +4,7 @@ const OrderItem = require('./order-item.model');
 const Product = require('../products/product.model');
 const User = require('../users/user.model');
 const { successResponse } = require('../../utils/api-response');
+const { OrderStatus } = require('../../common/enums');
 
 async function placeOrder(req, res, next) {
   try {
@@ -27,7 +28,9 @@ async function show(req, res, next) {
         populate: [
           { path: 'household_id', populate: { path: 'town_id' } }
         ]
-      });
+      })
+      // The tracking screen needs the courier's name, phone and photo
+      .populate({ path: 'rider_id', select: 'name phone_no image' });
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
     const items = await OrderItem.find({ order_id: order._id }).populate('product_id');
@@ -39,12 +42,29 @@ async function show(req, res, next) {
     orderObj.delivery_charge = order.delivery_fee || 0;
     orderObj.total_amount = order.total_price;
 
+    // Flatten the populated rider into the same `rider` block the list endpoint
+    // returns, so clients read courier details from one consistent shape.
+    const r = order.rider_id && typeof order.rider_id === 'object' ? order.rider_id : null;
+    orderObj.rider = r
+      ? {
+          _id: r._id?.toString(),
+          name: r.name,
+          phone_no: r.phone_no,
+          image: r.image || '',
+        }
+      : null;
+    orderObj.rider_id = r ? r._id?.toString() : null;
+
     res.json(orderObj);
   } catch (error) { next(error); }
 }
 
 async function updateStatus(req, res, next) {
   try {
+    const allowed = Object.values(OrderStatus);
+    if (!allowed.includes(req.body.status)) {
+      return res.status(422).json({ message: `Status must be one of ${allowed.join(', ')}` });
+    }
     const order = await orderService.updateOrderStatus(req.params.id, req.body.status);
     if (!order) return res.status(404).json({ message: 'Order not found or update failed' });
     successResponse(res, order, 'Order status updated successfully');

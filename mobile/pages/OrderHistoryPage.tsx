@@ -9,8 +9,8 @@ import {
     useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
+import { PageHeader } from '@/components/reusable/PageHeader';
 import { useOrders } from '@/api/orders/useOrderQueries';
 import type { Order } from '@/api/orders/order.service';
 import { OrderCard } from '@/components/orders/OrderCard';
@@ -27,12 +27,7 @@ export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps
     const isSmallScreen = width < 380;
     const isTinyScreen = width < 340;
 
-    const headerTitleSize = isTinyScreen ? 'text-lg' : isSmallScreen ? 'text-xl' : 'text-2xl';
-    const headerPaddingX = isTinyScreen ? 'px-3' : isSmallScreen ? 'px-4' : 'px-5';
     const contentPaddingX = isTinyScreen ? 'px-3' : isSmallScreen ? 'px-4' : 'px-5';
-    const backBtnSize = isTinyScreen ? 'h-9 w-9' : isSmallScreen ? 'h-10 w-10' : 'h-11 w-11';
-    const backBtnRadius = isTinyScreen ? 'rounded-xl' : 'rounded-2xl';
-    const backIconSize = isTinyScreen ? 20 : isSmallScreen ? 21 : 23;
 
     const { data: orders = [], isLoading, isError, refetch } = useOrders();
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -49,21 +44,7 @@ export function OrderHistoryPage({ onBack, onTrackOrder }: OrderHistoryPageProps
         <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 {/* Header */}
-                <View className={`flex-row items-center ${headerPaddingX} pt-2 pb-4 min-w-0`}>
-                    <Pressable
-                        className={`${backBtnSize} ${backBtnRadius} shrink-0 items-center justify-center bg-white/70 active:opacity-60 mr-3`}
-                        onPress={onBack}
-                    >
-                        <ChevronLeft size={backIconSize} color="#1e293b" />
-                    </Pressable>
-                    <Text
-                        className={`flex-1 ${headerTitleSize} font-lufga-bold text-slate-900`}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        Order History
-                    </Text>
-                </View>
+                <PageHeader title="Order History" onBack={onBack} backIconColor="#1e293b" />
 
                 {/* Content */}
                 {isLoading ? (

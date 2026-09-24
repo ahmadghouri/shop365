@@ -21,62 +21,62 @@ export function CategoryList({ categories, onCategoryPress }: CategoryListProps)
     const isUltraTinyScreen = width < 320;
 
     const cardWidth = isUltraTinyScreen
-        ? 'w-24'
+        ? 'w-28'
         : isTinyScreen
-          ? 'w-28'
-          : isSmallScreen
             ? 'w-32'
-            : 'w-36';
+            : isSmallScreen
+                ? 'w-38'
+                : 'w-40';
     const cardMinHeight = isUltraTinyScreen
         ? 'min-h-[88px]'
         : isTinyScreen
-          ? 'min-h-[100px]'
-          : isSmallScreen
-            ? 'min-h-[112px]'
-            : 'min-h-30';
+            ? 'min-h-[100px]'
+            : isSmallScreen
+                ? 'min-h-[112px]'
+                : 'min-h-30';
     const nameFontSize = isUltraTinyScreen
         ? 'text-[13px]'
         : isTinyScreen
-          ? 'text-[14px]'
-          : isSmallScreen
-            ? 'text-[15px]'
-            : 'text-[16px]';
+            ? 'text-[14px]'
+            : isSmallScreen
+                ? 'text-[15px]'
+                : 'text-[16px]';
     const subtitleFontSize = isUltraTinyScreen
         ? 'text-[10px]'
         : isTinyScreen
-          ? 'text-[10px]'
-          : isSmallScreen
-            ? 'text-[11px]'
-            : 'text-[14px]';
+            ? 'text-[10px]'
+            : isSmallScreen
+                ? 'text-[11px]'
+                : 'text-[14px]';
     const subtitleMaxLen = isUltraTinyScreen ? 10 : isTinyScreen ? 12 : isSmallScreen ? 14 : 18;
     const imageSize = isUltraTinyScreen
         ? 'w-12 h-12'
         : isTinyScreen
-          ? 'w-14 h-14'
-          : isSmallScreen
-            ? 'w-16 h-16'
-            : 'w-20 h-20';
+            ? 'w-14 h-14'
+            : isSmallScreen
+                ? 'w-16 h-16'
+                : 'w-20 h-20';
     const paddingTop = isUltraTinyScreen
         ? 'pt-1.5 pl-1.5'
         : isTinyScreen
-          ? 'pt-2 pl-2'
-          : isSmallScreen
-            ? 'pt-3 pl-3'
-            : 'pt-4 pl-4';
+            ? 'pt-2 pl-2'
+            : isSmallScreen
+                ? 'pt-3 pl-3'
+                : 'pt-4 pl-4';
     const marginRight = isUltraTinyScreen
         ? 'mr-1.5'
         : isTinyScreen
-          ? 'mr-2'
-          : isSmallScreen
-            ? 'mr-2.5'
-            : 'mr-3';
+            ? 'mr-2'
+            : isSmallScreen
+                ? 'mr-2.5'
+                : 'mr-3';
     const marginTop = isUltraTinyScreen
         ? 'mt-2'
         : isTinyScreen
-          ? 'mt-2.5'
-          : isSmallScreen
-            ? 'mt-3'
-            : 'mt-4';
+            ? 'mt-2.5'
+            : isSmallScreen
+                ? 'mt-3'
+                : 'mt-4';
     const paddingX = isUltraTinyScreen ? 'px-3' : 'px-4';
 
     return (

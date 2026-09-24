@@ -11,6 +11,29 @@ const Rider = require("../riders/rider.model");
 const { getPaginationParams } = require("../../utils/pagination");
 const { notifyUser } = require("../../services/socket.service");
 
+// Minutes still expected until delivery, per stage of the order. Used to keep
+// `estimated_delivery_at` honest as the order progresses.
+const ETA_MINUTES_REMAINING = {
+  pending: 45,
+  confirmed: 40,
+  preparing: 30,
+  picked_up: 20,
+  out_for_delivery: 12,
+};
+
+/**
+ * Work out when an order at the given status should arrive.
+ * Returns null for terminal statuses, which carry no future ETA.
+ * @param {string} status
+ * @param {Date} [from]
+ * @returns {Date|null}
+ */
+function estimateDeliveryAt(status, from = new Date()) {
+  const minutes = ETA_MINUTES_REMAINING[status];
+  if (!minutes) return null;
+  return new Date(from.getTime() + minutes * 60 * 1000);
+}
+
 class OrderService {
   async placeOrder(userId, data) {
     const cartItems = await Cart.find({ user_id: userId }).populate({
@@ -118,12 +141,14 @@ class OrderService {
       const total =
         Math.max(0, subtotal - voucherDiscount - pointsDiscount) + deliveryFee;
 
+      const placedAt = new Date();
       const order = await Order.create({
         user_id: userId,
         total_price: total,
         delivery_fee: deliveryFee,
         voucher_id: voucher?._id,
-        status_history: [{ status: "pending", at: new Date() }],
+        estimated_delivery_at: estimateDeliveryAt("pending", placedAt),
+        status_history: [{ status: "pending", at: placedAt }],
       });
 
       await OrderItem.insertMany(
@@ -316,14 +341,18 @@ class OrderService {
   }
 
   async updateOrderStatus(orderId, status) {
-    const order = await Order.findByIdAndUpdate(
-      orderId,
-      {
-        status,
-        $push: { status_history: { status, at: new Date() } },
-      },
-      { returnDocument: "after" },
-    );
+    const changedAt = new Date();
+    const update = {
+      status,
+      // Keep the ETA in step with the stage the order just reached.
+      estimated_delivery_at: estimateDeliveryAt(status, changedAt),
+      $push: { status_history: { status, at: changedAt } },
+    };
+    if (status === "delivered") update.delivered_at = changedAt;
+
+    const order = await Order.findByIdAndUpdate(orderId, update, {
+      returnDocument: "after",
+    });
 
     if (order) {
       const messages = {
@@ -468,4 +497,9 @@ class OrderService {
   }
 }
 
-module.exports = new OrderService();
+const orderService = new OrderService();
+
+// Exposed so the rider-facing status endpoint can keep ETAs consistent.
+orderService.estimateDeliveryAt = estimateDeliveryAt;
+
+module.exports = orderService;

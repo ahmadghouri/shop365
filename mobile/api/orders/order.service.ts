@@ -27,6 +27,10 @@ export type Order = {
     total_price: number;
     status: string;
     createdAt: string;
+    /** ISO timestamp of when the order is expected to arrive. */
+    estimated_delivery_at?: string | null;
+    /** ISO timestamp of when the order actually arrived. */
+    delivered_at?: string | null;
     vendors?: string[];
     item_count?: number;
     items?: OrderItemDetail[];

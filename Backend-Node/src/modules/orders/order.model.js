@@ -8,6 +8,11 @@ const orderSchema = new mongoose.Schema({
   delivery_fee: { type: Number, default: 0 },
   status: { type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING },
   voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher' },
+  // When the order is expected to arrive. Set at placement and recalculated on
+  // each status transition so the tracking screen can show a real ETA.
+  estimated_delivery_at: { type: Date, default: null },
+  // When it actually arrived (set once the order reaches "delivered").
+  delivered_at: { type: Date, default: null },
   status_history: [{
     status: { type: String },
     at: { type: Date, default: Date.now },

@@ -10,6 +10,7 @@ const Rider = require('../riders/rider.model');
 const { UserRole } = require('../../common/enums');
 const { successResponse } = require('../../utils/api-response');
 const { hashPassword } = require('../../utils/password');
+const { notifyUser } = require('../../services/socket.service');
 
 async function createVoucher(req, res, next) {
   try {
@@ -213,6 +214,32 @@ async function updateRiderApplicationStatus(req, res, next) {
       await Rider.updateOne({ application_id: application._id }, { status: 'inactive' });
     }
 
+    // Notify the applicant about the decision (in-app + Expo push).
+    if (application.user_id) {
+      const notif = {
+        approved: {
+          title: 'Rider application approved 🎉',
+          body: 'Congratulations! You are now an approved rider.',
+        },
+        rejected: {
+          title: 'Rider application update',
+          body: 'Your rider application was not approved. Tap for details.',
+        },
+        pending: {
+          title: 'Rider application under review',
+          body: 'Your rider application is being reviewed again.',
+        },
+      }[status];
+      if (notif) {
+        notifyUser(String(application.user_id), {
+          type: 'rider_application',
+          ...notif,
+          reference_id: application._id,
+          reference_type: 'rider_application',
+        });
+      }
+    }
+
     successResponse(res, application, 'Rider application updated');
   } catch (error) { next(error); }
 }
@@ -237,6 +264,25 @@ async function updateRiderDocumentStatus(req, res, next) {
       new: true,
     });
     if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    // Tell the applicant when a document needs to be re-uploaded.
+    if (status === 'resend' && application.user_id) {
+      const labels = {
+        cnic_front_image: 'CNIC Front',
+        cnic_back_image: 'CNIC Back',
+        photo_image: 'your photo',
+        vehicle_image: 'vehicle photo',
+      };
+      const label = labels[doc] || 'a document';
+      notifyUser(String(application.user_id), {
+        type: 'rider_application',
+        title: 'Document re-upload requested',
+        body: `Please re-upload your ${label}${note ? `: ${note}` : '.'}`,
+        reference_id: application._id,
+        reference_type: 'rider_application',
+      });
+    }
+
     successResponse(res, application, 'Document status updated');
   } catch (error) { next(error); }
 }
@@ -251,6 +297,18 @@ async function updateRiderApplicationMessage(req, res, next) {
       { new: true }
     );
     if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    // Notify the applicant that they have a new message from admin.
+    if (admin_message && admin_message.trim() && application.user_id) {
+      notifyUser(String(application.user_id), {
+        type: 'rider_application',
+        title: 'Message from SHOP365',
+        body: admin_message.trim().slice(0, 140),
+        reference_id: application._id,
+        reference_type: 'rider_application',
+      });
+    }
+
     successResponse(res, application, 'Message saved');
   } catch (error) { next(error); }
 }

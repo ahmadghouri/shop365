@@ -37,6 +37,7 @@ import { useUpdateAvatarMutation } from '@/api/users/useUpdateAvatarMutation';
 import { logoutCurrentSession } from '@/api/auth/auth.service';
 import { ProfileSettingCard } from '@/components/reusable/ProfileSettingCard';
 import { PageHeader } from '@/components/reusable/PageHeader';
+import { useMyRiderApplication } from '@/api/riders/useMyRiderApplication';
 
 type ProfilePageProps = {
     onLogout?: () => void;
@@ -64,6 +65,12 @@ export function ProfilePage({
     const { width } = useWindowDimensions();
     const isSmallScreen = width < 380;
     const isTinyScreen = width < 340;
+
+    // If the user's rider application is approved, the "Become a Rider" entry
+    // turns into their rider panel instead of the signup form.
+    const { data: riderApplication } = useMyRiderApplication();
+    const isApprovedRider = riderApplication?.status === 'approved';
+    const riderLabel = isApprovedRider ? 'Rider Dashboard' : 'Become a Rider';
 
     const heroPaddingX = isTinyScreen ? 'px-4' : isSmallScreen ? 'px-5' : 'px-6';
     const heroPaddingTop = isTinyScreen ? 'pt-6' : isSmallScreen ? 'pt-7' : 'pt-8';
@@ -296,7 +303,7 @@ export function ProfilePage({
 
                         <ProfileSettingCard
                             icon={<Bike size={18} color="#b77900" />}
-                            label="Become a Rider"
+                            label={riderLabel}
                             onPress={onRider}
                         />
                         <ProfileSettingCard

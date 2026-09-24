@@ -6,6 +6,7 @@ const Order = require('../orders/order.model');
 const Voucher = require('../vouchers/voucher.model');
 const Internship = require('../internship-applications/internship-application.model');
 const RiderApplication = require('../rider-applications/rider-application.model');
+const Rider = require('../riders/rider.model');
 const { UserRole } = require('../../common/enums');
 const { successResponse } = require('../../utils/api-response');
 const { hashPassword } = require('../../utils/password');
@@ -171,6 +172,47 @@ async function updateRiderApplicationStatus(req, res, next) {
       { new: true }
     );
     if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    // Option A: on approval the applicant's own account becomes a RIDER (no
+    // separate business/login) and a Rider record is created/linked from the
+    // application. Reversing the decision downgrades the user and deactivates
+    // the linked rider.
+    if (status === 'approved') {
+      if (application.user_id) {
+        await User.updateOne({ _id: application.user_id }, { role: UserRole.RIDER });
+      }
+
+      // Map the application's vehicle to the Rider model's enum.
+      const vehicleType = /car/i.test(application.vehicle_type || '') ? 'car' : 'bike';
+
+      // Create the Rider record once, or reactivate/refresh it if it exists.
+      await Rider.findOneAndUpdate(
+        { application_id: application._id },
+        {
+          application_id: application._id,
+          user_id: application.user_id,
+          kind: 'parcel',
+          name: application.name,
+          phone_no: application.phone_no,
+          image: application.photo_image || '',
+          cnic: application.cnic,
+          vehicle_type: vehicleType,
+          status: 'active',
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+    } else {
+      // Only downgrade if they were made a rider by this flow.
+      if (application.user_id) {
+        await User.updateOne(
+          { _id: application.user_id, role: UserRole.RIDER },
+          { role: UserRole.END_USER }
+        );
+      }
+      // Deactivate the linked rider record (keep it for history).
+      await Rider.updateOne({ application_id: application._id }, { status: 'inactive' });
+    }
+
     successResponse(res, application, 'Rider application updated');
   } catch (error) { next(error); }
 }

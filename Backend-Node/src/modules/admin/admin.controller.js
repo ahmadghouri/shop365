@@ -5,6 +5,7 @@ const Category = require('../categories/category.model');
 const Order = require('../orders/order.model');
 const Voucher = require('../vouchers/voucher.model');
 const Internship = require('../internship-applications/internship-application.model');
+const RiderApplication = require('../rider-applications/rider-application.model');
 const { UserRole } = require('../../common/enums');
 const { successResponse } = require('../../utils/api-response');
 const { hashPassword } = require('../../utils/password');
@@ -138,6 +139,80 @@ async function internshipApplications(req, res, next) {
   } catch (error) { next(error); }
 }
 
+async function riderApplications(req, res, next) {
+  try {
+    const applications = await RiderApplication.find()
+      .populate('user_id', 'name email phone_no')
+      .sort({ createdAt: -1 });
+    successResponse(res, applications, 'Rider applications');
+  } catch (error) { next(error); }
+}
+
+async function riderApplicationShow(req, res, next) {
+  try {
+    const application = await RiderApplication.findById(req.params.id).populate(
+      'user_id',
+      'name email phone_no'
+    );
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+    successResponse(res, application, 'Rider application');
+  } catch (error) { next(error); }
+}
+
+async function updateRiderApplicationStatus(req, res, next) {
+  try {
+    const { status } = req.body;
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(422).json({ message: 'Invalid status' });
+    }
+    const application = await RiderApplication.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+    successResponse(res, application, 'Rider application updated');
+  } catch (error) { next(error); }
+}
+
+const DOCUMENT_KEYS = ['cnic_front_image', 'cnic_back_image', 'photo_image', 'vehicle_image'];
+
+// Approve / reject a single uploaded document (with an optional note).
+async function updateRiderDocumentStatus(req, res, next) {
+  try {
+    const { doc, status, note } = req.body;
+    if (!DOCUMENT_KEYS.includes(doc)) {
+      return res.status(422).json({ message: 'Invalid document key' });
+    }
+    if (!['pending', 'approved', 'rejected', 'resend'].includes(status)) {
+      return res.status(422).json({ message: 'Invalid status' });
+    }
+    const update = {
+      [`documents.${doc}.status`]: status,
+      [`documents.${doc}.note`]: note || '',
+    };
+    const application = await RiderApplication.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+    });
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+    successResponse(res, application, 'Document status updated');
+  } catch (error) { next(error); }
+}
+
+// Save the admin's free-form message to the applicant.
+async function updateRiderApplicationMessage(req, res, next) {
+  try {
+    const { admin_message } = req.body;
+    const application = await RiderApplication.findByIdAndUpdate(
+      req.params.id,
+      { admin_message: admin_message || '' },
+      { new: true }
+    );
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+    successResponse(res, application, 'Message saved');
+  } catch (error) { next(error); }
+}
+
 async function usersPreviousTwoDays(req, res, next) {
   try {
     const userController = require('../users/user.controller');
@@ -184,4 +259,6 @@ module.exports = {
   createVoucher, getVoucher, deleteVoucher, superAdminOrders, getGroceryOrders,
   getBusinessStats, createProvider, createTownAdmin, internshipApplications, usersPreviousTwoDays,
   usersIndex, usersShow, usersDestroy, getVendors, updateAdmin,
+  riderApplications, riderApplicationShow, updateRiderApplicationStatus,
+  updateRiderDocumentStatus, updateRiderApplicationMessage,
 };

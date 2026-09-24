@@ -68,4 +68,8 @@ export const QUERY_KEYS = {
 
   // Internship
   INTERNSHIP_APPS: ["internshipApps"],
+
+  // Rider applications
+  RIDER_APPS: ["riderApps"],
+  RIDER_APP: (id) => ["riderApp", id],
 };

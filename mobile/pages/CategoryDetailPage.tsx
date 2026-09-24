@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CategoryHeader } from '@/components/category/CategoryHeader';
+import { PageHeader } from '@/components/reusable/PageHeader';
 import { AppBackground } from '@/components/AppBackground';
 import { SearchBar } from '@/components/category/SearchBar';
 import { FilterChips } from '@/components/category/FilterChips';
@@ -24,7 +24,6 @@ type CategoryDetailPageProps = {
     title?: string;
     subtitle?: string;
     onBack?: () => void;
-    onCartPress?: () => void;
     onProductPress?: (product: Product) => void;
     onAddToCart?: (product: Product) => void;
 };
@@ -42,7 +41,6 @@ export function CategoryDetailPage({
     title = 'Grocery',
     subtitle = 'Daily Essentials',
     onBack,
-    onCartPress,
     onProductPress,
     onAddToCart,
 }: CategoryDetailPageProps) {
@@ -92,11 +90,11 @@ export function CategoryDetailPage({
     return (
         <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
-                <CategoryHeader
+                <PageHeader
                     title={title}
                     subtitle={subtitle}
                     onBack={onBack}
-                    onCartPress={onCartPress}
+                    backIconColor="#1e293b"
                 />
 
                 <SearchBar value={search} onChangeText={setSearch} />

@@ -34,6 +34,7 @@ import { LocationAddressManager } from '@/components/LocationAddressManager';
 import { useUpdateAvatarMutation } from '@/api/users/useUpdateAvatarMutation';
 import { logoutCurrentSession } from '@/api/auth/auth.service';
 import { ProfileSettingCard } from '@/components/reusable/ProfileSettingCard';
+import { PageHeader } from '@/components/reusable/PageHeader';
 
 type ProfilePageProps = {
     onLogout?: () => void;
@@ -70,10 +71,9 @@ export function ProfilePage({
     const addressTextSize = isTinyScreen
         ? 'text-[10px]'
         : isSmallScreen
-          ? 'text-[11px]'
-          : 'text-xs';
+            ? 'text-[11px]'
+            : 'text-xs';
     const headerTitleSize = isTinyScreen ? 'text-lg' : isSmallScreen ? 'text-xl' : 'text-2xl';
-    const headerPaddingX = isTinyScreen ? 'px-3' : isSmallScreen ? 'px-4' : 'px-5';
     const sectionPaddingX = isTinyScreen ? 'mx-3' : isSmallScreen ? 'mx-4' : 'mx-5';
     const backBtnSize = isTinyScreen ? 'h-9 w-9' : isSmallScreen ? 'h-10 w-10' : 'h-11 w-11';
     const backBtnRadius = isTinyScreen ? 'rounded-xl' : 'rounded-2xl';
@@ -154,23 +154,7 @@ export function ProfilePage({
         <AppBackground>
             <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                 {/* Header */}
-                <View className={`flex-row items-center ${headerPaddingX} pb-2 pt-2 min-w-0`}>
-                    {onBack && (
-                        <Pressable
-                            className={`${backBtnSize} ${backBtnRadius} shrink-0 items-center justify-center bg-white/60 active:opacity-60`}
-                            onPress={onBack}
-                        >
-                            <ChevronLeft size={backIconSize} color="#171717" />
-                        </Pressable>
-                    )}
-                    <Text
-                        className={`ml-3 flex-1 ${headerTitleSize} font-lufga-bold text-slate-950`}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        My Profile
-                    </Text>
-                </View>
+                <PageHeader title="My Profile" onBack={onBack} />
 
                 <ScrollView
                     className="flex-1"

@@ -229,10 +229,6 @@ function AppContent() {
                         subtitle={activeCategory.subtitle}
                         onBack={() => setActiveCategory(null)}
                         onProductPress={(product) => setActiveProduct(product)}
-                        onCartPress={() => {
-                            setActiveCategory(null);
-                            setActiveTab('cart');
-                        }}
                     />
                     <FloatingCartBar
                         onPress={() => {

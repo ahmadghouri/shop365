@@ -8,6 +8,7 @@ const { UserRole, OrderStatus } = require("../../common/enums");
 const { hashPassword } = require("../../utils/password");
 const { uploadToCloudinary } = require("../../utils/cloudinary-upload");
 const { notifyUser } = require("../../services/socket.service");
+const orderService = require("../orders/order.service");
 
 const RIDABLE = [
   OrderStatus.PENDING,
@@ -320,8 +321,14 @@ class RiderController {
           .json({ message: "Not authorized for this order" });
 
       if (!order.rider_id) order.rider_id = req.user._id;
+      const changedAt = new Date();
       order.status = status;
-      order.status_history.push({ status, at: new Date() });
+      order.estimated_delivery_at = orderService.estimateDeliveryAt(
+        status,
+        changedAt,
+      );
+      if (status === "delivered") order.delivered_at = changedAt;
+      order.status_history.push({ status, at: changedAt });
       await order.save();
 
       const messages = {

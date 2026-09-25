@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 
-type NotifType = 'order' | 'promo' | 'delivery' | 'review' | 'general' | 'security';
+type NotifType =
+    | 'order'
+    | 'promo'
+    | 'delivery'
+    | 'review'
+    | 'general'
+    | 'security'
+    | 'rider_application';
 
 export type Notification = {
     id: string;

@@ -46,6 +46,7 @@ app.use('/api', require('./modules/perscriptions/perscription.routes'));
 app.use('/api', require('./modules/grocery-products/grocery-product.routes'));
 app.use('/api', require('./modules/pos-products/pos-product.routes'));
 app.use('/api', require('./modules/internship-applications/internship-application.routes'));
+app.use('/api', require('./modules/rider-applications/rider-application.routes'));
 app.use('/api', require('./modules/upload/upload.routes'));
 app.use('/api', require('./modules/notifications/notification.routes'));
 

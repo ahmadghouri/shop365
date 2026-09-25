@@ -20,12 +20,14 @@ type NotificationPageProps = {
   onBack?: () => void;
   onTrackOrder?: (orderId: string) => void;
   onSecurity?: () => void;
+  onRiderApplication?: () => void;
 };
 
 export function NotificationPage({
   onBack,
   onTrackOrder,
   onSecurity,
+  onRiderApplication,
 }: NotificationPageProps) {
   const {
     notifications,
@@ -86,6 +88,13 @@ export function NotificationPage({
     markNotificationRead(notif.id).catch(() => { });
     if (notif.type === 'security') {
       onSecurity?.();
+      return;
+    }
+    if (
+      notif.type === 'rider_application' ||
+      notif.reference_type === 'rider_application'
+    ) {
+      onRiderApplication?.();
       return;
     }
     if (

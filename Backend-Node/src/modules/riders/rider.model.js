@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
 const riderSchema = new mongoose.Schema({
-  business_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Business', required: true, index: true },
+  // Optional: vendor-managed riders belong to a business; platform riders
+  // (approved via a rider application) may not have one yet.
+  business_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Business', index: true },
+  // Links a rider created from a public rider application back to it.
+  application_id: { type: mongoose.Schema.Types.ObjectId, ref: 'RiderApplication', index: true },
   // parcel = delivery person, ride = InDrive-style driver
   kind: { type: String, enum: ['parcel', 'ride'], default: 'parcel' },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -5,9 +5,12 @@ const Category = require('../categories/category.model');
 const Order = require('../orders/order.model');
 const Voucher = require('../vouchers/voucher.model');
 const Internship = require('../internship-applications/internship-application.model');
+const RiderApplication = require('../rider-applications/rider-application.model');
+const Rider = require('../riders/rider.model');
 const { UserRole } = require('../../common/enums');
 const { successResponse } = require('../../utils/api-response');
 const { hashPassword } = require('../../utils/password');
+const { notifyUser } = require('../../services/socket.service');
 
 async function createVoucher(req, res, next) {
   try {
@@ -138,6 +141,178 @@ async function internshipApplications(req, res, next) {
   } catch (error) { next(error); }
 }
 
+async function riderApplications(req, res, next) {
+  try {
+    const applications = await RiderApplication.find()
+      .populate('user_id', 'name email phone_no')
+      .sort({ createdAt: -1 });
+    successResponse(res, applications, 'Rider applications');
+  } catch (error) { next(error); }
+}
+
+async function riderApplicationShow(req, res, next) {
+  try {
+    const application = await RiderApplication.findById(req.params.id).populate(
+      'user_id',
+      'name email phone_no'
+    );
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+    successResponse(res, application, 'Rider application');
+  } catch (error) { next(error); }
+}
+
+async function updateRiderApplicationStatus(req, res, next) {
+  try {
+    const { status } = req.body;
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(422).json({ message: 'Invalid status' });
+    }
+    const application = await RiderApplication.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    // Option A: on approval the applicant's own account becomes a RIDER (no
+    // separate business/login) and a Rider record is created/linked from the
+    // application. Reversing the decision downgrades the user and deactivates
+    // the linked rider.
+    if (status === 'approved') {
+      if (application.user_id) {
+        await User.updateOne({ _id: application.user_id }, { role: UserRole.RIDER });
+      }
+
+      // Map the application's vehicle to the Rider model's enum.
+      const vehicleType = /car/i.test(application.vehicle_type || '') ? 'car' : 'bike';
+
+      // Create the Rider record once, or reactivate/refresh it if it exists.
+      await Rider.findOneAndUpdate(
+        { application_id: application._id },
+        {
+          application_id: application._id,
+          user_id: application.user_id,
+          kind: 'parcel',
+          name: application.name,
+          phone_no: application.phone_no,
+          image: application.photo_image || '',
+          cnic: application.cnic,
+          vehicle_type: vehicleType,
+          status: 'active',
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+    } else {
+      // Only downgrade if they were made a rider by this flow.
+      if (application.user_id) {
+        await User.updateOne(
+          { _id: application.user_id, role: UserRole.RIDER },
+          { role: UserRole.END_USER }
+        );
+      }
+      // Deactivate the linked rider record (keep it for history).
+      await Rider.updateOne({ application_id: application._id }, { status: 'inactive' });
+    }
+
+    // Notify the applicant about the decision (in-app + Expo push).
+    if (application.user_id) {
+      const notif = {
+        approved: {
+          title: 'Rider application approved 🎉',
+          body: 'Congratulations! You are now an approved rider.',
+        },
+        rejected: {
+          title: 'Rider application update',
+          body: 'Your rider application was not approved. Tap for details.',
+        },
+        pending: {
+          title: 'Rider application under review',
+          body: 'Your rider application is being reviewed again.',
+        },
+      }[status];
+      if (notif) {
+        notifyUser(String(application.user_id), {
+          type: 'rider_application',
+          ...notif,
+          reference_id: application._id,
+          reference_type: 'rider_application',
+        });
+      }
+    }
+
+    successResponse(res, application, 'Rider application updated');
+  } catch (error) { next(error); }
+}
+
+const DOCUMENT_KEYS = ['cnic_front_image', 'cnic_back_image', 'photo_image', 'vehicle_image'];
+
+// Approve / reject a single uploaded document (with an optional note).
+async function updateRiderDocumentStatus(req, res, next) {
+  try {
+    const { doc, status, note } = req.body;
+    if (!DOCUMENT_KEYS.includes(doc)) {
+      return res.status(422).json({ message: 'Invalid document key' });
+    }
+    if (!['pending', 'approved', 'rejected', 'resend'].includes(status)) {
+      return res.status(422).json({ message: 'Invalid status' });
+    }
+    const update = {
+      [`documents.${doc}.status`]: status,
+      [`documents.${doc}.note`]: note || '',
+    };
+    const application = await RiderApplication.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+    });
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    // Tell the applicant when a document needs to be re-uploaded.
+    if (status === 'resend' && application.user_id) {
+      const labels = {
+        cnic_front_image: 'CNIC Front',
+        cnic_back_image: 'CNIC Back',
+        photo_image: 'your photo',
+        vehicle_image: 'vehicle photo',
+      };
+      const label = labels[doc] || 'a document';
+      notifyUser(String(application.user_id), {
+        type: 'rider_application',
+        title: 'Document re-upload requested',
+        body: `Please re-upload your ${label}${note ? `: ${note}` : '.'}`,
+        reference_id: application._id,
+        reference_type: 'rider_application',
+      });
+    }
+
+    successResponse(res, application, 'Document status updated');
+  } catch (error) { next(error); }
+}
+
+// Save the admin's free-form message to the applicant.
+async function updateRiderApplicationMessage(req, res, next) {
+  try {
+    const { admin_message } = req.body;
+    const application = await RiderApplication.findByIdAndUpdate(
+      req.params.id,
+      { admin_message: admin_message || '' },
+      { new: true }
+    );
+    if (!application) return res.status(404).json({ message: 'Application not found' });
+
+    // Notify the applicant that they have a new message from admin.
+    if (admin_message && admin_message.trim() && application.user_id) {
+      notifyUser(String(application.user_id), {
+        type: 'rider_application',
+        title: 'Message from SHOP365',
+        body: admin_message.trim().slice(0, 140),
+        reference_id: application._id,
+        reference_type: 'rider_application',
+      });
+    }
+
+    successResponse(res, application, 'Message saved');
+  } catch (error) { next(error); }
+}
+
 async function usersPreviousTwoDays(req, res, next) {
   try {
     const userController = require('../users/user.controller');
@@ -184,4 +359,6 @@ module.exports = {
   createVoucher, getVoucher, deleteVoucher, superAdminOrders, getGroceryOrders,
   getBusinessStats, createProvider, createTownAdmin, internshipApplications, usersPreviousTwoDays,
   usersIndex, usersShow, usersDestroy, getVendors, updateAdmin,
+  riderApplications, riderApplicationShow, updateRiderApplicationStatus,
+  updateRiderDocumentStatus, updateRiderApplicationMessage,
 };

@@ -96,6 +96,8 @@ export function Router() {
                 if (!useAuthStore.getState().isAuthenticated) return;
                 if (data?.type === 'security') {
                     setShowSecurity(true);
+                } else if (data?.type === 'rider_application') {
+                    setShowRider(true);
                 } else {
                     setActiveTab('notifications');
                 }
@@ -296,6 +298,7 @@ export function Router() {
                             onBack={() => setActiveTab('home')}
                             onTrackOrder={(orderId) => setTrackingOrder({ _id: orderId })}
                             onSecurity={() => setShowSecurity(true)}
+                            onRiderApplication={() => setShowRider(true)}
                         />
                     );
                 default: // home

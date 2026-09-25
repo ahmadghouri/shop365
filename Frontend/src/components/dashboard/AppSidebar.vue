@@ -57,6 +57,7 @@ const adminMenuItems = [
   { label: 'SHOP365 Store', to: '/admin/shop365/users', icon: ShoppingBag },
   { label: 'Voucher', to: '/admin/vouchers', icon: Ticket },
   { label: 'Intern Applications', to: '/admin/internship-applications', icon: GraduationCap },
+  { label: 'Rider Applications', to: '/admin/rider-applications', icon: Bike },
   { label: 'Carousel', to: '/admin/carousel', icon: Image },
   { label: 'POS Products', to: '/admin/pos-products', icon: Package },
 ]

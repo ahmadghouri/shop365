@@ -1,4 +1,5 @@
 const RiderApplication = require('./rider-application.model');
+const Rider = require('../riders/rider.model');
 const cloudinary = require('../../config/cloudinary');
 const { CLOUDINARY_ROOT_FOLDER } = require('../../config/env');
 const { successResponse } = require('../../utils/api-response');
@@ -126,6 +127,70 @@ async function store(req, res, next) {
   }
 }
 
+// Public rider application — submitted from the rider app by someone who is
+// NOT logged in (riders don't have customer accounts). Same shape/flow as the
+// authenticated `store`, but there is no user_id and the duplicate check is by
+// phone number.
+async function storePublic(req, res, next) {
+  try {
+    const { name, phone_no, cnic, address, vehicle_type, vehicle_no } = req.body;
+
+    const errors = validateRiderFields({ name, phone_no, cnic, address, vehicle_type, vehicle_no });
+
+    const files = req.files || {};
+    IMAGE_FIELDS.forEach(({ field }) => {
+      if (!files[field]?.[0]) errors[field] = 'This document is required';
+    });
+
+    if (Object.keys(errors).length) {
+      return res.status(422).json({ message: 'Validation failed', errors });
+    }
+
+    // Block duplicates: an active application, or an existing active rider, with this phone.
+    const existingApp = await RiderApplication.findOne({
+      phone_no,
+      status: { $in: ['pending', 'approved'] },
+    });
+    if (existingApp) {
+      return res
+        .status(409)
+        .json({ message: 'An application with this phone is already in progress' });
+    }
+    const existingRider = await Rider.findOne({ phone_no, status: 'active', deleted_at: null });
+    if (existingRider) {
+      return res
+        .status(409)
+        .json({ message: 'A rider with this phone already exists' });
+    }
+
+    const folder = `${CLOUDINARY_ROOT_FOLDER}/riders`;
+    const imageUrls = {};
+    await Promise.all(
+      IMAGE_FIELDS.map(async ({ field, key }) => {
+        const file = files[field]?.[0];
+        if (file) {
+          const result = await uploadBuffer(file, folder);
+          imageUrls[key] = result.secure_url;
+        }
+      })
+    );
+
+    const application = await RiderApplication.create({
+      name,
+      phone_no,
+      cnic,
+      address,
+      vehicle_type,
+      vehicle_no: String(vehicle_no || '').trim(),
+      ...imageUrls,
+    });
+
+    successResponse(res, application, 'Rider application submitted successfully', 201);
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function index(req, res, next) {
   try {
     const applications = await RiderApplication.find().sort({ createdAt: -1 });
@@ -182,4 +247,4 @@ async function reupload(req, res, next) {
   }
 }
 
-module.exports = { store, index, myApplication, reupload };
+module.exports = { store, storePublic, index, myApplication, reupload };

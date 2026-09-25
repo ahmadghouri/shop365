@@ -6,6 +6,7 @@ export type RiderApplicationPayload = {
     cnic: string;
     address: string;
     vehicle_type: string;
+    vehicle_no: string;
     cnicFront: string; // local image uri
     cnicBack: string;
     photo: string;
@@ -40,6 +41,7 @@ export type RiderApplication = {
     cnic: string;
     address: string;
     vehicle_type: string;
+    vehicle_no?: string;
     cnic_front_image?: string;
     cnic_back_image?: string;
     photo_image?: string;
@@ -87,6 +89,7 @@ export async function submitRiderApplication(
     form.append('cnic', payload.cnic);
     form.append('address', payload.address);
     form.append('vehicle_type', payload.vehicle_type);
+    form.append('vehicle_no', payload.vehicle_no);
     appendImage(form, 'cnic_front_image', payload.cnicFront);
     appendImage(form, 'cnic_back_image', payload.cnicBack);
     appendImage(form, 'photo_image', payload.photo);

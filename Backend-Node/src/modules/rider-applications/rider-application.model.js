@@ -8,6 +8,7 @@ const riderApplicationSchema = new mongoose.Schema(
     cnic: { type: String, required: true, trim: true },
     address: { type: String, required: true, trim: true },
     vehicle_type: { type: String, required: true, trim: true },
+    vehicle_no: { type: String, default: '', trim: true },
     // Cloudinary image URLs
     cnic_front_image: { type: String, default: '' },
     cnic_back_image: { type: String, default: '' },

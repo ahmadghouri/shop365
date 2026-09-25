@@ -109,35 +109,43 @@ export function RiderStatusCard({ application, px }: Props) {
             {/* Approved → simple rider dashboard with the rider's details */}
             {status === 'approved' && (
                 <View className="mt-6 w-full">
-                    <View className="flex-row items-center rounded-2xl bg-[#1D1D1D] p-4">
-                        <View className="h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-slate-700">
+                    <View className="flex-row items-center rounded-xl border border-white bg-white/50 p-4">
+                        <View className="h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-white bg-slate-100">
                             {application.photo_image ? (
                                 <Image
                                     source={{ uri: application.photo_image }}
-                                    className="h-12 w-12"
+                                    className="h-14 w-14"
                                     resizeMode="cover"
                                 />
                             ) : (
-                                <Text className="text-xs font-lufga text-slate-300">Rider</Text>
+                                <Text className="text-sm font-lufga-semibold text-slate-400">
+                                    {application.name?.[0]?.toUpperCase() ?? 'R'}
+                                </Text>
                             )}
                         </View>
                         <View className="ml-3 flex-1 min-w-0">
-                            <Text className="text-sm font-lufga-bold text-white" numberOfLines={1}>
+                            <Text
+                                className="text-base font-lufga-bold text-slate-900"
+                                numberOfLines={1}
+                            >
                                 {application.name}
                             </Text>
-                            <View className="mt-0.5 flex-row items-center">
-                                <View className="h-2 w-2 rounded-full bg-green-400" />
-                                <Text className="ml-1.5 text-xs font-lufga text-green-300">
+                            <View className="mt-1 flex-row items-center self-start rounded-full bg-green-100 px-2 py-0.5">
+                                <View className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                <Text className="ml-1.5 text-[11px] font-lufga-semibold text-green-700">
                                     Active Rider
                                 </Text>
                             </View>
                         </View>
                     </View>
 
-                    <View className="mt-3 rounded-2xl border border-slate-200 bg-white p-4">
+                    <View className="mt-3 rounded-xl border border-white bg-white/50 p-4">
                         <DetailRow label="Phone" value={application.phone_no} />
                         <DetailRow label="CNIC" value={application.cnic} />
                         <DetailRow label="Vehicle" value={application.vehicle_type} />
+                        {application.vehicle_no ? (
+                            <DetailRow label="Vehicle No." value={application.vehicle_no} />
+                        ) : null}
                         <DetailRow label="Address" value={application.address} last />
                     </View>
                 </View>

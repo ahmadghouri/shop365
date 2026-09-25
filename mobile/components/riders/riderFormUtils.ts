@@ -9,6 +9,7 @@ export type FieldKey =
     | 'phone'
     | 'cnic'
     | 'address'
+    | 'vehicleNo'
     | 'cnicFront'
     | 'cnicBack'
     | 'photo'

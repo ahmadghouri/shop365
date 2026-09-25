@@ -4,19 +4,10 @@
       <template #actions>
         <div class="relative w-full sm:w-72">
           <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            v-model="search"
-            type="search"
-            placeholder="Search name, phone, CNIC, address…"
-            class="pl-9 pr-9"
-          />
-          <button
-            v-if="search"
-            type="button"
+          <Input v-model="search" type="search" placeholder="Search name, phone, CNIC, address…" class="pl-9 pr-9" />
+          <button v-if="search" type="button"
             class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted"
-            aria-label="Clear search"
-            @click="search = ''"
-          >
+            aria-label="Clear search" @click="search = ''">
             <X class="h-3.5 w-3.5" />
           </button>
         </div>
@@ -25,14 +16,10 @@
 
     <!-- Summary stats double as quick status filters -->
     <div class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <button
-        v-for="stat in stats"
-        :key="stat.key"
-        type="button"
+      <button v-for="stat in stats" :key="stat.key" type="button"
         class="rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted/50"
         :class="statusFilter === stat.key ? 'border-primary ring-1 ring-primary' : ''"
-        @click="statusFilter = statusFilter === stat.key ? 'all' : stat.key"
-      >
+        @click="statusFilter = statusFilter === stat.key ? 'all' : stat.key">
         <div class="flex items-center justify-between">
           <span class="text-sm text-muted-foreground">{{ stat.label }}</span>
           <span class="flex h-7 w-7 items-center justify-center rounded-full" :class="stat.iconClass">
@@ -66,13 +53,7 @@
           <SelectItem value="name">Name (A–Z)</SelectItem>
         </Select>
       </div>
-      <Button
-        v-if="hasActiveFilters"
-        variant="outline"
-        size="sm"
-        class="shrink-0"
-        @click="resetFilters"
-      >
+      <Button v-if="hasActiveFilters" variant="outline" size="sm" class="shrink-0" @click="resetFilters">
         <X class="mr-1 h-3.5 w-3.5" />
         Reset
       </Button>
@@ -93,20 +74,12 @@
     </div>
 
     <!-- No applications at all -->
-    <EmptyState
-      v-else-if="applications.length === 0"
-      title="No Applications"
-      description="No rider applications have been submitted yet."
-      :icon="Bike"
-    />
+    <EmptyState v-else-if="applications.length === 0" title="No Applications"
+      description="No rider applications have been submitted yet." :icon="Bike" />
 
     <!-- No matches for current filters -->
-    <EmptyState
-      v-else-if="filteredApplications.length === 0"
-      title="No matching applications"
-      description="Try adjusting your search or filters."
-      :icon="Search"
-    />
+    <EmptyState v-else-if="filteredApplications.length === 0" title="No matching applications"
+      description="Try adjusting your search or filters." :icon="Search" />
 
     <template v-else>
       <p class="mb-3 text-sm text-muted-foreground">
@@ -114,11 +87,7 @@
       </p>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card
-          v-for="application in filteredApplications"
-          :key="application._id"
-          class="flex flex-col overflow-hidden"
-        >
+        <Card v-for="application in filteredApplications" :key="application._id" class="flex flex-col overflow-hidden">
           <CardHeader class="pb-3">
             <CardTitle class="flex items-center justify-between gap-2">
               <span class="flex min-w-0 items-center gap-3">
@@ -154,53 +123,39 @@
             </div>
             <div class="flex items-center gap-2 text-sm text-muted-foreground">
               <Bike class="h-4 w-4 shrink-0" />
-              <span class="truncate">{{ application.vehicle_type }}</span>
+              <span class="truncate">
+                {{ application.vehicle_type }}<template v-if="application.vehicle_no"> · {{ application.vehicle_no
+                  }}</template>
+              </span>
             </div>
 
             <!-- Document verification progress -->
             <div class="pt-1">
               <div class="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                 <span>Documents verified</span>
-                <span class="font-medium">{{ docProgress(application).approved }}/{{ docProgress(application).total }}</span>
+                <span class="font-medium">{{ docProgress(application).approved }}/{{ docProgress(application).total
+                  }}</span>
               </div>
               <div class="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  class="h-full rounded-full bg-green-500 transition-all"
-                  :style="{ width: docProgress(application).percent + '%' }"
-                />
+                <div class="h-full rounded-full bg-green-500 transition-all"
+                  :style="{ width: docProgress(application).percent + '%' }" />
               </div>
             </div>
 
             <!-- Admin message indicator -->
-            <div
-              v-if="application.admin_message"
-              class="flex items-center gap-1.5 text-xs text-muted-foreground"
-            >
+            <div v-if="application.admin_message" class="flex items-center gap-1.5 text-xs text-muted-foreground">
               <MessageSquare class="h-3.5 w-3.5 shrink-0" />
               <span class="truncate">Note sent to applicant</span>
             </div>
 
             <!-- Uploaded images -->
             <div class="grid grid-cols-4 gap-2 pt-1">
-              <a
-                v-for="img in imageList(application)"
-                :key="img.key"
-                :href="img.url || undefined"
-                target="_blank"
-                rel="noopener"
-                class="block"
-                :title="img.label"
-              >
-                <img
-                  v-if="img.url"
-                  :src="img.url"
-                  :alt="img.label"
-                  class="h-16 w-full rounded-md border object-cover"
-                />
-                <div
-                  v-else
-                  class="flex h-16 w-full items-center justify-center rounded-md border border-dashed text-center text-[10px] text-muted-foreground"
-                >
+              <a v-for="img in imageList(application)" :key="img.key" :href="img.url || undefined" target="_blank"
+                rel="noopener" class="block" :title="img.label">
+                <img v-if="img.url" :src="img.url" :alt="img.label"
+                  class="h-16 w-full rounded-md border object-cover" />
+                <div v-else
+                  class="flex h-16 w-full items-center justify-center rounded-md border border-dashed text-center text-[10px] text-muted-foreground">
                   {{ img.label }}
                 </div>
               </a>
@@ -208,28 +163,19 @@
 
             <!-- Actions -->
             <div class="mt-auto flex gap-2 pt-3">
-              <Button
-                size="sm"
-                class="flex-1"
+              <Button size="sm" class="flex-1"
                 :disabled="application.status === 'approved' || updatingId === application._id"
-                @click="updateStatus(application._id, 'approved')"
-              >
+                @click="updateStatus(application._id, 'approved')">
                 Approve
               </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                class="flex-1"
+              <Button size="sm" variant="destructive" class="flex-1"
                 :disabled="application.status === 'rejected' || updatingId === application._id"
-                @click="updateStatus(application._id, 'rejected')"
-              >
+                @click="updateStatus(application._id, 'rejected')">
                 Reject
               </Button>
             </div>
-            <router-link
-              :to="`/admin/rider-applications/${application._id}`"
-              class="mt-2 flex items-center justify-center gap-1 text-sm text-primary hover:underline"
-            >
+            <router-link :to="`/admin/rider-applications/${application._id}`"
+              class="mt-2 flex items-center justify-center gap-1 text-sm text-primary hover:underline">
               View full details
               <ArrowRight class="h-3 w-3" />
             </router-link>

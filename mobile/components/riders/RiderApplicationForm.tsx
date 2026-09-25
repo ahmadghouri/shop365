@@ -55,6 +55,9 @@ export function RiderApplicationForm({ refreshing, onRefresh }: Props) {
     const [cnic, setCnic] = useState('');
     const [address, setAddress] = useState('');
     const [vehicle, setVehicle] = useState<Vehicle>('Bike');
+    const [vehicleNo, setVehicleNo] = useState('');
+    // Bicycles have no registration number.
+    const needsVehicleNo = vehicle !== 'Bicycle';
 
     const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
     const clearError = (key: FieldKey) =>
@@ -106,6 +109,12 @@ export function RiderApplicationForm({ refreshing, onRefresh }: Props) {
         if (!trimmedAddress) next.address = 'Address is required';
         else if (trimmedAddress.length < 10) next.address = 'Please enter a more complete address';
 
+        const trimmedVehicleNo = vehicleNo.trim();
+        if (needsVehicleNo) {
+            if (!trimmedVehicleNo) next.vehicleNo = 'Vehicle number is required';
+            else if (trimmedVehicleNo.length < 3) next.vehicleNo = 'Enter a valid vehicle number';
+        }
+
         if (!cnicFront) next.cnicFront = 'Upload CNIC front';
         if (!cnicBack) next.cnicBack = 'Upload CNIC back';
         if (!photo) next.photo = 'Upload your photo';
@@ -127,6 +136,7 @@ export function RiderApplicationForm({ refreshing, onRefresh }: Props) {
                 cnic,
                 address: address.trim(),
                 vehicle_type: vehicle,
+                vehicle_no: needsVehicleNo ? vehicleNo.trim() : '',
                 cnicFront: cnicFront!,
                 cnicBack: cnicBack!,
                 photo: photo!,
@@ -268,10 +278,12 @@ export function RiderApplicationForm({ refreshing, onRefresh }: Props) {
                         return (
                             <Pressable
                                 key={v}
-                                onPress={() => setVehicle(v)}
-                                className={`flex-1 items-center justify-center rounded-2xl border py-3 active:opacity-80 ${
-                                    selected ? 'border-[#EAB308] bg-amber-50' : 'border-slate-200 bg-white'
-                                }`}
+                                onPress={() => {
+                                    setVehicle(v);
+                                    if (v === 'Bicycle') clearError('vehicleNo');
+                                }}
+                                className={`flex-1 items-center justify-center rounded-2xl border py-3 active:opacity-80 ${selected ? 'border-[#EAB308] bg-amber-50' : 'border-slate-200 bg-white'
+                                    }`}
                             >
                                 <Text
                                     className={`${labelText} font-lufga-semibold ${selected ? 'text-amber-700' : 'text-slate-600'}`}
@@ -282,6 +294,29 @@ export function RiderApplicationForm({ refreshing, onRefresh }: Props) {
                         );
                     })}
                 </View>
+
+                {/* Vehicle number (not needed for bicycles) */}
+                {needsVehicleNo && (
+                    <>
+                        <Text
+                            className={`mb-2 ${labelGap} ${labelText} font-lufga-semibold text-slate-900`}
+                        >
+                            Vehicle Number
+                        </Text>
+                        <TextInput
+                            value={vehicleNo}
+                            onChangeText={(v) => {
+                                setVehicleNo(v.toUpperCase());
+                                clearError('vehicleNo');
+                            }}
+                            placeholder="e.g. ABC-123"
+                            placeholderTextColor="#94a3b8"
+                            autoCapitalize="characters"
+                            className={`rounded-3xl bg-white px-4 ${inputPy} ${inputText} font-lufga text-slate-900 shadow-sm shadow-slate-200 border ${inputBorder('vehicleNo')}`}
+                        />
+                        <FieldError message={errors.vehicleNo} />
+                    </>
+                )}
 
                 {/* Documents & photos */}
                 <Text className={`mb-2 ${labelGap} ${labelText} font-lufga-semibold text-slate-900`}>

@@ -90,6 +90,7 @@
               <InfoRow :icon="Phone" label="Phone" :value="application.phone_no" />
               <InfoRow :icon="CreditCard" label="CNIC" :value="application.cnic" />
               <InfoRow :icon="Bike" label="Vehicle" :value="application.vehicle_type" />
+              <InfoRow :icon="Hash" label="Vehicle Number" :value="application.vehicle_no" />
               <InfoRow class="sm:col-span-2" :icon="MapPin" label="Address" :value="application.address" />
             </CardContent>
           </Card>
@@ -212,19 +213,23 @@
               <CardTitle>Decision</CardTitle>
             </CardHeader>
             <CardContent class="space-y-3">
-              <Button class="w-full" :disabled="application.status === 'approved' || savingStatus"
-                @click="saveStatus('approved')">
-                <Check class="mr-1 h-4 w-4" /> Approve Application
+              <Button class="w-full" :disabled="savingStatus" @click="saveStatus('approved')">
+                <Check class="mr-1 h-4 w-4" />
+                {{ application.status === 'approved' ? 'Approved' : 'Approve Application' }}
               </Button>
-              <Button class="w-full" variant="destructive" :disabled="application.status === 'rejected' || savingStatus"
-                @click="saveStatus('rejected')">
-                <X class="mr-1 h-4 w-4" /> Reject Application
+              <Button class="w-full" variant="destructive" :disabled="savingStatus" @click="saveStatus('rejected')">
+                <X class="mr-1 h-4 w-4" />
+                {{ application.status === 'rejected' ? 'Rejected' : 'Reject Application' }}
               </Button>
               <Button class="w-full" variant="outline" :disabled="application.status === 'pending' || savingStatus"
                 @click="saveStatus('pending')">
                 Reset to Pending
               </Button>
-              <p v-if="!allDocsApproved && application.status !== 'approved'"
+              <p v-if="allDocsApproved && application.status !== 'approved'"
+                class="text-center text-xs font-medium text-green-700">
+                All documents verified — you can approve this application.
+              </p>
+              <p v-else-if="!allDocsApproved && application.status !== 'approved'"
                 class="text-center text-xs text-muted-foreground">
                 Tip: approve all documents before approving the application.
               </p>
@@ -265,6 +270,7 @@ import {
   ListChecks,
   CheckCircle2,
   Circle,
+  Hash,
 } from "lucide-vue-next";
 
 const circ = 2 * Math.PI * 16; // circumference of the progress ring

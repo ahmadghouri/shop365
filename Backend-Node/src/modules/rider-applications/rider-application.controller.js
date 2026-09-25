@@ -26,7 +26,7 @@ const ALLOWED_VEHICLES = ['Bike', 'Bicycle', 'Scooter'];
 
 // Validate the text fields of a rider application. Returns an errors object
 // (empty when everything is valid).
-function validateRiderFields({ name, phone_no, cnic, address, vehicle_type }) {
+function validateRiderFields({ name, phone_no, cnic, address, vehicle_type, vehicle_no }) {
   const errors = {};
 
   const trimmedName = String(name || '').trim();
@@ -56,14 +56,22 @@ function validateRiderFields({ name, phone_no, cnic, address, vehicle_type }) {
   else if (!ALLOWED_VEHICLES.includes(String(vehicle_type)))
     errors.vehicle_type = 'Invalid vehicle type';
 
+  // Vehicle number is required for motorised vehicles; a bicycle has none.
+  const trimmedVehicleNo = String(vehicle_no || '').trim();
+  if (vehicle_type && vehicle_type !== 'Bicycle') {
+    if (!trimmedVehicleNo) errors.vehicle_no = 'Vehicle number is required';
+    else if (trimmedVehicleNo.length < 3)
+      errors.vehicle_no = 'Enter a valid vehicle number';
+  }
+
   return errors;
 }
 
 async function store(req, res, next) {
   try {
-    const { name, phone_no, cnic, address, vehicle_type } = req.body;
+    const { name, phone_no, cnic, address, vehicle_type, vehicle_no } = req.body;
 
-    const errors = validateRiderFields({ name, phone_no, cnic, address, vehicle_type });
+    const errors = validateRiderFields({ name, phone_no, cnic, address, vehicle_type, vehicle_no });
 
     // All four documents are required on the initial application.
     const files = req.files || {};
@@ -108,6 +116,7 @@ async function store(req, res, next) {
       cnic,
       address,
       vehicle_type,
+      vehicle_no: String(vehicle_no || '').trim(),
       ...imageUrls,
     });
 

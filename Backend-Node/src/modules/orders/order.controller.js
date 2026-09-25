@@ -29,8 +29,8 @@ async function show(req, res, next) {
           { path: 'household_id', populate: { path: 'town_id' } }
         ]
       })
-      // The tracking screen needs the courier's name, phone and photo
-      .populate({ path: 'rider_id', select: 'name phone_no image' });
+      // The tracking screen needs the courier's name, phone, photo and last location
+      .populate({ path: 'rider_id', select: 'name phone_no image location' });
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
     const items = await OrderItem.find({ order_id: order._id }).populate('product_id');
@@ -51,6 +51,7 @@ async function show(req, res, next) {
           name: r.name,
           phone_no: r.phone_no,
           image: r.image || '',
+          location: r.location || null,
         }
       : null;
     orderObj.rider_id = r ? r._id?.toString() : null;

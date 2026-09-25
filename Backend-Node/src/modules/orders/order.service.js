@@ -464,7 +464,7 @@ class OrderService {
       });
     }
 
-    order.rider_id = rider.user_id;
+    order.rider_id = rider._id;
     await order.save();
     // Assign hone ke saath hi order picked up ho jata hai — same notification path as the dashboard button
     const updated = await this.updateOrderStatus(orderId, "picked_up");

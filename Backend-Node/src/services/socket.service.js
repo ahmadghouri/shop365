@@ -168,4 +168,16 @@ function notifyUser(userId, payload) {
     });
 }
 
-module.exports = { initSocket, notifyUser };
+/**
+ * Emit a live event to a specific user's socket room. Used for real-time
+ * updates (e.g. rider location) that should not be persisted as notifications.
+ * @param {string} userId
+ * @param {string} event
+ * @param {any} payload
+ */
+function emitToUser(userId, event, payload) {
+  if (!io) return;
+  io.to(`user:${String(userId)}`).emit(event, payload);
+}
+
+module.exports = { initSocket, notifyUser, emitToUser };

@@ -179,38 +179,39 @@ async function updateRiderApplicationStatus(req, res, next) {
     // application. Reversing the decision downgrades the user and deactivates
     // the linked rider.
     if (status === 'approved') {
-      if (application.user_id) {
-        await User.updateOne({ _id: application.user_id }, { role: UserRole.RIDER });
+      // Riders are a self-contained collection (no User link). Their initial
+      // password is their CNIC, so they can log into the rider app right away.
+      let passwordHash;
+      if (application.cnic) {
+        passwordHash = await hashPassword(String(application.cnic));
       }
 
       // Map the application's vehicle to the Rider model's enum.
       const vehicleType = /car/i.test(application.vehicle_type || '') ? 'car' : 'bike';
 
       // Create the Rider record once, or reactivate/refresh it if it exists.
+      const riderUpdate = {
+        application_id: application._id,
+        kind: 'parcel',
+        name: application.name,
+        phone_no: application.phone_no,
+        image: application.photo_image || '',
+        cnic: application.cnic,
+        vehicle_type: vehicleType,
+        vehicle_no: application.vehicle_no || undefined,
+        status: 'active',
+        deleted_at: null,
+      };
+      if (passwordHash) riderUpdate.password = passwordHash;
+
       await Rider.findOneAndUpdate(
         { application_id: application._id },
-        {
-          application_id: application._id,
-          user_id: application.user_id,
-          kind: 'parcel',
-          name: application.name,
-          phone_no: application.phone_no,
-          image: application.photo_image || '',
-          cnic: application.cnic,
-          vehicle_type: vehicleType,
-          status: 'active',
-        },
+        riderUpdate,
         { new: true, upsert: true, setDefaultsOnInsert: true }
       );
     } else {
-      // Only downgrade if they were made a rider by this flow.
-      if (application.user_id) {
-        await User.updateOne(
-          { _id: application.user_id, role: UserRole.RIDER },
-          { role: UserRole.END_USER }
-        );
-      }
-      // Deactivate the linked rider record (keep it for history).
+      // Deactivate the linked rider record — an inactive Rider can no longer
+      // log into or use the rider app. (Role isn't used for riders anymore.)
       await Rider.updateOne({ application_id: application._id }, { status: 'inactive' });
     }
 

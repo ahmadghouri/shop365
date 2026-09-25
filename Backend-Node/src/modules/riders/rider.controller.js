@@ -3,12 +3,21 @@ const Order = require("../orders/order.model");
 const OrderItem = require("../orders/order-item.model");
 const Product = require("../products/product.model");
 const Business = require("../businesses/business.model");
-const User = require("../users/user.model");
-const { UserRole, OrderStatus } = require("../../common/enums");
-const { hashPassword } = require("../../utils/password");
+const { OrderStatus } = require("../../common/enums");
+const { hashPassword, comparePassword } = require("../../utils/password");
+const { generateToken } = require("../../utils/jwt");
 const { uploadToCloudinary } = require("../../utils/cloudinary-upload");
-const { notifyUser } = require("../../services/socket.service");
+const { notifyUser, emitToUser } = require("../../services/socket.service");
 const orderService = require("../orders/order.service");
+
+// Accepts +92XXXXXXXXXX / 03XXXXXXXXX and matches the stored formats.
+function phoneCandidates(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.startsWith("0092")) return [`0${digits.slice(4)}`, `+92${digits.slice(4)}`];
+  if (digits.startsWith("92")) return [`0${digits.slice(2)}`, `+${digits}`];
+  if (digits.startsWith("0")) return [digits, `+92${digits.slice(1)}`];
+  return [digits, `+92${digits}`];
+}
 
 const RIDABLE = [
   OrderStatus.PENDING,
@@ -25,6 +34,41 @@ const RIDER_STATUSES = [
 ];
 
 class RiderController {
+  // ---- Rider/driver app auth ----
+  // Riders never self-register — they are created by an approved rider
+  // application or by a vendor — so this only authenticates users that have an
+  // active linked Rider record, and rejects everyone else.
+  async riderLogin(req, res, next) {
+    try {
+      const { phone_no, password } = req.body;
+      if (!phone_no || !password) {
+        return res
+          .status(422)
+          .json({ message: "Phone number and password are required" });
+      }
+
+      // Riders are a self-contained collection — authenticate against Rider,
+      // not User. Match the phone in any of the stored formats.
+      const rider = await Rider.findOne({
+        phone_no: { $in: phoneCandidates(phone_no) },
+      });
+      if (!rider || !rider.password || !(await comparePassword(password, rider.password))) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      if (rider.status !== "active" || rider.deleted_at) {
+        return res
+          .status(403)
+          .json({ message: "This rider account is no longer active" });
+      }
+
+      const token = generateToken({ rid: rider._id.toString() });
+
+      res.json({ message: "Login Successful", token, data: rider.toJSON() });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // ---- Vendor dashboard CRUD ----
   async index(req, res, next) {
     try {
@@ -71,22 +115,12 @@ class RiderController {
           });
       }
 
-      const existingUser = await User.findOne({ phone_no });
-      if (existingUser) {
-        return res
-          .status(409)
-          .json({ message: "Phone number already registered" });
-      }
-      const existing = await Rider.findOne({
-        business_id: businessId,
-        phone_no,
-      });
+      // Phone is the rider's login identity, so it must be globally unique.
+      const existing = await Rider.findOne({ phone_no });
       if (existing) {
         return res
           .status(409)
-          .json({
-            message: "A rider with this phone already exists for your business",
-          });
+          .json({ message: "A rider with this phone already exists" });
       }
 
       let image = typeof req.body.image === "string" ? req.body.image : "";
@@ -95,21 +129,12 @@ class RiderController {
         image = result.secure_url;
       }
 
-      const user = await User.create({
-        name,
-        phone_no,
-        image,
-        password: await hashPassword(password),
-        role: UserRole.RIDER,
-        business_id: businessId,
-      });
-
       const rider = await Rider.create({
         business_id: businessId,
         kind: kind || "parcel",
-        user_id: user._id,
         name,
         phone_no,
+        password: await hashPassword(password),
         image,
         cnic: cnic || undefined,
         license_no: license_no || undefined,
@@ -157,7 +182,6 @@ class RiderController {
       }
       if (phone_no) {
         const clash = await Rider.findOne({
-          business_id: rider.business_id,
           phone_no,
           _id: { $ne: rider._id },
         });
@@ -167,19 +191,8 @@ class RiderController {
             .json({ message: "Another rider uses this phone" });
         rider.phone_no = phone_no;
       }
+      if (password) rider.password = await hashPassword(password);
       await rider.save();
-
-      if (rider.user_id) {
-        const user = await User.findById(rider.user_id);
-        if (user) {
-          if (name) user.name = name;
-          if (phone_no) user.phone_no = phone_no;
-          if (req.file || req.body.image !== undefined)
-            user.image = rider.image;
-          if (password) user.password = await hashPassword(password);
-          await user.save();
-        }
-      }
 
       res.json({ message: "Rider updated successfully", data: rider.toJSON() });
     } catch (error) {
@@ -209,14 +222,11 @@ class RiderController {
       if (rider.business_id.toString() !== req.user.business_id.toString()) {
         return res.status(403).json({ message: "Not authorized" });
       }
-      await Rider.deleteOne({ _id: rider._id });
-      // Soft-delete the linked login so the rider can no longer sign in, but their order history stays intact
-      if (rider.user_id) {
-        await User.updateOne(
-          { _id: rider.user_id },
-          { deleted_at: new Date() },
-        );
-      }
+      // Soft-delete so the rider can no longer sign in, but their order
+      // history (Order.rider_id) stays intact.
+      rider.status = "inactive";
+      rider.deleted_at = new Date();
+      await rider.save();
       res.json({ message: "Rider removed successfully" });
     } catch (error) {
       next(error);
@@ -226,26 +236,33 @@ class RiderController {
   // ---- Rider mobile app ----
   async riderOrders(req, res, next) {
     try {
-      const businessId = req.user.business_id;
-      if (!businessId)
-        return res
-          .status(403)
-          .json({ message: "No business linked to this rider" });
+      const businessId = req.rider.business_id;
+      const riderId = req.rider._id;
 
-      const products = await Product.find({
-        business_id: businessId,
-        deleted_at: null,
-      }).select("_id");
-      const orderItems = await OrderItem.find({
-        product_id: { $in: products.map((p) => p._id) },
-      }).select("order_id");
-      const orderIds = [
-        ...new Set(orderItems.map((oi) => oi.order_id.toString())),
-      ];
-      const orders = await Order.find({
-        _id: { $in: orderIds },
-        status: { $in: RIDABLE },
-      })
+      let orderFilter;
+      if (businessId) {
+        // Business rider: only orders containing this business's products.
+        const products = await Product.find({
+          business_id: businessId,
+          deleted_at: null,
+        }).select("_id");
+        const orderItems = await OrderItem.find({
+          product_id: { $in: products.map((p) => p._id) },
+        }).select("order_id");
+        const orderIds = [
+          ...new Set(orderItems.map((oi) => oi.order_id.toString())),
+        ];
+        orderFilter = { _id: { $in: orderIds }, status: { $in: RIDABLE } };
+      } else {
+        // Platform rider: the open pool — deliverable orders that are either
+        // unassigned or already assigned to this rider.
+        orderFilter = {
+          status: { $in: RIDABLE },
+          $or: [{ rider_id: null }, { rider_id: riderId }],
+        };
+      }
+
+      const orders = await Order.find(orderFilter)
         .populate({ path: "user_id", select: "name phone_no address" })
         .sort({ createdAt: -1 })
         .limit(50);
@@ -307,20 +324,34 @@ class RiderController {
         path: "product_id",
         select: "business_id",
       });
-      const businessIds = [
-        ...new Set(
-          items
-            .map((i) => i.product_id?.business_id?.toString())
-            .filter(Boolean),
-        ),
-      ];
-      const match = businessIds.includes(String(req.user.business_id));
-      if (!match)
-        return res
-          .status(403)
-          .json({ message: "Not authorized for this order" });
 
-      if (!order.rider_id) order.rider_id = req.user._id;
+      if (req.rider.business_id) {
+        // Business rider: the order must contain one of this business's products.
+        const businessIds = [
+          ...new Set(
+            items
+              .map((i) => i.product_id?.business_id?.toString())
+              .filter(Boolean),
+          ),
+        ];
+        if (!businessIds.includes(String(req.rider.business_id))) {
+          return res
+            .status(403)
+            .json({ message: "Not authorized for this order" });
+        }
+      } else {
+        // Platform rider: may act only on an unassigned order (claiming it) or
+        // one already assigned to them.
+        const assignedToSomeoneElse =
+          order.rider_id && String(order.rider_id) !== String(req.rider._id);
+        if (assignedToSomeoneElse) {
+          return res
+            .status(403)
+            .json({ message: "This order is already assigned to another rider" });
+        }
+      }
+
+      if (!order.rider_id) order.rider_id = req.rider._id;
       const changedAt = new Date();
       order.status = status;
       order.estimated_delivery_at = orderService.estimateDeliveryAt(
@@ -372,6 +403,44 @@ class RiderController {
       }
 
       res.json({ message: "Order status updated", data: order.toJSON() });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Rider pushes its live GPS position. We store it on the rider and, for each
+  // of the rider's in-flight orders, push it to that order's customer so their
+  // tracking screen moves in real time.
+  async riderUpdateLocation(req, res, next) {
+    try {
+      const latitude = Number(req.body.latitude);
+      const longitude = Number(req.body.longitude);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        return res
+          .status(422)
+          .json({ message: "Valid latitude and longitude are required" });
+      }
+
+      const now = new Date();
+      req.rider.location = { latitude, longitude, updated_at: now };
+      await req.rider.save();
+
+      // Orders this rider is currently delivering.
+      const activeOrders = await Order.find({
+        rider_id: req.rider._id,
+        status: { $in: [OrderStatus.PICKED_UP, OrderStatus.OUT_FOR_DELIVERY] },
+      }).select("user_id");
+
+      for (const order of activeOrders) {
+        emitToUser(order.user_id.toString(), "rider_location", {
+          order_id: order._id.toString(),
+          latitude,
+          longitude,
+          updated_at: now.toISOString(),
+        });
+      }
+
+      res.json({ message: "Location updated", data: { latitude, longitude } });
     } catch (error) {
       next(error);
     }

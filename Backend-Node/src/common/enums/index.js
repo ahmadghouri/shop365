@@ -3,7 +3,6 @@ module.exports = {
     END_USER: 'end_user',
     ADMIN: 'admin',
     RESTAURANT_ADMIN: 'restaurant_admin',
-    RIDER: 'rider',
   }),
   OrderStatus: Object.freeze({
     PENDING:          'pending',

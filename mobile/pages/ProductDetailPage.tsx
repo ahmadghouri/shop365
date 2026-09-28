@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
+import { GradientPill } from '@/components/reusable/GradientPill';
 import { QuantitySelector } from '@/components/reusable/QuantitySelector';
 import { ExtrasList, type Extra } from '@/components/product/ExtrasList';
 import { useCartStore } from '@/lib/cartStore';
@@ -243,11 +244,14 @@ export function ProductDetailPage({
                         </Text>
                     </Pressable>
 
-                    <Pressable
-                        className="flex-1 items-center justify-center rounded-full bg-[#EAB308] py-4 active:opacity-80"
-                        onPress={handleBuyNow}
-                    >
-                        <Text className="text-[15px] font-lufga-semibold text-slate-900">Buy Now</Text>
+                    <Pressable className="flex-1 active:opacity-80" onPress={handleBuyNow}>
+                        <GradientPill className="rounded-full">
+                            <View className="flex-1 items-center justify-center py-4">
+                                <Text className="text-[15px] font-lufga-semibold text-slate-900">
+                                    Buy Now
+                                </Text>
+                            </View>
+                        </GradientPill>
                     </Pressable>
                 </View>
             </SafeAreaView>

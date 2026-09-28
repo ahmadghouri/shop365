@@ -47,6 +47,7 @@ type ProfilePageProps = {
     onChangePassword?: () => void;
     onSecurity?: () => void;
     onTheme?: () => void;
+    onReviews?: () => void;
     onRider?: () => void;
     onDriver?: () => void;
 };
@@ -59,6 +60,7 @@ export function ProfilePage({
     onChangePassword,
     onSecurity,
     onTheme,
+    onReviews,
     onRider,
     onDriver,
 }: ProfilePageProps) {
@@ -283,6 +285,7 @@ export function ProfilePage({
                         <ProfileSettingCard
                             icon={<Star size={18} color="#b77900" />}
                             label="My Reviews"
+                            onPress={onReviews}
                         />
                         <ProfileSettingCard
                             icon={<CreditCard size={18} color="#b77900" />}

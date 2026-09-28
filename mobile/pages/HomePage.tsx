@@ -123,9 +123,9 @@ export function HomePage({
                 const imageUri = backendImageUri(product);
                 const businessId = String(
                     product.business_id?._id ||
-                        product.business_id?.id ||
-                        product.business_id ||
-                        groupBusinessId
+                    product.business_id?.id ||
+                    product.business_id ||
+                    groupBusinessId
                 );
                 const storeName =
                     product.business_id?.name ||
@@ -161,7 +161,11 @@ export function HomePage({
                 >
                     <HomeHeader onNotificationPress={onNotificationPress} />
                     <CategoryList categories={categories} onCategoryPress={onCategoryPress} />
-                    <PromoBanner discount="10%" storeName="SHOP365 Mart" />
+                    <PromoBanner
+                        discount="10%"
+                        storeName="SHOP365 Mart"
+                        onTrackPress={onOrdersPress}
+                    />
                     <MonthlyGroceryHomeCard onPress={onListPress} />
                     <TopSellingProducts products={products} onProductPress={onProductPress} />
                     <View className={bottomSpacerHeight} />

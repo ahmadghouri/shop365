@@ -10,7 +10,14 @@ export type PlaceOrderPayload = {
 
 export type OrderItemDetail = {
     _id: string;
-    product_id: { title: string; price: number; image_url?: string; business_id?: { name: string } };
+    product_id: {
+        title: string;
+        price: number;
+        image_url?: string;
+        // business_id is a raw ObjectId string from `.populate('product_id')`,
+        // or a populated object elsewhere — support both for reviews.
+        business_id?: string | { _id?: string; name?: string };
+    };
     quantity: number;
     price: number;
 };
@@ -42,6 +49,10 @@ export type OrderDetail = Order & {
     total_amount: number;
     delivery_charge: number;
     status_history?: { status: string; at: string; _id?: string }[];
+    /** True once the customer has reviewed the vendor for this order. */
+    reviewed?: boolean;
+    /** True once the customer has reviewed the rider for this order. */
+    rider_reviewed?: boolean;
 };
 
 export async function placeOrder(payload: PlaceOrderPayload) {

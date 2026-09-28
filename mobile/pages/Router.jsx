@@ -24,6 +24,7 @@ import { EditProfilePage } from './EditProfilePage';
 import { ChangePasswordPage } from './ChangePasswordPage';
 import { SecurityPage } from '../components/security/SecurityPage';
 import { ThemePage } from './ThemePage';
+import { MyReviewsPage } from './MyReviewsPage';
 import { OrderHistoryPage } from './OrderHistoryPage';
 import { CheckoutPage } from './CheckoutPage';
 import { NotificationPage } from './NotificationPage';
@@ -58,6 +59,7 @@ export function Router() {
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [showSecurity, setShowSecurity] = useState(false);
     const [showTheme, setShowTheme] = useState(false);
+    const [showReviews, setShowReviews] = useState(false);
     const [showRider, setShowRider] = useState(false);
     const { isAuthenticated, loadToken } = useAuthStore();
     const loadCart = useCartStore((s) => s.loadCart);
@@ -220,6 +222,18 @@ export function Router() {
             return <ThemePage onBack={() => setShowTheme(false)} />;
         }
 
+        if (showReviews) {
+            return (
+                <MyReviewsPage
+                    onBack={() => setShowReviews(false)}
+                    onOpenOrder={(orderId) => {
+                        setShowReviews(false);
+                        setTrackingOrder({ _id: orderId });
+                    }}
+                />
+            );
+        }
+
         if (showRider) {
             return <RiderPage onBack={() => setShowRider(false)} />;
         }
@@ -289,6 +303,7 @@ export function Router() {
                             onChangePassword={() => setShowChangePassword(true)}
                             onSecurity={() => setShowSecurity(true)}
                             onTheme={() => setShowTheme(true)}
+                            onReviews={() => setShowReviews(true)}
                             onRider={() => setShowRider(true)}
                         />
                     );

@@ -19,6 +19,7 @@ import {
     ChevronLeft,
     ChevronRight,
     CreditCard,
+    Gift,
     Languages,
     LockKeyhole,
     LogOut,
@@ -27,6 +28,8 @@ import {
     Shield,
     Star,
     Sun,
+    Ticket,
+    UserPlus,
     UserRound,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/lib/authStore';
@@ -47,6 +50,10 @@ type ProfilePageProps = {
     onChangePassword?: () => void;
     onSecurity?: () => void;
     onTheme?: () => void;
+    onReviews?: () => void;
+    onRewards?: () => void;
+    onVouchers?: () => void;
+    onInviteFriends?: () => void;
     onRider?: () => void;
     onDriver?: () => void;
 };
@@ -59,6 +66,10 @@ export function ProfilePage({
     onChangePassword,
     onSecurity,
     onTheme,
+    onReviews,
+    onRewards,
+    onVouchers,
+    onInviteFriends,
     onRider,
     onDriver,
 }: ProfilePageProps) {
@@ -283,6 +294,22 @@ export function ProfilePage({
                         <ProfileSettingCard
                             icon={<Star size={18} color="#b77900" />}
                             label="My Reviews"
+                            onPress={onReviews}
+                        />
+                        <ProfileSettingCard
+                            icon={<Gift size={18} color="#b77900" />}
+                            label="Rewards"
+                            onPress={onRewards}
+                        />
+                        <ProfileSettingCard
+                            icon={<Ticket size={18} color="#b77900" />}
+                            label="Vouchers"
+                            onPress={onVouchers}
+                        />
+                        <ProfileSettingCard
+                            icon={<UserPlus size={18} color="#b77900" />}
+                            label="Invite Friends"
+                            onPress={onInviteFriends}
                         />
                         <ProfileSettingCard
                             icon={<CreditCard size={18} color="#b77900" />}

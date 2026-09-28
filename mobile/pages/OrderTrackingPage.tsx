@@ -10,13 +10,16 @@ import {
 } from 'react-native';
 import { GradientPill } from '@/components/reusable/GradientPill';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
 import { useOrderDetail } from '@/api/orders/useOrderQueries';
-import type { Order } from '@/api/orders/order.service';
+import type { Order, OrderDetail } from '@/api/orders/order.service';
 import { statusToStep } from '@/components/orders/OrderTimeline';
 import { MapBackdrop } from '@/components/orders/tracking/MapBackdrop';
 import { TrackingStepper } from '@/components/orders/tracking/TrackingStepper';
 import { CourierCard } from '@/components/orders/tracking/CourierCard';
+import { TrackingBackButton } from '@/components/orders/tracking/TrackingBackButton';
+import { ReviewPrompt } from '@/components/orders/tracking/ReviewPrompt';
+import { useOrderReview } from '@/components/orders/tracking/useOrderReview';
+import { ReviewModal } from '@/components/orders/ReviewModal';
 import { formatTime, timelineStepToStage } from '@/components/orders/tracking/trackingConstants';
 
 type Props = {
@@ -33,6 +36,9 @@ export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
     // Prefer the freshly fetched detail: it carries the ETA and populated
     // courier that the list payload in `initialOrder` may not have yet.
     const order = (detail as Order | undefined) ?? initialOrder;
+
+    // Post-delivery review flow (vendor + rider), backed by server flags.
+    const review = useOrderReview(order, detail as OrderDetail | undefined);
 
     const status = order?.status ?? 'pending';
     const cancelled = status === 'cancelled';
@@ -132,26 +138,7 @@ export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
             </View>
 
             {/* Back button */}
-            <SafeAreaView
-                edges={['top', 'left']}
-                className="absolute left-0 top-0"
-                pointerEvents="box-none"
-            >
-                <Pressable
-                    className="ml-4 mt-2 flex-row items-center rounded-full bg-[#141414] px-4 py-2.5 active:opacity-80"
-                    style={{
-                        shadowColor: '#000',
-                        shadowOpacity: 0.2,
-                        shadowRadius: 10,
-                        shadowOffset: { width: 0, height: 4 },
-                        elevation: 5,
-                    }}
-                    onPress={onBack}
-                >
-                    <ChevronLeft size={18} color="#fff" />
-                    <Text className="ml-1 text-sm font-lufga-semibold text-white">Back</Text>
-                </Pressable>
-            </SafeAreaView>
+            <TrackingBackButton onBack={onBack} />
 
             {/* Bottom sheet — overlays the map at the bottom and slides away on drag */}
             <Animated.View
@@ -193,8 +180,30 @@ export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
                         riderPhone={riderPhone}
                         riderImage={riderImage}
                     />
+
+                    {/* Rate your order — shown once delivered, only if not yet reviewed */}
+                    {review.delivered ? (
+                        <ReviewPrompt
+                            canReview={review.canReview}
+                            alreadyReviewed={review.alreadyReviewed}
+                            onPress={review.openReview}
+                        />
+                    ) : null}
                 </SafeAreaView>
             </Animated.View>
+
+            {review.canReview ? (
+                <ReviewModal
+                    visible={review.showReview}
+                    orderId={orderId}
+                    businessId={review.needVendorReview ? review.businessId : null}
+                    riderName={order?.rider?.name}
+                    riderImage={order?.rider?.image}
+                    hasRider={review.needRiderReview}
+                    onClose={review.closeReview}
+                    onSubmitted={review.markReviewed}
+                />
+            ) : null}
         </View>
     );
 }

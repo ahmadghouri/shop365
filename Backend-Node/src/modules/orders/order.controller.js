@@ -3,6 +3,8 @@ const Order = require('./order.model');
 const OrderItem = require('./order-item.model');
 const Product = require('../products/product.model');
 const User = require('../users/user.model');
+const Review = require('../reviews/review.model');
+const RiderReview = require('../riders/rider-review.model');
 const { successResponse } = require('../../utils/api-response');
 const { OrderStatus } = require('../../common/enums');
 
@@ -54,6 +56,15 @@ async function show(req, res, next) {
         }
       : null;
     orderObj.rider_id = r ? r._id?.toString() : null;
+
+    // Whether this order's owner has already reviewed the vendor / the rider,
+    // so the app can hide the review option once submitted.
+    const [vendorReview, riderReview] = await Promise.all([
+      Review.exists({ order_id: order._id, user_id: order.user_id?._id || order.user_id }),
+      RiderReview.exists({ order_id: order._id, user_id: order.user_id?._id || order.user_id }),
+    ]);
+    orderObj.reviewed = !!vendorReview;
+    orderObj.rider_reviewed = !!riderReview;
 
     res.json(orderObj);
   } catch (error) { next(error); }

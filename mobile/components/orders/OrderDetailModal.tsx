@@ -22,7 +22,7 @@ export function OrderDetailModal({ orderId, onClose }: Props) {
     return (
         <Modal visible animationType="slide" transparent onRequestClose={onClose}>
             <Pressable className="flex-1 justify-end bg-black/40" onPress={onClose}>
-                <Pressable className="rounded-t-[32px] bg-white px-5 pb-10 pt-4 max-h-[80%]" onPress={() => {}}>
+                <Pressable className="rounded-t-[32px] bg-white px-5 pb-10 pt-4 max-h-[80%]" onPress={() => { }}>
                     {/* Handle */}
                     <View className="w-10 h-1 rounded-full bg-slate-200 self-center mb-4" />
 
@@ -54,7 +54,10 @@ export function OrderDetailModal({ orderId, onClose }: Props) {
                             {(() => {
                                 const groups: Record<string, typeof order.items> = {};
                                 (order.items ?? []).forEach(item => {
-                                    const vendor = item.product_id?.business_id?.name || 'Provider';
+                                    const biz = item.product_id?.business_id;
+                                    const vendor =
+                                        (typeof biz === 'object' ? biz?.name : undefined) ||
+                                        'Provider';
                                     if (!groups[vendor]) groups[vendor] = [];
                                     groups[vendor].push(item);
                                 });

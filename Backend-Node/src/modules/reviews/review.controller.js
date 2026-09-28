@@ -1,5 +1,41 @@
 const Review = require('./review.model');
 const Order = require('../orders/order.model');
+const RiderReview = require('../riders/rider-review.model');
+
+// Customer rates the rider who delivered their order.
+async function storeRiderReview(req, res, next) {
+  try {
+    const { order_id, rating, comments } = req.body;
+    if (!order_id || !rating) {
+      return res.status(422).json({ message: 'order_id and rating are required' });
+    }
+
+    const order = await Order.findById(order_id).select('user_id rider_id status');
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.user_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not your order' });
+    }
+    if (!order.rider_id) {
+      return res.status(422).json({ message: 'This order has no rider to review' });
+    }
+
+    const existing = await RiderReview.findOne({ order_id, user_id: req.user._id });
+    if (existing) {
+      return res.status(422).json({ message: 'You have already reviewed this rider.' });
+    }
+
+    await RiderReview.create({
+      rider_id: order.rider_id,
+      user_id: req.user._id,
+      order_id,
+      rating,
+      comments: comments || '',
+    });
+    res.json({ message: 'Rider review submitted successfully.' });
+  } catch (error) {
+    next(error);
+  }
+}
 
 async function store(req, res, next) {
   try {
@@ -77,4 +113,4 @@ async function destroy(req, res, next) {
   } catch (error) { next(error); }
 }
 
-module.exports = { store, index, getReviews, reply, destroy };
+module.exports = { store, storeRiderReview, index, getReviews, reply, destroy };

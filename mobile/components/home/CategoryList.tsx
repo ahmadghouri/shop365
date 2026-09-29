@@ -25,7 +25,7 @@ export function CategoryList({ categories, onCategoryPress }: CategoryListProps)
         : isTinyScreen
             ? 'w-32'
             : isSmallScreen
-                ? 'w-38'
+                ? 'w-32'
                 : 'w-40';
     const cardMinHeight = isUltraTinyScreen
         ? 'min-h-[88px]'

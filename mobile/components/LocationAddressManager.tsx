@@ -106,7 +106,7 @@ export function LocationAddressManager({ onAddressSelected, onAddressChanged }: 
           addressText =
             [street, area, city].filter(Boolean).join(", ") || "Live Location";
         }
-      } catch {}
+      } catch { }
       createMutation.mutate({
         label: "Live Location",
         address: addressText,
@@ -200,11 +200,15 @@ export function LocationAddressManager({ onAddressSelected, onAddressChanged }: 
         {/* Add New Address */}
         <GradientPill className="rounded-full h-12 mt-2">
           <Pressable
-            className="flex-1 flex-row items-center justify-center active:opacity-80"
+            className="flex-1 flex-row items-center justify-center px-4 active:opacity-80"
             onPress={openAdd}
           >
             <Plus size={16} color="#111827" />
-            <Text className="ml-2 text-sm font-lufga-semibold text-slate-900">
+            <Text
+              className="ml-2 text-sm font-lufga-semibold text-slate-900"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               Add New Address
             </Text>
           </Pressable>

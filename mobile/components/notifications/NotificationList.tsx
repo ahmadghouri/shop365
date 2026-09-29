@@ -1,4 +1,4 @@
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Text, View, useWindowDimensions } from "react-native";
 import { Bell } from "lucide-react-native";
 import { AppColors } from "@/components/reusable/colors";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
@@ -15,16 +15,24 @@ export function NotificationList({
   loading,
   onItemPress,
 }: NotificationListProps) {
+  const { width } = useWindowDimensions();
+  const isSmall = width < 380;
   const unread = notifications.filter((n) => !n.read);
   const read = notifications.filter((n) => n.read);
 
   if (notifications.length === 0 && !loading) {
     return (
-      <View className="items-center justify-center pt-32">
-        <View className="h-20 w-20 items-center justify-center rounded-full bg-amber-50 mb-4">
-          <Bell size={36} color={AppColors.yellow} />
+      <View className="items-center justify-center px-6 pt-32">
+        <View
+          className={`items-center justify-center rounded-full bg-amber-50 mb-4 ${isSmall ? "h-16 w-16" : "h-20 w-20"
+            }`}
+        >
+          <Bell size={isSmall ? 30 : 36} color={AppColors.yellow} />
         </View>
-        <Text className="text-lg font-lufga-semibold text-slate-700">
+        <Text
+          className={`font-lufga-semibold text-slate-700 ${isSmall ? "text-base" : "text-lg"
+            }`}
+        >
           All caught up!
         </Text>
         <Text className="mt-1 text-sm font-lufga text-slate-400 text-center">

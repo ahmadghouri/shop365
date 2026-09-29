@@ -6,6 +6,7 @@ const Business = require("../businesses/business.model");
 const Voucher = require("../vouchers/voucher.model");
 const VoucherUsage = require("../vouchers/voucher-usage.model");
 const Perscription = require("../perscriptions/perscription.model");
+const Address = require("../addresses/address.model");
 const User = require("../users/user.model");
 const Rider = require("../riders/rider.model");
 const { getPaginationParams } = require("../../utils/pagination");
@@ -97,6 +98,19 @@ class OrderService {
       }
     }
 
+    // Resolve the delivery address chosen at checkout. Fall back to the user's
+    // active address so older clients that don't send address_id still work.
+    let chosenAddress = null;
+    if (data.address_id) {
+      chosenAddress = await Address.findOne({
+        _id: data.address_id,
+        user_id: userId,
+      });
+    }
+    if (!chosenAddress) {
+      chosenAddress = await Address.findOne({ user_id: userId, is_active: true });
+    }
+
     const orders = [];
     // Pass 1: validate all groups before creating anything
     for (const [businessId, group] of Object.entries(groups)) {
@@ -147,6 +161,7 @@ class OrderService {
         total_price: total,
         delivery_fee: deliveryFee,
         voucher_id: voucher?._id,
+        address_id: chosenAddress?._id || null,
         estimated_delivery_at: estimateDeliveryAt("pending", placedAt),
         status_history: [{ status: "pending", at: placedAt }],
       });
@@ -246,7 +261,8 @@ class OrderService {
         populate: { path: "product_id", populate: { path: "business_id" } },
       })
       .populate("user_id")
-      .populate({ path: "rider_id", select: "name phone_no image" });
+      .populate({ path: "rider_id", select: "name phone_no image" })
+      .populate({ path: "address_id" });
     if (!order)
       throw Object.assign(new Error("Order not found"), { statusCode: 404 });
     return order;
@@ -276,6 +292,7 @@ class OrderService {
           populate: { path: "household_id", populate: { path: "town_id" } },
         })
         .populate({ path: "rider_id", select: "name phone_no image" })
+        .populate({ path: "address_id" })
         .sort({ createdAt: -1 }),
       Order.countDocuments(filter),
     ]);
@@ -310,6 +327,18 @@ class OrderService {
               name: r.name,
               phone_no: r.phone_no,
               image: r.image || "",
+            }
+          : null,
+        // Address the customer picked at checkout (falls back to household below).
+        delivery_address: o.address_id
+          ? {
+              label: o.address_id.label || "",
+              address: o.address_id.address || "",
+              street: o.address_id.street || "",
+              area: o.address_id.area || "",
+              city: o.address_id.city || "",
+              latitude: o.address_id.latitude ?? null,
+              longitude: o.address_id.longitude ?? null,
             }
           : null,
         user: {

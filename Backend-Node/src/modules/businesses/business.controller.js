@@ -10,7 +10,27 @@ const { getPaginationParams, paginateResponse } = require('../../utils/paginatio
 
 async function index(req, res, next) {
   try {
+    // Optionally filter providers by category. Mirror the products endpoint:
+    // match on category_id, and fall back to legacy providers that only have
+    // the matching `type` string (category_id unset).
+    let match = null;
+    if (req.query.category_id && mongoose.isValidObjectId(req.query.category_id)) {
+      const catId = new mongoose.Types.ObjectId(req.query.category_id);
+      const category = await Category.findById(catId).select('name');
+      match = {
+        $or: [
+          { category_id: catId },
+          ...(category?.name
+            ? [{ category_id: null, type: category.name }]
+            : []),
+        ],
+      };
+    } else if (req.query.type) {
+      match = { type: req.query.type };
+    }
+
     const businesses = await Business.aggregate([
+      ...(match ? [{ $match: match }] : []),
       {
         $lookup: {
           from: 'reviews',

@@ -1,0 +1,32 @@
+# ---- Poore project ko ek command se chalane ke liye ----
+# Command (isi root folder se):  docker compose up --build
+# Rokne ke liye:                  Ctrl+C   ya   docker compose down
+#
+# 2 services banti hain:
+#   - api : Backend-Node (Express API)
+#   - web : Frontend (Vue) — build karke serve
+
+services:
+  api:
+    # Backend-Node folder ke Dockerfile se image banao.
+    build: ./Backend-Node
+    container_name: shop365-api
+    # Backend-Node/.env ke saare variables (MONGODB_URI, JWT_SECRET, PORT, etc.)
+    env_file:
+      - ./Backend-Node/.env
+    # "computer ka port : container ke andar ka port"
+    # Browser: http://localhost:8000/health
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  web:
+    # Frontend folder ke Dockerfile se image banao.
+    build: ./Frontend
+    container_name: shop365-frontend
+    # Browser: http://localhost:8080
+    ports:
+      - "8080:4173"
+    depends_on:
+      - api
+    restart: unless-stopped

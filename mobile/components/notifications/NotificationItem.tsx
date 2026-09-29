@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, useWindowDimensions } from "react-native";
 import LottieView from "lottie-react-native";
 import { useEffect, useRef } from "react";
 import { Bell, ShoppingBag, Star, Tag, Truck, ShieldAlert } from "lucide-react-native";
@@ -56,6 +56,8 @@ function LottieIcon({
 }
 
 export function NotificationItem({ notif, onPress }: NotificationItemProps) {
+  const { width } = useWindowDimensions();
+  const isSmall = width < 380;
   const { Icon, bg, color } = TYPE_META[notif.type as NotifType] ?? TYPE_META.general;
   const text = `${notif.title ?? ""} ${notif.body ?? ""}`.toLowerCase();
   const bizType = notif.metadata?.business_type?.toLowerCase();
@@ -118,26 +120,27 @@ export function NotificationItem({ notif, onPress }: NotificationItemProps) {
         variant="light"
         className={`rounded-2xl mb-3 w-full ${notif.read ? "opacity-70" : ""}`}
       >
-        <View className="flex-row items-start px-4 py-4">
+        <View className={`flex-row items-start ${isSmall ? "px-3 py-3" : "px-4 py-4"}`}>
           {lottieSource ? (
             <View
               style={{
-                width: 48,
-                height: 48,
-                marginRight: 12,
+                width: isSmall ? 42 : 48,
+                height: isSmall ? 42 : 48,
+                marginRight: isSmall ? 10 : 12,
                 marginTop: 2,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <LottieIcon source={lottieSource} size={lottieSize} />
+              <LottieIcon source={lottieSource} size={isSmall ? lottieSize - 4 : lottieSize} />
             </View>
           ) : (
             <View
               style={{ backgroundColor: bg }}
-              className="h-11 w-11 items-center justify-center rounded-2xl mr-3 mt-0.5"
+              className={`items-center justify-center rounded-2xl mt-0.5 ${isSmall ? "h-10 w-10 mr-2.5" : "h-11 w-11 mr-3"
+                }`}
             >
-              <Icon size={20} color={color} />
+              <Icon size={isSmall ? 18 : 20} color={color} />
             </View>
           )}
           <View className="flex-1">

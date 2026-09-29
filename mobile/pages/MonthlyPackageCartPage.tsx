@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, MapPin, Minus, Plus, Store, Ticket, Trash2 } from 'lucide-react-native';
+import { ChevronLeft, MapPin } from 'lucide-react-native';
 import { AppBackground } from '@/components/AppBackground';
 import { LocationAddressManager } from '@/components/LocationAddressManager';
-import { GradientPill } from '@/components/reusable/GradientPill';
+import { CartItem, type CartItemType } from '@/components/cart/CartItem';
+import { CartCheckoutBar } from '@/components/cart/CartCheckoutBar';
 import {
     getMonthlyProductImage,
     updateMonthlyGroceryAddress,
@@ -29,7 +30,6 @@ function itemPrice(item: MonthlyGroceryItem) {
 }
 
 export function MonthlyPackageCartPage({ card, onBack }: MonthlyPackageCartPageProps) {
-    const [coupon, setCoupon] = useState('');
     const linkedAddress = typeof card.address_id === 'object' && card.address_id ? card.address_id : null;
     const linkedAddressId = linkedAddress?._id || (typeof card.address_id === 'string' ? card.address_id : null);
     const [showAddressModal, setShowAddressModal] = useState(false);
@@ -51,15 +51,7 @@ export function MonthlyPackageCartPage({ card, onBack }: MonthlyPackageCartPageP
     const iconSize = isTiny ? 18 : isSmall ? 20 : 23;
     const headerTitleSize = isTiny ? 18 : isSmall ? 20 : 24;
     const headerSubSize = isTiny ? 10 : 12;
-    const thumbSize = isTiny ? 68 : isSmall ? 72 : 80;
-    const productTitleSize = isTiny ? 13 : isSmall ? 14 : 15;
-    const productPriceSize = isTiny ? 13 : isSmall ? 14 : 16;
-    const qtyBtnSize = isTiny ? 26 : 28;
-    const qtyIconSize = isTiny ? 12 : 14;
     const summaryFontSize = isTiny ? 12 : isSmall ? 13 : 14;
-    const checkoutBarPb = isTiny ? 16 : isSmall ? 20 : 28;
-    const checkoutBtnHeight = isTiny ? 50 : isSmall ? 52 : 56;
-    const checkoutFontSize = isTiny ? 13 : isSmall ? 14 : 16;
 
     const handleAddressSelected = async (address: Address) => {
         try {
@@ -124,113 +116,35 @@ export function MonthlyPackageCartPage({ card, onBack }: MonthlyPackageCartPageP
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingHorizontal: pad, paddingTop: isTiny ? 14 : 20, gap: isTiny ? 12 : 16 }}
                 >
-                    {/* ── Item cards ── */}
+                    {/* ── Item cards (shared CartItem, same as My Cart) ── */}
                     {card.items.map((item) => {
                         const product = item.product_id;
                         if (!product) return null;
                         const imageUri = getMonthlyProductImage(product);
+                        const unitPrice = Number(product.final_price ?? product.price ?? 0);
+                        const cartItem: CartItemType = {
+                            id: item._id,
+                            productId: String(product._id ?? product.id ?? item._id),
+                            name: product.title,
+                            store: product.business_id?.name || 'Grocery Provider',
+                            price: item.variant?.price || unitPrice,
+                            quantity: item.quantity,
+                            imageUri: imageUri || undefined,
+                            extras: [],
+                            variant: item.variant?.name
+                                ? { name: item.variant.name, price: item.variant.price ?? unitPrice }
+                                : undefined,
+                        };
                         return (
-                            <View key={item._id} style={{ padding: isTiny ? 10 : 12 }} className="rounded-3xl bg-white">
-                                {/* Vendor row */}
-                                <View style={{ marginBottom: isTiny ? 10 : 12, paddingBottom: isTiny ? 10 : 12 }} className="flex-row items-center border-b border-slate-100">
-                                    <View
-                                        style={{ height: isTiny ? 30 : 32, width: isTiny ? 30 : 32 }}
-                                        className="items-center justify-center rounded-xl bg-amber-100"
-                                    >
-                                        <Store size={isTiny ? 14 : 16} color="#b77900" />
-                                    </View>
-                                    <Text style={{ fontSize: isTiny ? 11 : 13, marginLeft: isTiny ? 6 : 8 }} className="flex-1 font-lufga-semibold text-slate-800" numberOfLines={1}>
-                                        {product.business_id?.name || 'Grocery Provider'}
-                                    </Text>
-                                </View>
-
-                                {/* Product row */}
-                                <View className="flex-row items-center">
-                                    <View
-                                        style={{ height: thumbSize, width: thumbSize }}
-                                        className="items-center justify-center overflow-hidden rounded-2xl bg-slate-100"
-                                    >
-                                        {imageUri ? (
-                                            <Image source={{ uri: imageUri }} style={{ width: thumbSize, height: thumbSize }} resizeMode="contain" />
-                                        ) : (
-                                            <Text style={{ fontSize: isTiny ? 20 : 24 }}>🛒</Text>
-                                        )}
-                                    </View>
-
-                                    <View style={{ marginLeft: isTiny ? 10 : 12 }} className="flex-1">
-                                        <Text style={{ fontSize: productTitleSize }} className="font-lufga-semibold text-slate-900" numberOfLines={1}>
-                                            {product.title}
-                                        </Text>
-                                        <Text style={{ fontSize: isTiny ? 10 : 12, marginTop: 2 }} className="font-lufga text-slate-400" numberOfLines={1}>
-                                            {product.business_id?.name || 'Grocery Provider'}
-                                        </Text>
-                                        <Text style={{ fontSize: productPriceSize, marginTop: isTiny ? 6 : 8 }} className="font-lufga-semibold text-slate-900">
-                                            Rs {itemPrice(item).toLocaleString()}
-                                        </Text>
-                                    </View>
-
-                                    <View style={{ marginLeft: 8 }} className="items-center gap-2">
-                                        <Pressable
-                                            accessibilityLabel={`Remove ${product.title}`}
-                                            className="active:opacity-60"
-                                            onPress={() => removeItem.mutate({ cardId: card._id, itemId: item._id })}
-                                        >
-                                            <Trash2 size={isTiny ? 15 : 18} color="#ef4444" />
-                                        </Pressable>
-                                        <View className="flex-row items-center rounded-full bg-slate-100 p-1">
-                                            <Pressable
-                                                disabled={item.quantity <= 1 || updateItem.isPending}
-                                                style={{ height: qtyBtnSize, width: qtyBtnSize }}
-                                                className="items-center justify-center rounded-full bg-white disabled:opacity-40"
-                                                onPress={() => changeQuantity(item, item.quantity - 1)}
-                                            >
-                                                <Minus size={qtyIconSize} color="#1e293b" strokeWidth={2.5} />
-                                            </Pressable>
-                                            <Text style={{ fontSize: isTiny ? 12 : 14, minWidth: isTiny ? 14 : 16 }} className="text-center font-lufga-medium text-slate-900">
-                                                {item.quantity}
-                                            </Text>
-                                            <Pressable
-                                                disabled={updateItem.isPending}
-                                                style={{ height: qtyBtnSize, width: qtyBtnSize }}
-                                                className="items-center justify-center rounded-full bg-[#EAB308] disabled:opacity-50"
-                                                onPress={() => changeQuantity(item, item.quantity + 1)}
-                                            >
-                                                <Plus size={qtyIconSize} color="#111827" strokeWidth={2.5} />
-                                            </Pressable>
-                                        </View>
-                                    </View>
-                                </View>
-                            </View>
+                            <CartItem
+                                key={item._id}
+                                item={cartItem}
+                                showVendor
+                                onRemove={() => removeItem.mutate({ cardId: card._id, itemId: item._id })}
+                                onUpdateQuantity={(_id, quantity) => changeQuantity(item, quantity)}
+                            />
                         );
                     })}
-
-                    {/* ── Coupon ── */}
-                    <View style={{ padding: isTiny ? 10 : 12 }} className="flex-row items-center rounded-[24px] bg-white">
-                        <View
-                            style={{ height: isTiny ? 38 : 44, width: isTiny ? 38 : 44 }}
-                            className="items-center justify-center rounded-xl bg-pink-50"
-                        >
-                            <Ticket size={isTiny ? 17 : 20} color="#ec4899" />
-                        </View>
-                        <TextInput
-                            style={{ marginLeft: isTiny ? 8 : 12, fontSize: isTiny ? 12 : 14 }}
-                            className="flex-1 font-lufga text-slate-950"
-                            value={coupon}
-                            onChangeText={setCoupon}
-                            placeholder="Add coupon code"
-                            placeholderTextColor="#94a3b8"
-                            autoCapitalize="characters"
-                        />
-                        <Pressable
-                            style={{ paddingHorizontal: isTiny ? 14 : 20, paddingVertical: isTiny ? 10 : 12 }}
-                            className="rounded-xl bg-[#171717]"
-                            onPress={() => Alert.alert('Coupon', coupon.trim() ? 'Coupon will be verified at checkout.' : 'Enter a coupon code first.')}
-                        >
-                            <Text style={{ fontSize: isTiny ? 12 : 14 }} className="font-lufga-bold text-white">
-                                Apply
-                            </Text>
-                        </Pressable>
-                    </View>
 
                     {/* ── Order summary ── */}
                     <View style={{ padding: isTiny ? 14 : isSmall ? 16 : 20 }} className="rounded-3xl bg-white/90">
@@ -260,26 +174,13 @@ export function MonthlyPackageCartPage({ card, onBack }: MonthlyPackageCartPageP
                     <View style={{ height: isTiny ? 90 : 110 }} />
                 </ScrollView>
 
-                {/* ── Checkout bar ── */}
-                <View
-                    style={{ paddingHorizontal: pad, paddingBottom: checkoutBarPb, paddingTop: isTiny ? 10 : 12 }}
-                    className="absolute bottom-0 left-0 right-0 border-t border-slate-100 bg-white"
-                >
-                    <GradientPill style={{ height: checkoutBtnHeight }} className="rounded-2xl">
-                        <Pressable
-                            style={{ paddingHorizontal: isTiny ? 16 : 20 }}
-                            className="flex-1 flex-row items-center justify-between active:opacity-85"
-                            onPress={() => Alert.alert('Monthly Package Checkout', `${card.name} is ready for checkout.`)}
-                        >
-                            <Text style={{ fontSize: checkoutFontSize }} className="font-lufga-bold text-slate-950">
-                                Proceed to checkout
-                            </Text>
-                            <Text style={{ fontSize: checkoutFontSize }} className="font-lufga-bold text-slate-950">
-                                Rs {total.toLocaleString()} →
-                            </Text>
-                        </Pressable>
-                    </GradientPill>
-                </View>
+                {/* ── Checkout bar (same as My Cart) ── */}
+                <CartCheckoutBar
+                    total={total}
+                    onCheckout={() =>
+                        Alert.alert('Monthly Package Checkout', `${card.name} is ready for checkout.`)
+                    }
+                />
             </SafeAreaView>
 
             {/* ── Address modal ── */}

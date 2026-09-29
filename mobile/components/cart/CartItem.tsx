@@ -1,5 +1,5 @@
 import { Image, Pressable, Text, View } from 'react-native';
-import { ListPlus, Trash2 } from 'lucide-react-native';
+import { Store, Trash2 } from 'lucide-react-native';
 import { QuantitySelector } from '@/components/reusable/QuantitySelector';;
 
 type Extra = {
@@ -32,6 +32,8 @@ type CartItemProps = {
     item: CartItemType;
     selectedCardId?: string;
     isAdding?: boolean;
+    /** Show a vendor header row (Store icon + shop name) above the product. */
+    showVendor?: boolean;
     onRemove: (id: string) => void;
     onUpdateQuantity: (id: string, quantity: number) => void;
     onAddToMonthly?: (productId: string, quantity: number) => void;
@@ -41,6 +43,7 @@ export function CartItem({
     item,
     selectedCardId,
     isAdding = false,
+    showVendor = false,
     onRemove,
     onUpdateQuantity,
     onAddToMonthly,
@@ -48,10 +51,24 @@ export function CartItem({
     const source = item.imageUri ? { uri: item.imageUri } : item.image;
     const extrasTotal = item.extras.reduce((sum, extra) => sum + extra.price, 0);
     const itemTotal = (item.price + extrasTotal) * item.quantity;
-    const isGroceryProvider = item.providerType?.trim().toLowerCase() === 'grocery';
 
     return (
         <View className="rounded-xl bg-white/50 border border-white p-3">
+            {/* Vendor header (shop icon + name) */}
+            {showVendor && (
+                <View className="mb-2.5 flex-row items-center border-b border-white pb-2.5">
+                    <View className="h-8 w-8 items-center justify-center rounded-xl bg-amber-100">
+                        <Store size={16} color="#b77900" />
+                    </View>
+                    <Text
+                        className="ml-2 flex-1 text-[13px] font-lufga-semibold text-slate-800"
+                        numberOfLines={1}
+                    >
+                        {item.store}
+                    </Text>
+                </View>
+            )}
+
             {/* Main row */}
             <View className="flex-row items-center">
                 {/* Image */}

@@ -1,4 +1,4 @@
-import { RefreshControl, ScrollView } from "react-native";
+import { RefreshControl, ScrollView, useWindowDimensions } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppBackground } from "@/components/AppBackground";
@@ -38,6 +38,9 @@ export function NotificationPage({
     appendNotifications,
   } = useNotificationStore();
   const count = unreadCount();
+
+  const { width } = useWindowDimensions();
+  const isSmall = width < 380;
 
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -121,7 +124,7 @@ export function NotificationPage({
         />
 
         <ScrollView
-          className="flex-1 px-5"
+          className={`flex-1 ${isSmall ? "px-3.5" : "px-5"}`}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl

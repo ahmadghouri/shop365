@@ -6,6 +6,7 @@ const User = require('../users/user.model');
 const { successResponse } = require('../../utils/api-response');
 const { getPaginationParams, paginateResponse } = require('../../utils/pagination');
 const { uploadToCloudinary } = require('../../utils/cloudinary-upload');
+const { notifyCustomers } = require('../../services/socket.service');
 
 function normalizeProductOptions(input, label) {
   let options = input;
@@ -291,11 +292,36 @@ async function addProduct(req, res, next) {
 async function updateDiscount(req, res, next) {
   try {
     const businessId = req.user.business_id;
-    const discount = req.body.discount;
+    const discount = Number(req.body.discount);
+    if (Number.isNaN(discount) || discount < 0 || discount > 100) {
+      return res.status(422).json({ message: 'Discount must be a number between 0 and 100.' });
+    }
     await Product.updateMany({ business_id: businessId }, { discount });
-    const Business = require('../businesses/business.model');
-    await Business.findByIdAndUpdate(businessId, { discount });
-    successResponse(res, null, 'Discount updated successfully');
+    const business = await Business.findByIdAndUpdate(
+      businessId,
+      { discount },
+      { new: true }
+    );
+
+    // Tell every customer about the new store-wide discount (only when it's a
+    // real discount, not when clearing it to 0).
+    if (discount > 0) {
+      const storeName = business?.name || 'A store';
+      notifyCustomers({
+        type: 'promo',
+        title: `${discount}% OFF at ${storeName} 🎉`,
+        body: `${storeName} is offering ${discount}% off on all products. Order now!`,
+        metadata: { business_name: storeName, discount },
+      });
+    }
+
+    // Return the applied discount so the dashboard can render the "current
+    // discount" card without a follow-up request.
+    successResponse(
+      res,
+      { discount, created_at: new Date().toISOString() },
+      'Discount updated successfully'
+    );
   } catch (error) { next(error); }
 }
 
@@ -321,6 +347,20 @@ async function applyDiscountToProduct(req, res, next) {
     product.discount = discount;
     product.discount_type = discountType;
     await product.save();
+
+    // Notify customers about this product's discount.
+    if (discount > 0) {
+      const business = await Business.findById(product.business_id).select('name').lean();
+      const storeName = business?.name || 'A store';
+      const label = discountType === 'percentage' ? `${discount}% OFF` : `Rs ${discount} OFF`;
+      notifyCustomers({
+        type: 'promo',
+        title: `${label} on ${product.title} 🎉`,
+        body: `${product.title} at ${storeName} now has ${label}. Grab it now!`,
+        metadata: { business_name: storeName, discount },
+      });
+    }
+
     successResponse(res, product, 'Discount applied to the product');
   } catch (error) { next(error); }
 }

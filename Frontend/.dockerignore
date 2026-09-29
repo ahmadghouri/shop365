@@ -1,0 +1,12 @@
+# Ye cheezein Docker image ke andar copy NAHI hongi.
+node_modules
+dist
+cordova-app/www
+cordova-app/platforms
+cordova-app/plugins
+.git
+.gitignore
+Dockerfile
+.dockerignore
+DOCKER.md
+*.log

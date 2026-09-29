@@ -5,7 +5,9 @@ export const productApi = {
   getAll: (params) => http.get(ENDPOINTS.PRODUCTS, { params }),
   getById: (id, params) => http.get(ENDPOINTS.PRODUCT(id), { params }),
   create: (data) => http.post(ENDPOINTS.PRODUCTS, data),
-  update: (id, data) => http.put(ENDPOINTS.PRODUCT(id), data),
+  update: (id, data) => http.put(ENDPOINTS.PRODUCT(id), data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
   delete: (id) => http.delete(ENDPOINTS.PRODUCT(id)),
   updateStatus: (id, data) => http.post(ENDPOINTS.PRODUCT_STATUS(id), data),
   getBusinessProducts: (businessId, params) => http.get(ENDPOINTS.BUSINESS_PRODUCTS(businessId), { params }),

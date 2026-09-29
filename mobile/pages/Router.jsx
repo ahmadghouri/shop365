@@ -16,6 +16,7 @@ import {
 } from '../lib/socketService';
 import { HomePage } from './HomePage';
 import { CategoryDetailPage } from './CategoryDetailPage';
+import { ProviderDetailPage } from './ProviderDetailPage';
 import { BackendProductDetailPage } from './BackendProductDetailPage';
 import { CartPage } from './CartPage';
 import { MonthlyGroceryPage } from './MonthlyGroceryPage';
@@ -47,6 +48,7 @@ import {
 export function Router() {
     const [screen, setScreen] = useState('Splash');
     const [activeCategory, setActiveCategory] = useState(null);
+    const [activeProvider, setActiveProvider] = useState(null);
     const [activeProduct, setActiveProduct] = useState(null);
     const [activeTab, setActiveTab] = useState('home');
     const [showCheckout, setShowCheckout] = useState(false);
@@ -238,6 +240,25 @@ export function Router() {
             return <RiderPage onBack={() => setShowRider(false)} />;
         }
 
+        if (activeProvider) {
+            return (
+                <View style={{ flex: 1 }}>
+                    <ProviderDetailPage
+                        businessId={String(activeProvider.id)}
+                        initialName={activeProvider.name}
+                        onBack={() => setActiveProvider(null)}
+                        onProductPress={(product) => setActiveProduct(product)}
+                    />
+                    <FloatingCartBar
+                        onPress={() => {
+                            setActiveProvider(null);
+                            setActiveTab('cart');
+                        }}
+                    />
+                </View>
+            );
+        }
+
         if (activeCategory) {
             return (
                 <View style={{ flex: 1 }}>
@@ -247,6 +268,7 @@ export function Router() {
                         subtitle={activeCategory.subtitle}
                         onBack={() => setActiveCategory(null)}
                         onProductPress={(product) => setActiveProduct(product)}
+                        onProviderPress={(provider) => setActiveProvider(provider)}
                     />
                     <FloatingCartBar
                         onPress={() => {

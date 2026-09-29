@@ -1,0 +1,11 @@
+# Ye cheezein Docker image ke andar copy NAHI hongi (image chhoti + tez rehti hai).
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+Dockerfile
+.dockerignore
+DOCKER.md
+*.log

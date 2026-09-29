@@ -4,7 +4,7 @@ const logger = require("../config/logger");
 const { verifyToken } = require("../utils/jwt");
 const Notification = require("../modules/notifications/notification.model");
 const User = require("../modules/users/user.model");
-const { sendExpoPush } = require("./expo-push.service");
+const { sendExpoPush, sendExpoPushBulk } = require("./expo-push.service");
 
 /** @type {Server} */
 let io;
@@ -168,4 +168,64 @@ function notifyUser(userId, payload) {
     });
 }
 
-module.exports = { initSocket, notifyUser };
+/**
+ * Broadcast a notification to every customer (end user):
+ *  - persist one Notification per user (so it shows on their notifications page),
+ *  - emit a live socket event to anyone currently connected,
+ *  - send a bulk Expo push to those with a registered device token.
+ * Runs in the background; failures are logged, never thrown.
+ * @param {{ title: string, body: string, type?: string, reference_id?: any, reference_type?: string, metadata?: any }} payload
+ */
+async function notifyCustomers(payload) {
+  try {
+    // Notify everyone — customers, admins, and business/restaurant admins.
+    const users = await User.find({ deleted_at: null })
+      .select("_id expo_push_token")
+      .lean();
+
+    logger.info(`notifyCustomers: found ${users.length} users to notify`);
+    if (!users.length) return;
+
+    const docs = users.map((u) => ({
+      user_id: u._id,
+      type: payload.type || "general",
+      title: payload.title || "",
+      body: payload.body || "",
+      // reference_id is an ObjectId in the schema; only set it when we actually
+      // have one, otherwise leave it out to avoid a cast error.
+      ...(payload.reference_id ? { reference_id: payload.reference_id } : {}),
+      reference_type: payload.reference_type || "",
+      metadata: payload.metadata || undefined,
+    }));
+
+    // Persist all notifications in one round-trip. Let Mongoose set timestamps.
+    const created = await Notification.insertMany(docs, { ordered: false });
+    logger.info(`notifyCustomers: saved ${created.length} notifications`);
+
+    // Live socket emit to connected users (match single-user emit shape).
+    if (io) {
+      created.forEach((notif) => {
+        io.to(`user:${String(notif.user_id)}`).emit("notification", {
+          id: String(notif._id),
+          type: notif.type,
+          title: notif.title,
+          body: notif.body,
+          time: "Just now",
+          read: false,
+          reference_id: notif.reference_id ? String(notif.reference_id) : undefined,
+          reference_type: notif.reference_type || undefined,
+          metadata: notif.metadata || undefined,
+        });
+      });
+    }
+
+    // Bulk push to devices that have a token.
+    const tokens = users.map((u) => u.expo_push_token).filter(Boolean);
+    logger.info(`notifyCustomers: sending push to ${tokens.length} devices`);
+    await sendExpoPushBulk(tokens, payload);
+  } catch (err) {
+    logger.error(`notifyCustomers failed: ${err.message}`, err.stack);
+  }
+}
+
+module.exports = { initSocket, notifyUser, notifyCustomers };

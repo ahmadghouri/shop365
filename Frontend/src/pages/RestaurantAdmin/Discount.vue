@@ -12,14 +12,8 @@
           <form @submit.prevent="applyDiscount" class="space-y-4">
             <div class="space-y-2">
               <Label>Discount Percentage</Label>
-              <Input
-                v-model.number="discount"
-                type="number"
-                :min="0"
-                :max="100"
-                placeholder="Enter percentage (0-100)"
-                required
-              />
+              <Input v-model.number="discount" type="number" :min="0" :max="100" placeholder="Enter percentage (0-100)"
+                required />
               <p class="text-sm text-muted-foreground">{{ discountPlaceholder }}</p>
             </div>
             <Button type="submit" class="w-full" :disabled="applying">
@@ -129,9 +123,12 @@ const { mutate: applyDiscountMutation, isPending: applying } = useMutation({
   onSuccess: (response) => {
     responseSuccess.value = true;
     responseMessage.value = "Discount applied successfully!";
+    // Backend returns { discount, created_at }; fall back to the submitted
+    // value so we never show a false error on a successful request.
+    const payload = response?.data?.data || {};
     discountDetails.value = {
-      discount: response.data.data.discount,
-      created_at: response.data.data.created_at,
+      discount: payload.discount ?? discount.value,
+      created_at: payload.created_at ?? new Date().toISOString(),
     };
     discount.value = discountDetails.value.discount;
     localStorage.setItem("discountDetails", JSON.stringify(discountDetails.value));
@@ -177,4 +174,3 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, options);
 };
 </script>
-

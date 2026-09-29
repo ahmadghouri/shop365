@@ -6,6 +6,7 @@ import { AppBackground } from '@/components/AppBackground';
 import { SearchBar } from '@/components/category/SearchBar';
 import { FilterChips } from '@/components/category/FilterChips';
 import { ProductCard } from '@/components/reusable/ProductCard';
+import { CategoryProviders } from '@/components/provider-detail/CategoryProviders';
 import { useCategoryProducts } from '@/api/home/useHomeQueries';
 import { API_BASE_URL } from '@/api/client';
 
@@ -26,6 +27,7 @@ type CategoryDetailPageProps = {
     onBack?: () => void;
     onProductPress?: (product: Product) => void;
     onAddToCart?: (product: Product) => void;
+    onProviderPress?: (provider: { id: string; name: string }) => void;
 };
 
 function productImageUri(product: any) {
@@ -43,6 +45,7 @@ export function CategoryDetailPage({
     onBack,
     onProductPress,
     onAddToCart,
+    onProviderPress,
 }: CategoryDetailPageProps) {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -110,6 +113,9 @@ export function CategoryDetailPage({
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
+                    {/* Providers in this category — filtered on the backend */}
+                    <CategoryProviders categoryId={categoryId} onProviderPress={onProviderPress} />
+
                     {isLoading ? (
                         <View className="items-center py-12">
                             <ActivityIndicator size="large" color="#EAB308" />

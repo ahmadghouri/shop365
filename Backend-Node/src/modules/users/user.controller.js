@@ -52,12 +52,26 @@ async function index(req, res, next) {
       .limit(limit)
       .sort({ createdAt: -1 });
     const total = await User.countDocuments({ role: 'end_user', deleted_at: null });
+
+    // Attach each user's total order count (single aggregate, no N+1).
+    const userIds = users.map((u) => u._id);
+    const orderCounts = await Order.aggregate([
+      { $match: { user_id: { $in: userIds } } },
+      { $group: { _id: '$user_id', count: { $sum: 1 } } },
+    ]);
+    const countByUser = {};
+    orderCounts.forEach((row) => { countByUser[String(row._id)] = row.count; });
+    const usersWithCounts = users.map((u) => ({
+      ...u.toJSON(),
+      orders_count: countByUser[String(u._id)] || 0,
+    }));
+
     res.json({
       total_users_count: totalUsers,
       today_users_count: todaysUser,
       users: {
         current_page: page,
-        data: users,
+        data: usersWithCounts,
         from: skip + 1,
         last_page: Math.ceil(total / limit),
         per_page: limit,

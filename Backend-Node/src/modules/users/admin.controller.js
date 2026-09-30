@@ -38,7 +38,7 @@ async function getAdmins(req, res, next) {
       { $match: { role: UserRole.RESTAURANT_ADMIN, deleted_at: null } },
       { $lookup: { from: 'businesses', localField: 'business_id', foreignField: '_id', as: 'business' } },
       { $unwind: { path: '$business', preserveNullAndEmptyArrays: true } },
-      { $project: { _id: 1, name: 1, phone_no: 1, createdAt: 1, business_name: '$business.name' } },
+      { $project: { _id: 1, name: 1, phone_no: 1, createdAt: 1, created_at: '$createdAt', business_name: '$business.name' } },
     ]);
     successResponse(res, admins, 'success');
   } catch (error) { next(error); }

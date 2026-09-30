@@ -33,6 +33,8 @@ userSchema.set('toJSON', {
     delete ret.password;
     delete ret.__v;
     delete ret.expo_push_token;
+    // Expose a snake_case created_at for the admin/mobile clients that expect it.
+    if (ret.createdAt && !ret.created_at) ret.created_at = ret.createdAt;
     return ret;
   },
 });

@@ -44,44 +44,62 @@
       </Card>
     </div>
 
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-semibold">Users</h2>
-      <select
-        v-model="sortOrder"
-        class="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-      >
+    <!-- Toolbar: search + sort -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+      <div class="relative flex-1">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input v-model="searchQuery" placeholder="Search by name or phone…" class="pl-9" />
+      </div>
+      <select v-model="sortOrder"
+        class="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring sm:w-52">
         <option value="desc">Highest Orders First</option>
         <option value="asc">Lowest Orders First</option>
       </select>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <Card
-        v-for="(user, index) in sortedUsers"
-        :key="user.id"
-        :class="isTopThree(index) ? 'border-2 border-yellow-400 bg-yellow-50' : ''"
-      >
+      <Card v-for="(user, index) in sortedUsers" :key="user.id"
+        class="group relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+        :class="isTopThree(index) ? 'ring-2 ring-yellow-400' : ''">
+        <!-- Rank ribbon for top 3 -->
+        <div v-if="isTopThree(index)"
+          class="absolute right-0 top-0 flex items-center gap-1 rounded-bl-lg bg-yellow-400 px-2 py-1 text-[11px] font-semibold text-yellow-900">
+          <Crown class="h-3 w-3" />
+          Top {{ index + 1 }}
+        </div>
+
         <CardContent class="pt-6">
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <p class="text-lg font-semibold">
-                {{ user.name || "No Name" }}
-                <Badge v-if="isTopThree(index)" variant="secondary" class="ml-2 bg-yellow-300 text-yellow-900 border-yellow-400">
-                  Top {{ index + 1 }}
-                </Badge>
-              </p>
-              <p class="text-sm text-muted-foreground">{{ user.phone_no }}</p>
+          <div class="flex items-center gap-3 mb-4">
+            <Avatar class="h-11 w-11 shrink-0">
+              <AvatarFallback
+                :class="isTopThree(index) ? 'bg-yellow-100 text-yellow-800' : 'bg-primary/10 text-primary'"
+                class="text-sm font-semibold">
+                {{ initials(user.name) }}
+              </AvatarFallback>
+            </Avatar>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-base font-semibold">{{ user.name || "No Name" }}</p>
+              <p class="truncate text-sm text-muted-foreground">{{ user.phone_no }}</p>
             </div>
-            <Badge :variant="isTopThree(index) ? 'default' : 'secondary'">
+          </div>
+
+          <!-- Order + points chips -->
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <Badge :variant="isTopThree(index) ? 'default' : 'secondary'" class="gap-1">
+              <ShoppingBag class="h-3 w-3" />
               {{ user.orders_count }} Order{{ user.orders_count !== 1 ? "s" : "" }}
+            </Badge>
+            <Badge variant="outline" class="gap-1">
+              <Star class="h-3 w-3" />
+              {{ user.points || 0 }} pts
             </Badge>
           </div>
 
-          <div class="space-y-1 text-sm text-muted-foreground mb-4">
-            <p><span class="font-medium text-foreground">Created At:</span> {{ new Date(user.created_at).toLocaleDateString() }}</p>
-            <p><span class="font-medium text-foreground">Points:</span> {{ user.points || 0 }}</p>
-            <p><span class="font-medium text-foreground">Address:</span> {{ user.household?.address || "No Address" }}</p>
-            <p><span class="font-medium text-foreground">Town:</span> {{ user.household?.town?.town_name || "No Town" }}</p>
+          <div class="space-y-1.5 text-sm text-muted-foreground mb-4">
+            <p class="flex items-center gap-2">
+              <Calendar class="h-3.5 w-3.5 shrink-0" />
+              Joined {{ formatDate(user) }}
+            </p>
           </div>
 
           <Button variant="destructive" size="sm" @click="showDeleteConfirmation(user.id)">
@@ -90,6 +108,16 @@
           </Button>
         </CardContent>
       </Card>
+    </div>
+
+    <div v-if="!userStore.loading && sortedUsers.length === 0"
+      class="flex flex-col items-center justify-center py-16 text-center">
+      <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+        <Users class="h-8 w-8 text-muted-foreground" />
+      </div>
+      <p class="text-sm text-muted-foreground">
+        {{ searchQuery ? "No users match your search." : "No users found." }}
+      </p>
     </div>
 
     <div v-if="userStore.loading" class="flex justify-center my-8">
@@ -123,11 +151,27 @@ import PageHeader from "@/components/dashboard/PageHeader.vue";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { RefreshCw, Users, UserPlus, Trash2, Loader2 } from "lucide-vue-next";
+import { RefreshCw, Users, UserPlus, Trash2, Loader2, Search, Crown, ShoppingBag, Star, Calendar } from "lucide-vue-next";
 
 const userStore = useUserStore();
 const sortOrder = ref("desc");
+const searchQuery = ref("");
+
+// Robust date/address helpers so the card never shows "Invalid Date".
+const formatDate = (user) => {
+  const raw = user?.created_at || user?.createdAt;
+  if (!raw) return "—";
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
+};
+
+const initials = (name) => {
+  if (!name) return "?";
+  return name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("");
+};
 const showDeleteConfirm = ref(false);
 const userId = ref("");
 const loadMoreTrigger = ref(null);
@@ -198,13 +242,19 @@ onUnmounted(() => {
 });
 
 const sortedUsers = computed(() => {
-  return [...userStore.users].sort((a, b) => {
-    if (sortOrder.value === "desc") {
-      return b.orders_count - a.orders_count;
-    } else {
-      return a.orders_count - b.orders_count;
-    }
+  const q = searchQuery.value.trim().toLowerCase();
+  const list = [...userStore.users].filter((u) => {
+    if (!q) return true;
+    return (
+      (u.name || "").toLowerCase().includes(q) ||
+      (u.phone_no || "").toLowerCase().includes(q)
+    );
   });
+  return list.sort((a, b) =>
+    sortOrder.value === "desc"
+      ? b.orders_count - a.orders_count
+      : a.orders_count - b.orders_count,
+  );
 });
 
 const isTopThree = (index) => {

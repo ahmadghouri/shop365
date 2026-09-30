@@ -76,11 +76,17 @@ export function BackendProductDetailPage({
 
     const basePrice = Number(product.price || 0);
     const finalPrice = discountedPrice(basePrice, product);
-    const variants = (product.sizes || []).map((size: any, index: number) => ({
-        id: String(size._id || `${size.name}-${index}`),
-        name: String(size.name || ''),
-        price: discountedPrice(Number(size.price || 0), product),
-    }));
+    const hasDiscount = Number(product.discount || 0) > 0;
+    const variants = (product.sizes || []).map((size: any, index: number) => {
+        const sizeBase = Number(size.price || 0);
+        const sizeFinal = discountedPrice(sizeBase, product);
+        return {
+            id: String(size._id || `${size.name}-${index}`),
+            name: String(size.name || ''),
+            price: sizeFinal,
+            oldPrice: hasDiscount && sizeFinal < sizeBase ? sizeBase : undefined,
+        };
+    });
     const extras = (product.extras || [])
         .map((extra: any, index: number) => ({
             id: String(extra?._id || `${extra?.name}-${index}`),
@@ -98,6 +104,8 @@ export function BackendProductDetailPage({
             store={product.business_id?.name || 'SHOP365 Provider'}
             price={finalPrice}
             oldPrice={finalPrice < basePrice ? basePrice : undefined}
+            discountAmount={Number(product.discount || 0)}
+            discountType={product.discount_type === 'flat' ? 'flat' : 'percentage'}
             description={product.description || ''}
             image={previewImage}
             imageUri={imageUrl(product)}

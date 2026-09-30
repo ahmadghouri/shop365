@@ -10,6 +10,19 @@ type ProviderInfoCardProps = {
     closingTime?: string;
 };
 
+// Turn a "HH:mm" or "HH:mm:ss" (24h) string into a friendly 12h label, e.g.
+// "10:00:00" -> "10:00 AM", "23:00" -> "11:00 PM".
+function formatTime(raw?: string): string | null {
+    if (!raw) return null;
+    const parts = String(raw).split(':');
+    const h = Number(parts[0]);
+    const m = Number(parts[1] ?? 0);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 function InfoItem({
     icon,
     label,
@@ -20,11 +33,14 @@ function InfoItem({
     value: string;
 }) {
     return (
-        <View className="flex-1 items-center">
+        <View className="flex-1 items-center px-1">
             <View className="h-9 w-9 items-center justify-center rounded-full bg-amber-50 mb-1.5">
                 {icon}
             </View>
-            <Text className="text-sm font-lufga-semibold text-slate-900" numberOfLines={1}>
+            <Text
+                className="text-[13px] font-lufga-semibold text-slate-900 text-center"
+                numberOfLines={2}
+            >
                 {value}
             </Text>
             <Text className="text-[11px] font-lufga text-slate-400 mt-0.5">{label}</Text>
@@ -38,8 +54,9 @@ export function ProviderInfoCard({
     openingTime,
     closingTime,
 }: ProviderInfoCardProps) {
-    const hours =
-        openingTime && closingTime ? `${openingTime} - ${closingTime}` : 'All day';
+    const open = formatTime(openingTime);
+    const close = formatTime(closingTime);
+    const hours = open && close ? `${open} - ${close}` : 'All day';
 
     return (
         <GlassCard variant="light" className="mx-5 mt-3 rounded-3xl">

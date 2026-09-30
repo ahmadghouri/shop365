@@ -41,12 +41,12 @@ export function BottomTabBar({
     const sideOffset = isUltraTinyScreen ? 8 : isTinyScreen ? 10 : isSmallScreen ? 14 : 20;
     const outerRadius = isUltraTinyScreen ? 36 : isTinyScreen ? 40 : isSmallScreen ? 44 : 50;
     const innerPaddingH = isUltraTinyScreen ? 3 : isTinyScreen ? 4 : isSmallScreen ? 6 : 8;
-    const innerPaddingV = isUltraTinyScreen ? 6 : isTinyScreen ? 7 : isSmallScreen ? 8 : 10;
-    const iconSize = isUltraTinyScreen ? 18 : isTinyScreen ? 19 : isSmallScreen ? 21 : 24;
-    const labelFontSize = isUltraTinyScreen ? 10 : isTinyScreen ? 11 : isSmallScreen ? 13 : 15;
-    const tabPaddingV = isUltraTinyScreen ? 6 : isTinyScreen ? 7 : isSmallScreen ? 8 : 10;
+    const innerPaddingV = isUltraTinyScreen ? 3 : isTinyScreen ? 4 : isSmallScreen ? 4 : 5;
+    const iconSize = isUltraTinyScreen ? 15 : isTinyScreen ? 16 : isSmallScreen ? 17 : 19;
+    const labelFontSize = isUltraTinyScreen ? 8 : isTinyScreen ? 9 : isSmallScreen ? 10 : 11;
+    const tabPaddingV = isUltraTinyScreen ? 4 : isTinyScreen ? 4 : isSmallScreen ? 5 : 6;
     const tabGap = isUltraTinyScreen ? 2 : isTinyScreen ? 3 : isSmallScreen ? 4 : 6;
-    const showActiveLabel = !isTinyScreen;
+    const showActiveLabel = true;
 
     return (
         <GlassCard
@@ -84,13 +84,13 @@ export function BottomTabBar({
                                         onPress={handlers[key]}
                                         style={{
                                             flex: 1,
-                                            flexDirection: showActiveLabel ? 'row' : 'row',
+                                            flexDirection: 'column',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             paddingVertical: tabPaddingV,
                                             paddingHorizontal: 4,
                                             borderRadius: outerRadius,
-                                            gap: tabGap,
+                                            gap: 1,
                                         }}
                                     >
                                         <Icon size={iconSize} color="#111827" />
@@ -116,17 +116,23 @@ export function BottomTabBar({
                             onPress={handlers[key]}
                             style={{
                                 flex: 1,
-                                flexDirection: 'row',
+                                flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 paddingVertical: tabPaddingV,
                                 paddingHorizontal: 4,
                                 borderRadius: outerRadius,
                                 backgroundColor: 'transparent',
-                                gap: tabGap,
+                                gap: 1,
                             }}
                         >
                             <Icon size={iconSize} color="#94a3b8" />
+                            <Text
+                                className="font-lufga"
+                                style={{ color: '#94a3b8', fontSize: labelFontSize }}
+                            >
+                                {label}
+                            </Text>
                         </Pressable>
                     );
                 })}

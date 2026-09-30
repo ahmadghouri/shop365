@@ -44,7 +44,7 @@
           </div>
           <div class="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar class="w-4 h-4" />
-            Created: {{ new Date(vendor.created_at).toLocaleDateString() }}
+            Created: {{ formatCreated(vendor) }}
           </div>
           <div class="flex gap-2 pt-2">
             <Button variant="outline" size="sm" @click="openEditModal(vendor)">
@@ -241,6 +241,13 @@ const confirmDelete = async () => {
   }
 };
 
+const formatCreated = (vendor) => {
+  const raw = vendor?.created_at || vendor?.createdAt;
+  if (!raw) return "—";
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
+};
+
 const openEditModal = (vendor) => {
   editVendor.value = { ...vendor };
   showEditModal.value = true;
@@ -281,4 +288,3 @@ const registerAdmin = () => {
 
 businessStore.getBusinesses();
 </script>
-

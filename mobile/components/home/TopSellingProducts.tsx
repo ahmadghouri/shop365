@@ -6,6 +6,9 @@ type Product = {
     name: string;
     store: string;
     price: number;
+    originalPrice?: number;
+    discount?: number;
+    discountType?: 'percentage' | 'flat';
     image?: any;
     imageUri?: string;
 };
@@ -73,6 +76,9 @@ export function TopSellingProducts({
                                     name={row[0].name}
                                     store={row[0].store}
                                     price={row[0].price}
+                                    originalPrice={row[0].originalPrice}
+                                    discount={row[0].discount}
+                                    discountType={row[0].discountType}
                                     image={row[0].image}
                                     imageUri={row[0].imageUri}
                                     onPress={() => onProductPress?.(row[0])}
@@ -90,6 +96,9 @@ export function TopSellingProducts({
                                     name={row[1].name}
                                     store={row[1].store}
                                     price={row[1].price}
+                                    originalPrice={row[1].originalPrice}
+                                    discount={row[1].discount}
+                                    discountType={row[1].discountType}
                                     image={row[1].image}
                                     imageUri={row[1].imageUri}
                                     onPress={() => onProductPress?.(row[1])}

@@ -9,6 +9,11 @@ type ProductCardProps = {
     name: string;
     store: string;
     price: number;
+    /** Original (pre-discount) price. When higher than `price`, a strikethrough + discount badge shows. */
+    originalPrice?: number;
+    /** Discount amount to show as a badge, e.g. 20 for "20% OFF". */
+    discount?: number;
+    discountType?: 'percentage' | 'flat';
     productId?: string;
     image?: any;
     imageUri?: string;
@@ -20,6 +25,9 @@ export function ProductCard({
     name,
     store,
     price,
+    originalPrice,
+    discount = 0,
+    discountType = 'percentage',
     productId,
     image,
     imageUri,
@@ -61,11 +69,26 @@ export function ProductCard({
     const btnOffset = isUltraTinyScreen ? '-bottom-1 -right-1' : isTinyScreen ? '-bottom-1.5 -right-1.5' : '-bottom-2 -right-2';
     const priceMarginTop = isUltraTinyScreen ? 'mt-1.5' : isTinyScreen ? 'mt-2' : isSmallScreen ? 'mt-2.5' : 'mt-3';
 
+    // Show a discount when an original price is provided and it's higher than
+    // the (already discounted) `price`.
+    const hasDiscount = !!originalPrice && originalPrice > price && discount > 0;
+    const strikeFontSize = isUltraTinyScreen ? 'text-[10px]' : isTinyScreen ? 'text-[11px]' : 'text-xs';
+
     return (
         <Pressable className="w-full mb-4 rounded-3xl active:opacity-90" onPress={onPress}>
             <GlassCard variant="light" className="rounded-xl">
                 <View className={`relative w-full aspect-[175/129] ${imagePadding}`}>
                     <ProductShapeImage source={imageUri ? { uri: imageUri } : image} />
+
+                    {hasDiscount && (
+                        <View className="absolute top-1 left-1 rounded-full bg-red-500 px-2 py-0.5">
+                            <Text className="text-[10px] font-lufga-semibold text-white">
+                                {discountType === 'flat'
+                                    ? `Rs ${discount} OFF`
+                                    : `${discount}% OFF`}
+                            </Text>
+                        </View>
+                    )}
 
                     <View className={`absolute ${btnOffset} ${notchSize} ${notchRadius} items-center justify-center`}>
                         <View className={`${btnSize} ${btnRadius} overflow-hidden`}>
@@ -91,9 +114,23 @@ export function ProductCard({
                     >
                         {store}
                     </Text>
-                    <Text className={`${priceFontSize} font-lufga font-semibold text-slate-800 text-right ${priceMarginTop}`}>
-                        {price.toLocaleString()}
-                    </Text>
+                    {hasDiscount ? (
+                        <View className={`items-end ${priceMarginTop}`}>
+                            <Text
+                                className={`${strikeFontSize} font-lufga text-slate-400 line-through`}
+                                numberOfLines={1}
+                            >
+                                {originalPrice!.toLocaleString()}
+                            </Text>
+                            <Text className={`${priceFontSize} font-lufga font-semibold text-slate-800 text-right`}>
+                                {price.toLocaleString()}
+                            </Text>
+                        </View>
+                    ) : (
+                        <Text className={`${priceFontSize} font-lufga font-semibold text-slate-800 text-right ${priceMarginTop}`}>
+                            {price.toLocaleString()}
+                        </Text>
+                    )}
                 </View>
             </GlassCard>
         </Pressable>

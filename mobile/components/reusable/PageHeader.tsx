@@ -6,6 +6,8 @@ type PageHeaderProps = {
     subtitle?: string;
     onBack?: () => void;
     backIconColor?: string;
+    /** Optional element rendered on the right side of the header (e.g. a search icon). */
+    rightAction?: React.ReactNode;
 };
 
 export function PageHeader({
@@ -13,6 +15,7 @@ export function PageHeader({
     subtitle,
     onBack,
     backIconColor = '#171717',
+    rightAction,
 }: PageHeaderProps) {
     const { width } = useWindowDimensions();
     const isSmallScreen = width < 380;
@@ -53,6 +56,7 @@ export function PageHeader({
                     </Text>
                 ) : null}
             </View>
+            {rightAction ? <View className="ml-2 shrink-0">{rightAction}</View> : null}
         </View>
     );
 }

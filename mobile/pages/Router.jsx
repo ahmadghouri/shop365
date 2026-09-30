@@ -1,4 +1,4 @@
-import { View, useWindowDimensions } from 'react-native';
+import { Alert, View, useWindowDimensions } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
@@ -27,6 +27,8 @@ import { SecurityPage } from '../components/security/SecurityPage';
 import { ThemePage } from './ThemePage';
 import { MyReviewsPage } from './MyReviewsPage';
 import { AddressesPage } from './AddressesPage';
+import { NotificationSettingsPage } from './NotificationSettingsPage';
+import { useNotificationSettingsStore } from '../lib/notificationSettingsStore';
 import { OrderHistoryPage } from './OrderHistoryPage';
 import { CheckoutPage } from './CheckoutPage';
 import { NotificationPage } from './NotificationPage';
@@ -64,6 +66,7 @@ export function Router() {
     const [showTheme, setShowTheme] = useState(false);
     const [showReviews, setShowReviews] = useState(false);
     const [showAddresses, setShowAddresses] = useState(false);
+    const [showNotifSettings, setShowNotifSettings] = useState(false);
     const [showRider, setShowRider] = useState(false);
     const { isAuthenticated, loadToken } = useAuthStore();
     const loadCart = useCartStore((s) => s.loadCart);
@@ -76,6 +79,7 @@ export function Router() {
 
     useEffect(() => {
         loadToken();
+        useNotificationSettingsStore.getState().loadSettings();
     }, []);
     useEffect(() => {
         if (isAuthenticated) {
@@ -242,6 +246,10 @@ export function Router() {
             return <AddressesPage onBack={() => setShowAddresses(false)} />;
         }
 
+        if (showNotifSettings) {
+            return <NotificationSettingsPage onBack={() => setShowNotifSettings(false)} />;
+        }
+
         if (showRider) {
             return <RiderPage onBack={() => setShowRider(false)} />;
         }
@@ -333,7 +341,14 @@ export function Router() {
                             onTheme={() => setShowTheme(true)}
                             onReviews={() => setShowReviews(true)}
                             onAddresses={() => setShowAddresses(true)}
+                            onNotificationSettings={() => setShowNotifSettings(true)}
                             onRider={() => setShowRider(true)}
+                            onProvider={() =>
+                                Alert.alert(
+                                    'Become a Vendor',
+                                    'Vendor onboarding is coming soon. Contact support to list your business.'
+                                )
+                            }
                         />
                     );
                 case 'notifications':

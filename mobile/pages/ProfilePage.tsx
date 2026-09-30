@@ -27,6 +27,7 @@ import {
     Phone,
     Shield,
     Star,
+    Store,
     Sun,
     Ticket,
     UserPlus,
@@ -51,11 +52,13 @@ type ProfilePageProps = {
     onTheme?: () => void;
     onReviews?: () => void;
     onAddresses?: () => void;
+    onNotificationSettings?: () => void;
     onRewards?: () => void;
     onVouchers?: () => void;
     onInviteFriends?: () => void;
     onRider?: () => void;
     onDriver?: () => void;
+    onProvider?: () => void;
 };
 
 export function ProfilePage({
@@ -68,11 +71,13 @@ export function ProfilePage({
     onTheme,
     onReviews,
     onAddresses,
+    onNotificationSettings,
     onRewards,
     onVouchers,
     onInviteFriends,
     onRider,
     onDriver,
+    onProvider,
 }: ProfilePageProps) {
     const { width } = useWindowDimensions();
     const isSmallScreen = width < 380;
@@ -276,6 +281,7 @@ export function ProfilePage({
                         <ProfileSettingCard
                             icon={<Bell size={18} color="#b77900" />}
                             label="Notifications"
+                            onPress={onNotificationSettings}
                         />
                         <ProfileSettingCard
                             icon={<Shield size={18} color="#b77900" />}
@@ -337,6 +343,11 @@ export function ProfilePage({
                             icon={<Car size={18} color="#b77900" />}
                             label="Become a Driver"
                             onPress={onDriver}
+                        />
+                        <ProfileSettingCard
+                            icon={<Store size={18} color="#b77900" />}
+                            label="Become a Vendor"
+                            onPress={onProvider}
                         />
                     </View>
 

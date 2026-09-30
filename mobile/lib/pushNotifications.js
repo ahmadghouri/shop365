@@ -1,6 +1,7 @@
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import apiClient from "../api/client";
+import { useNotificationSettingsStore } from "./notificationSettingsStore";
 
 const isExpoGo = () =>
   Constants.executionEnvironment === "storeClient" ||
@@ -18,12 +19,18 @@ async function getNotifications() {
   const Notifications = await loadNotifications();
   if (!notificationHandlerConfigured) {
     Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
+      handleNotification: async () => {
+        // Respect the user's notification settings (persisted locally).
+        const { pushEnabled, soundEnabled, alertsEnabled } =
+          useNotificationSettingsStore.getState();
+        const showAlert = pushEnabled && alertsEnabled;
+        return {
+          shouldPlaySound: pushEnabled && soundEnabled,
+          shouldSetBadge: pushEnabled,
+          shouldShowBanner: showAlert,
+          shouldShowList: pushEnabled,
+        };
+      },
     });
     notificationHandlerConfigured = true;
   }

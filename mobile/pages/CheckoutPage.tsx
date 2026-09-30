@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Upload } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { AppBackground } from '@/components/AppBackground';
 import { GradientPill } from '@/components/reusable/GradientPill';
+import { OrderSuccessModal } from '@/components/orders/OrderSuccessModal';
 import { useAddresses } from '@/api/addresses/useAddressQueries';
 import { useCartStore } from '@/lib/cartStore';
 import { placeOrder } from '@/api/orders/order.service';
@@ -36,12 +38,14 @@ type CheckoutPageProps = {
 export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: CheckoutPageProps) {
     const { data: addresses = [] } = useAddresses();
     const { getVendorSummaries, loadCart } = useCartStore();
+    const queryClient = useQueryClient();
 
     const [selectedAddressId, setSelectedAddressId] = useState<string>(
         addresses.find((a) => a.is_active)?._id || addresses[0]?._id || ''
     );
     const [screenshotUri, setScreenshotUri] = useState('');
     const [placing, setPlacing] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
 
     const excludeSet = new Set(excludeVendorIds);
     const vendorSummaries = getVendorSummaries().filter((v) => !excludeSet.has(v.businessId));
@@ -62,9 +66,9 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                 excluded_business_ids: excludeSet.size > 0 ? [...excludeSet] : undefined,
             });
             await loadCart();
-            Alert.alert('Order Placed! 🎉', 'Your order has been placed successfully.', [
-                { text: 'OK', onPress: onSuccess },
-            ]);
+            // Refresh the order history so the new order shows up immediately.
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+            setShowSuccess(true);
         } catch (err: any) {
             Alert.alert('Error', err?.response?.data?.message || err?.message || 'Could not place order. Please try again.');
         } finally {
@@ -210,6 +214,18 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                     </GradientPill>
                 </View>
             </SafeAreaView>
+
+            <OrderSuccessModal
+                visible={showSuccess}
+                onViewOrders={() => {
+                    setShowSuccess(false);
+                    onSuccess?.();
+                }}
+                onContinue={() => {
+                    setShowSuccess(false);
+                    onSuccess?.();
+                }}
+            />
         </AppBackground>
     );
 }

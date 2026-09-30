@@ -174,7 +174,7 @@ export function Router() {
                         onSuccess={() => {
                             setExcludedOrderVendorIds([]);
                             setShowCheckout(false);
-                            setActiveTab('cart');
+                            setActiveTab('orders');
                         }}
                     />
                 </View>

@@ -23,6 +23,9 @@ type Product = {
     name: string;
     store: string;
     price: number;
+    originalPrice?: number;
+    discount?: number;
+    discountType?: 'percentage' | 'flat';
     image?: any;
     imageUri?: string;
 };
@@ -132,11 +135,16 @@ export function HomePage({
                     businessMap[businessId] ||
                     businessMap[groupBusinessId] ||
                     'SHOP365 Provider';
+                const discount = Number(product?.discount || 0);
+                const original = Number(product?.price || 0);
                 return {
                     id: String(product.id || product._id),
                     name: product.title || 'Product',
                     store: storeName,
                     price: productPrice(product),
+                    originalPrice: discount > 0 ? original : undefined,
+                    discount,
+                    discountType: product?.discount_type || 'percentage',
                     imageUri,
                     image: imageUri ? { uri: imageUri } : undefined,
                 };

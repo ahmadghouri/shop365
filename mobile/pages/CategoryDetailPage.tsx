@@ -1,6 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    ActivityIndicator,
+    Animated,
+    Easing,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
+    type NativeScrollEvent,
+    type NativeSyntheticEvent,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Search } from 'lucide-react-native';
 import { PageHeader } from '@/components/reusable/PageHeader';
 import { AppBackground } from '@/components/AppBackground';
 import { SearchBar } from '@/components/category/SearchBar';
@@ -15,6 +26,9 @@ type Product = {
     name: string;
     store: string;
     price: number;
+    originalPrice?: number;
+    discount?: number;
+    discountType?: 'percentage' | 'flat';
     image?: any;
     imageUri?: string;
     tag?: string;
@@ -50,15 +64,52 @@ export function CategoryDetailPage({
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
+    // Filter that actually drives the API call — updated ~1s after the user
+    // taps a chip so we don't fire a request on every quick tap.
+    const [debouncedFilter, setDebouncedFilter] = useState('All');
+
+    // Collapse the search bar on scroll down, reveal it on scroll up. When
+    // hidden, a search icon appears in the header to bring it back.
+    const [searchVisible, setSearchVisible] = useState(true);
+    const searchAnim = useRef(new Animated.Value(1)).current; // 1 = shown, 0 = hidden
+    const lastY = useRef(0);
+
+    useEffect(() => {
+        Animated.timing(searchAnim, {
+            toValue: searchVisible ? 1 : 0,
+            duration: 260,
+            easing: Easing.inOut(Easing.cubic),
+            useNativeDriver: false,
+        }).start();
+    }, [searchVisible, searchAnim]);
+
+    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const y = e.nativeEvent.contentOffset.y;
+        const diff = y - lastY.current;
+        if (y <= 4) {
+            setSearchVisible(true);
+        } else if (diff > 6 && searchVisible) {
+            setSearchVisible(false);
+        } else if (diff < -6 && !searchVisible) {
+            setSearchVisible(true);
+        }
+        lastY.current = y;
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search.trim()), 350);
         return () => clearTimeout(timer);
     }, [search]);
 
+    // Debounce the filter -> API call by 1s after a chip tap.
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedFilter(activeFilter), 1000);
+        return () => clearTimeout(timer);
+    }, [activeFilter]);
+
     const { data, isLoading, isError, refetch } = useCategoryProducts(
         categoryId,
-        activeFilter,
+        debouncedFilter,
         debouncedSearch
     );
 
@@ -77,11 +128,17 @@ export function CategoryDetailPage({
         () =>
             (data?.products || []).map((product: any) => {
                 const imageUri = productImageUri(product);
+                const original = Number(product.price ?? 0);
+                const discounted = Number(product.final_price ?? product.price ?? 0);
+                const discount = Number(product.discount ?? 0);
                 return {
                     id: String(product.id || product._id),
                     name: product.title,
                     store: product.business_id?.name || 'SHOP365 Provider',
-                    price: Number(product.final_price ?? product.price ?? 0),
+                    price: discounted,
+                    originalPrice: discount > 0 ? original : undefined,
+                    discount,
+                    discountType: product.discount_type || 'percentage',
                     tag: product.type,
                     imageUri,
                     image: imageUri ? { uri: imageUri } : undefined,
@@ -98,9 +155,54 @@ export function CategoryDetailPage({
                     subtitle={subtitle}
                     onBack={onBack}
                     backIconColor="#1e293b"
+                    rightAction={
+                        <Animated.View
+                            pointerEvents={searchVisible ? 'none' : 'auto'}
+                            style={{
+                                opacity: searchAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [1, 0],
+                                }),
+                                transform: [
+                                    {
+                                        scale: searchAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: [1, 0.6],
+                                        }),
+                                    },
+                                ],
+                            }}
+                        >
+                            <Pressable
+                                onPress={() => setSearchVisible(true)}
+                                className="h-10 w-10 items-center justify-center rounded-full bg-white/60 active:opacity-60"
+                            >
+                                <Search size={20} color="#1e293b" />
+                            </Pressable>
+                        </Animated.View>
+                    }
                 />
 
-                <SearchBar value={search} onChangeText={setSearch} />
+                <Animated.View
+                    style={{
+                        opacity: searchAnim,
+                        maxHeight: searchAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, 56],
+                        }),
+                        transform: [
+                            {
+                                translateY: searchAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [-12, 0],
+                                }),
+                            },
+                        ],
+                        overflow: 'hidden',
+                    }}
+                >
+                    <SearchBar value={search} onChangeText={setSearch} />
+                </Animated.View>
 
                 <FilterChips
                     filters={filters}
@@ -112,6 +214,8 @@ export function CategoryDetailPage({
                     className="flex-1 mt-4"
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
                 >
                     {/* Providers in this category — filtered on the backend */}
                     <CategoryProviders categoryId={categoryId} onProviderPress={onProviderPress} />
@@ -151,6 +255,9 @@ export function CategoryDetailPage({
                                                     name={row[0].name}
                                                     store={row[0].store}
                                                     price={row[0].price}
+                                                    originalPrice={row[0].originalPrice}
+                                                    discount={row[0].discount}
+                                                    discountType={row[0].discountType}
                                                     image={row[0].image}
                                                     imageUri={row[0].imageUri}
                                                     onPress={() => onProductPress?.(row[0])}
@@ -167,6 +274,9 @@ export function CategoryDetailPage({
                                                     name={row[1].name}
                                                     store={row[1].store}
                                                     price={row[1].price}
+                                                    originalPrice={row[1].originalPrice}
+                                                    discount={row[1].discount}
+                                                    discountType={row[1].discountType}
                                                     image={row[1].image}
                                                     imageUri={row[1].imageUri}
                                                     onPress={() => onProductPress?.(row[1])}

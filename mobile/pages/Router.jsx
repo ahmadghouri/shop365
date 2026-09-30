@@ -26,6 +26,7 @@ import { ChangePasswordPage } from './ChangePasswordPage';
 import { SecurityPage } from '../components/security/SecurityPage';
 import { ThemePage } from './ThemePage';
 import { MyReviewsPage } from './MyReviewsPage';
+import { AddressesPage } from './AddressesPage';
 import { OrderHistoryPage } from './OrderHistoryPage';
 import { CheckoutPage } from './CheckoutPage';
 import { NotificationPage } from './NotificationPage';
@@ -62,6 +63,7 @@ export function Router() {
     const [showSecurity, setShowSecurity] = useState(false);
     const [showTheme, setShowTheme] = useState(false);
     const [showReviews, setShowReviews] = useState(false);
+    const [showAddresses, setShowAddresses] = useState(false);
     const [showRider, setShowRider] = useState(false);
     const { isAuthenticated, loadToken } = useAuthStore();
     const loadCart = useCartStore((s) => s.loadCart);
@@ -236,6 +238,10 @@ export function Router() {
             );
         }
 
+        if (showAddresses) {
+            return <AddressesPage onBack={() => setShowAddresses(false)} />;
+        }
+
         if (showRider) {
             return <RiderPage onBack={() => setShowRider(false)} />;
         }
@@ -326,6 +332,7 @@ export function Router() {
                             onSecurity={() => setShowSecurity(true)}
                             onTheme={() => setShowTheme(true)}
                             onReviews={() => setShowReviews(true)}
+                            onAddresses={() => setShowAddresses(true)}
                             onRider={() => setShowRider(true)}
                         />
                     );

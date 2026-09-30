@@ -35,7 +35,6 @@ import {
 import { useAuthStore } from '@/lib/authStore';
 import { AppBackground } from '@/components/AppBackground';
 import { LocationPickerModal } from '@/components/LocationPickerModal';
-import { LocationAddressManager } from '@/components/LocationAddressManager';
 import { useUpdateAvatarMutation } from '@/api/users/useUpdateAvatarMutation';
 import { logoutCurrentSession } from '@/api/auth/auth.service';
 import { ProfileSettingCard } from '@/components/reusable/ProfileSettingCard';
@@ -51,6 +50,7 @@ type ProfilePageProps = {
     onSecurity?: () => void;
     onTheme?: () => void;
     onReviews?: () => void;
+    onAddresses?: () => void;
     onRewards?: () => void;
     onVouchers?: () => void;
     onInviteFriends?: () => void;
@@ -67,6 +67,7 @@ export function ProfilePage({
     onSecurity,
     onTheme,
     onReviews,
+    onAddresses,
     onRewards,
     onVouchers,
     onInviteFriends,
@@ -105,7 +106,6 @@ export function ProfilePage({
 
     const { user, updateUser, logout } = useAuthStore();
     const [showMapPicker, setShowMapPicker] = useState(false);
-    const [showAddressManager, setShowAddressManager] = useState(false);
     const uploadAvatar = useUpdateAvatarMutation();
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -318,7 +318,7 @@ export function ProfilePage({
                         <ProfileSettingCard
                             icon={<MapPin size={18} color="#b77900" />}
                             label="Address"
-                            onPress={() => setShowAddressManager(true)}
+                            onPress={onAddresses}
                         />
                     </View>
 
@@ -396,39 +396,6 @@ export function ProfilePage({
                 </Pressable>
             </Modal>
 
-            {/* Address Manager Modal */}
-            {showAddressManager && (
-                <Modal
-                    visible
-                    animationType="slide"
-                    onRequestClose={() => setShowAddressManager(false)}
-                >
-                    <AppBackground>
-                        <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
-                            <View
-                                className={`flex-row items-center ${sectionPaddingX} pt-2 pb-4 min-w-0`}
-                            >
-                                <Pressable
-                                    className={`${backBtnSize} ${backBtnRadius} shrink-0 items-center justify-center bg-white/70 active:opacity-60 mr-3`}
-                                    onPress={() => setShowAddressManager(false)}
-                                >
-                                    <ChevronLeft size={backIconSize} color="#1e293b" />
-                                </Pressable>
-                                <Text
-                                    className={`flex-1 ${headerTitleSize} font-lufga-bold text-slate-900`}
-                                    numberOfLines={1}
-                                    ellipsizeMode="tail"
-                                >
-                                    My Addresses
-                                </Text>
-                            </View>
-                            <View className={`flex-1 ${sectionPaddingX}`}>
-                                <LocationAddressManager />
-                            </View>
-                        </SafeAreaView>
-                    </AppBackground>
-                </Modal>
-            )}
         </AppBackground>
     );
 }

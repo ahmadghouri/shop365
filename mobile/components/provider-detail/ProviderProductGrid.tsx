@@ -8,6 +8,9 @@ export type GridProduct = {
     name: string;
     store: string;
     price: number;
+    originalPrice?: number;
+    discount?: number;
+    discountType?: 'percentage' | 'flat';
     image?: any;
     imageUri?: string;
 };
@@ -50,6 +53,9 @@ export function ProviderProductGrid({ products, onProductPress }: ProviderProduc
                                         name={p.name}
                                         store={p.store}
                                         price={p.price}
+                                        originalPrice={p.originalPrice}
+                                        discount={p.discount}
+                                        discountType={p.discountType}
                                         image={p.image}
                                         imageUri={p.imageUri}
                                         onPress={() => onProductPress?.(p)}

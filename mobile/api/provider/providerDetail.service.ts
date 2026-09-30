@@ -7,6 +7,7 @@ export type ProviderProduct = {
     price: number;
     final_price?: number;
     discount?: number;
+    discount_type?: 'percentage' | 'flat';
     type?: string;
     image?: string;
     image_url?: string;

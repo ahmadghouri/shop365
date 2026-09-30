@@ -12,6 +12,8 @@ type Variant = {
     id: string;
     name: string;
     price: number;
+    /** Original (pre-discount) price for this variant, if discounted. */
+    oldPrice?: number;
 };
 
 type ProductDetailPayload = {
@@ -27,6 +29,9 @@ type ProductDetailPageProps = {
     store?: string;
     price?: number;
     oldPrice?: number;
+    /** Discount amount + type, used to label the badge (Rs vs %). */
+    discountAmount?: number;
+    discountType?: 'percentage' | 'flat';
     description?: string;
     image?: any;
     imageUri?: string;
@@ -50,6 +55,8 @@ export function ProductDetailPage({
     store = '365 Fast Food',
     price = 390,
     oldPrice = 475,
+    discountAmount = 0,
+    discountType = 'percentage',
     description = 'A standard burger product description highlights a savory meat or plant patty, fresh crisp toppings, and a soft toasted bun.',
     image = require('@/assets/product/product.png'),
     imageUri,
@@ -74,13 +81,22 @@ export function ProductDetailPage({
         [variants, selectedVariantId],
     );
     const unitPrice = selectedVariant?.price ?? price;
-    const effectiveOldPrice = selectedVariant ? undefined : oldPrice;
+    // Use the selected variant's old price when a variant is chosen; otherwise
+    // fall back to the product-level old price. This keeps the discount visible
+    // even for products that have sizes/variants.
+    const effectiveOldPrice = selectedVariant ? selectedVariant.oldPrice : oldPrice;
     const source = imageUri ? { uri: imageUri } : image;
 
-    const discount = useMemo(() => {
+    const discountLabel = useMemo(() => {
         if (!effectiveOldPrice || effectiveOldPrice <= unitPrice) return null;
-        return Math.round(((effectiveOldPrice - unitPrice) / effectiveOldPrice) * 100);
-    }, [effectiveOldPrice, unitPrice]);
+        if (discountType === 'flat') {
+            // Show the flat amount off; prefer the configured amount, else derive it.
+            const amount = discountAmount > 0 ? discountAmount : effectiveOldPrice - unitPrice;
+            return `Rs ${Math.round(amount).toLocaleString()} OFF`;
+        }
+        const percent = Math.round(((effectiveOldPrice - unitPrice) / effectiveOldPrice) * 100);
+        return `${percent}% OFF`;
+    }, [effectiveOldPrice, unitPrice, discountType, discountAmount]);
 
     const selectedExtras = useMemo(
         () => extras.filter((extra) => selectedExtraIds.includes(extra.id)),
@@ -172,10 +188,10 @@ export function ProductDetailPage({
                                 </Text>
                             )}
 
-                            {discount !== null && (
+                            {discountLabel && (
                                 <View className="ml-4 rounded-full bg-emerald-100 px-4 py-1.5">
                                     <Text className="text-sm font-lufga-medium text-emerald-700">
-                                        {discount}% OFF
+                                        {discountLabel}
                                     </Text>
                                 </View>
                             )}

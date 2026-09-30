@@ -1,5 +1,14 @@
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { useMemo, useState, useCallback } from 'react';
+import {
+    ActivityIndicator,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/reusable/PageHeader';
 import { AppBackground } from '@/components/AppBackground';
@@ -42,18 +51,38 @@ export function ProviderDetailPage({
     onProductPress,
 }: ProviderDetailPageProps) {
     const [tab, setTab] = useState<'products' | 'reviews'>('products');
+    const [refreshing, setRefreshing] = useState(false);
     const { data: provider, isLoading, isError, refetch } = useProviderDetail(businessId);
-    const { data: reviews = [], isLoading: reviewsLoading } = useProviderReviews(businessId);
+    const {
+        data: reviews = [],
+        isLoading: reviewsLoading,
+        refetch: refetchReviews,
+    } = useProviderReviews(businessId);
+
+    const handleRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([refetch(), refetchReviews()]);
+        } finally {
+            setRefreshing(false);
+        }
+    }, [refetch, refetchReviews]);
 
     const products = useMemo<GridProduct[]>(
         () =>
             (provider?.products || []).map((p) => {
                 const uri = imageUri(p.image_url || p.image);
+                const original = Number(p.price ?? 0);
+                const discounted = Number(p.final_price ?? p.price ?? 0);
+                const discount = Number(p.discount ?? 0);
                 return {
                     id: String(p.id || p._id),
                     name: p.title,
                     store: provider?.name || 'SHOP365 Provider',
-                    price: Number(p.final_price ?? p.price ?? 0),
+                    price: discounted,
+                    originalPrice: discount > 0 ? original : undefined,
+                    discount,
+                    discountType: p.discount_type || 'percentage',
                     imageUri: uri,
                     image: uri ? { uri } : undefined,
                 };
@@ -85,7 +114,18 @@ export function ProviderDetailPage({
                         </Text>
                     </View>
                 ) : (
-                    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+                    <ScrollView
+                        className="flex-1"
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={handleRefresh}
+                                tintColor={AppColors.yellow}
+                                colors={[AppColors.yellow]}
+                            />
+                        }
+                    >
                         <ProviderBanner
                             name={provider.name}
                             type={provider.type}
@@ -110,10 +150,18 @@ export function ProviderDetailPage({
                                     <Pressable
                                         key={t}
                                         onPress={() => setTab(t)}
-                                        className={`flex-1 items-center py-2 rounded-full ${active ? 'bg-app-yellow' : ''
-                                            }`}
+                                        className="flex-1 items-center justify-center py-2 rounded-full overflow-hidden"
                                     >
+                                        {active && (
+                                            <LinearGradient
+                                                colors={['#FCD34D', '#EAB308']}
+                                                start={{ x: 0.5, y: 0 }}
+                                                end={{ x: 0.5, y: 1 }}
+                                                style={[StyleSheet.absoluteFill, { zIndex: 0 }]}
+                                            />
+                                        )}
                                         <Text
+                                            style={{ zIndex: 1 }}
                                             className={`text-sm font-lufga-semibold ${active ? 'text-slate-900' : 'text-slate-500'
                                                 }`}
                                         >

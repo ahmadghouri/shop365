@@ -3,7 +3,7 @@
     <PageHeader title="Products" description="Manage your restaurant products">
       <template #actions>
         <Button variant="outline" @click="refreshProducts">
-          <RefreshCw class="w-4 h-4 mr-2" />
+          <RefreshCw class="w-4 h-4 mr-2" :class="isLoading ? 'animate-spin' : ''" />
           Refresh
         </Button>
         <Button @click="showAddDialog = true">
@@ -13,24 +13,59 @@
       </template>
     </PageHeader>
 
-    <div class="relative mb-6">
-      <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-      <Input
-        v-model="searchQuery"
-        placeholder="Search products..."
-        class="pl-9"
-      />
+    <!-- Summary stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+      <StatCard title="Total Products" :value="stats.total" :icon="Package" description="in this store" />
+      <StatCard title="Active" :value="stats.active" :icon="CheckCircle2" description="visible to customers" />
+      <StatCard title="On Discount" :value="stats.discounted" :icon="Percent" description="running offers" />
+      <StatCard title="Inactive" :value="stats.inactive" :icon="EyeOff" description="hidden / disabled" />
+    </div>
+
+    <!-- Toolbar: search + sort -->
+    <div class="flex flex-col sm:flex-row gap-3 mt-6 mb-6">
+      <div class="relative flex-1">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input v-model="searchQuery" placeholder="Search products..." class="pl-9" />
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <Button variant="outline" class="sm:w-52 justify-between">
+            <span class="flex items-center gap-2">
+              <ArrowDownUp class="w-4 h-4" />
+              {{ activeSort.label }}
+            </span>
+            <ChevronDown class="w-4 h-4 opacity-60" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" class="w-52">
+          <DropdownMenuLabel>Sort products</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem v-for="opt in sortOptions" :key="opt.value" class="flex items-center justify-between"
+            @click="sortBy = opt.value">
+            {{ opt.label }}
+            <Check v-if="sortBy === opt.value" class="w-4 h-4" />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
 
     <div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card v-for="product in productStore.currentProducts" :key="product.id" class="overflow-hidden flex flex-col">
-          <div v-if="productImageUrl(product)" class="flex h-44 items-center justify-center bg-muted/40 p-3">
-            <img
-              :src="productImageUrl(product)"
-              :alt="product.title"
-              class="h-full w-full object-contain"
-            />
+        <Card v-for="product in sortedProducts" :key="product.id"
+          class="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+          :class="!product.is_active ? 'opacity-70' : ''">
+          <div class="relative flex h-44 items-center justify-center bg-muted/40 p-3">
+            <img v-if="productImageUrl(product)" :src="productImageUrl(product)" :alt="product.title"
+              class="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105" />
+            <Package v-else class="h-12 w-12 text-muted-foreground/40" />
+
+            <Badge v-if="product.discount > 0" variant="destructive" class="absolute top-2 left-2 text-[11px]">
+              {{ product.discount }}{{ product.discount_type === 'flat' ? ' PKR' : '%' }} OFF
+            </Badge>
+            <span v-if="!product.is_active"
+              class="absolute top-2 right-2 rounded-full bg-slate-800/80 px-2 py-0.5 text-[10px] font-medium text-white">
+              Inactive
+            </span>
           </div>
           <CardHeader class="pb-3">
             <div class="flex items-start justify-between gap-2">
@@ -38,10 +73,7 @@
                 <CardTitle class="truncate text-base">{{ product.title }}</CardTitle>
               </div>
               <div class="text-right shrink-0">
-                <p class="text-lg font-bold">{{ product.price }}</p>
-                <Badge v-if="product.discount > 0" variant="destructive" class="text-xs">
-                  {{ product.discount }}{{ product.discount_type === 'flat' ? ' PKR' : '%' }} OFF
-                </Badge>
+                <p class="text-lg font-bold">Rs {{ product.price }}</p>
               </div>
             </div>
             <div v-if="product.type" class="mt-2">
@@ -66,25 +98,21 @@
               <div class="flex items-center justify-between">
                 <span class="text-sm text-muted-foreground">Product Status</span>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    class="sr-only peer"
-                    :checked="!!product.status"
-                    @change="() => handleStatusToggle(product)"
-                  />
-                  <div class="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-foreground after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                  <input type="checkbox" class="sr-only peer" :checked="!!product.status"
+                    @change="() => handleStatusToggle(product)" />
+                  <div
+                    class="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-foreground after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500">
+                  </div>
                 </label>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-muted-foreground">Active Status</span>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    class="sr-only peer"
-                    :checked="!!product.is_active"
-                    @change="() => handleActiveToggle(product)"
-                  />
-                  <div class="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-foreground after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                  <input type="checkbox" class="sr-only peer" :checked="!!product.is_active"
+                    @change="() => handleActiveToggle(product)" />
+                  <div
+                    class="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-foreground after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500">
+                  </div>
                 </label>
               </div>
             </div>
@@ -111,14 +139,9 @@
 
       <div ref="loadMoreTrigger" class="h-4 my-4"></div>
 
-      <EmptyState
-        v-if="!productStore.isLoading && (productStore.currentProducts || []).length === 0"
-        title="No Products"
-        description="Get started by adding your first product."
-        :icon="Package"
-        actionLabel="Add Product"
-        @action="showAddDialog = true"
-      />
+      <EmptyState v-if="!productStore.isLoading && (productStore.currentProducts || []).length === 0"
+        title="No Products" description="Get started by adding your first product." :icon="Package"
+        actionLabel="Add Product" @action="showAddDialog = true" />
     </div>
 
     <AlertDialog v-model:open="showConfirmModal">
@@ -139,68 +162,88 @@
     </AlertDialog>
 
     <Dialog v-model:open="showAddDialog">
-      <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Product</DialogTitle>
-          <DialogDescription>Create a new product entry.</DialogDescription>
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Package class="h-5 w-5" />
+            </div>
+            <div>
+              <DialogTitle>Add Product</DialogTitle>
+              <DialogDescription>Create a new product for your store.</DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         <form @submit.prevent="handleAddProduct" class="space-y-4">
+          <!-- Image uploader with preview -->
+          <div class="space-y-2">
+            <Label>Product Image</Label>
+            <label for="add-product-image"
+              class="flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 transition-colors hover:border-primary/50">
+              <img v-if="addImagePreview" :src="addImagePreview" alt="Preview" class="h-full w-full object-contain" />
+              <div v-else class="flex flex-col items-center text-muted-foreground">
+                <ImageIcon class="mb-2 h-8 w-8" />
+                <span class="text-sm font-medium text-primary">Upload product image</span>
+                <span class="mt-0.5 text-xs">PNG, JPG or WEBP</span>
+              </div>
+            </label>
+            <input id="add-product-image" type="file" accept="image/*" class="hidden" @change="handleAddFileChange" />
+            <p v-if="addImageError" class="text-sm text-destructive">{{ addImageError }}</p>
+          </div>
+
           <div class="space-y-2">
             <Label>Title</Label>
             <Input v-model="addForm.title" placeholder="Product title" required />
           </div>
           <div class="space-y-2">
             <Label>Description</Label>
-            <textarea
-              v-model="addForm.description"
-              placeholder="Product description"
+            <textarea v-model="addForm.description" placeholder="Product description"
               class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              required
-            ></textarea>
+              required></textarea>
           </div>
-          <div class="space-y-2">
-            <Label>Price</Label>
-            <Input v-model="addForm.price" type="number" placeholder="0.00" required />
-          </div>
-
-          <div class="space-y-2 rounded-md border border-border p-3">
-            <Label for="add-product-type">Product Type</Label>
-            <Input
-              id="add-product-type"
-              v-model="addForm.type"
-              placeholder="e.g. Burger, Pizza, Veg"
-              required
-            />
-            <p class="text-xs text-muted-foreground">Enter the category/type shown for this product.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <Label>Price (Rs)</Label>
+              <Input v-model="addForm.price" type="number" placeholder="0.00" required />
+            </div>
+            <div class="space-y-2">
+              <Label for="add-product-type">Product Type</Label>
+              <Input id="add-product-type" v-model="addForm.type" placeholder="e.g. Burger, Pizza" required />
+            </div>
           </div>
 
           <!-- Provider-specific options -->
-          <div v-if="isGroceryProvider" class="space-y-2">
+          <div v-if="isGroceryProvider" class="space-y-2 rounded-md border border-border p-3">
             <div class="flex items-center justify-between">
               <Label>Sizes / Variants</Label>
-              <button type="button" @click="addSize" class="flex items-center gap-1 text-sm text-primary hover:text-primary/80">
+              <button type="button" @click="addSize"
+                class="flex items-center gap-1 text-sm text-primary hover:text-primary/80">
                 <Plus class="w-4 h-4" /> Add Size
               </button>
             </div>
             <div v-for="(size, index) in addForm.sizes" :key="index" class="flex items-center gap-2">
               <Input v-model="size.name" placeholder="e.g. 1 KG, Large" class="flex-1" />
-              <Input v-model.number="size.price" type="number" min="0" step="0.01" placeholder="Absolute price" class="w-28" />
+              <Input v-model.number="size.price" type="number" min="0" step="0.01" placeholder="Absolute price"
+                class="w-28" />
               <button type="button" @click="removeSize(index)" class="text-destructive hover:text-destructive/80 p-1">
                 <X class="w-4 h-4" />
               </button>
             </div>
-            <p v-if="addForm.sizes.length === 0" class="text-xs text-muted-foreground">No sizes added. Product will use single price above.</p>
+            <p v-if="addForm.sizes.length === 0" class="text-xs text-muted-foreground">No sizes added. Product will use
+              single price above.</p>
           </div>
-          <div v-else-if="isFoodProvider" class="space-y-2">
+          <div v-else-if="isFoodProvider" class="space-y-2 rounded-md border border-border p-3">
             <div class="flex items-center justify-between">
               <Label>Extra Items</Label>
-              <button type="button" @click="addExtra" class="flex items-center gap-1 text-sm text-primary hover:text-primary/80">
+              <button type="button" @click="addExtra"
+                class="flex items-center gap-1 text-sm text-primary hover:text-primary/80">
                 <Plus class="w-4 h-4" /> Add Extra
               </button>
             </div>
             <div v-for="(extra, index) in addForm.extras" :key="index" class="flex items-center gap-2">
               <Input v-model="extra.name" placeholder="e.g. Extra Cheese" class="flex-1" />
-              <Input v-model.number="extra.price" type="number" min="0" step="0.01" placeholder="Add-on price" class="w-28" />
+              <Input v-model.number="extra.price" type="number" min="0" step="0.01" placeholder="Add-on price"
+                class="w-28" />
               <button type="button" @click="removeExtra(index)" class="text-destructive hover:text-destructive/80 p-1">
                 <X class="w-4 h-4" />
               </button>
@@ -210,12 +253,7 @@
           <p v-else class="rounded-md border border-border p-3 text-xs text-muted-foreground">
             Provider type could not be identified. Sizes and extra items are unavailable.
           </p>
-          <div class="space-y-2">
-            <Label>Image</Label>
-            <Input type="file" accept="image/*" @change="handleAddFileChange" required />
-            <p v-if="addImageError" class="text-sm text-destructive">{{ addImageError }}</p>
-          </div>
-          <div class="flex justify-end gap-2">
+          <div class="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" @click="showAddDialog = false">Cancel</Button>
             <Button type="submit" :disabled="addingProduct">
               <Loader2 v-if="addingProduct" class="w-4 h-4 mr-2 animate-spin" />
@@ -230,71 +268,69 @@
     <Dialog v-model:open="selectedProduct">
       <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit Product</DialogTitle>
-          <DialogDescription>Update product details below.</DialogDescription>
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Pencil class="h-5 w-5" />
+            </div>
+            <div>
+              <DialogTitle>Edit Product</DialogTitle>
+              <DialogDescription>Update the product details below.</DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         <form @submit.prevent="submitForm" class="space-y-4">
+          <!-- Image uploader with preview (shows current image until changed) -->
+          <div class="space-y-2">
+            <Label>Product Image</Label>
+            <label for="edit-product-image"
+              class="flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 transition-colors hover:border-primary/50">
+              <img v-if="editImagePreview" :src="editImagePreview" alt="Preview" class="h-full w-full object-contain" />
+              <div v-else class="flex flex-col items-center text-muted-foreground">
+                <ImageIcon class="mb-2 h-8 w-8" />
+                <span class="text-sm font-medium text-primary">Change product image</span>
+                <span class="mt-0.5 text-xs">Tap to upload a new one</span>
+              </div>
+            </label>
+            <input id="edit-product-image" type="file" accept="image/*" class="hidden" @change="handleFileChange" />
+            <p v-if="imageError" class="text-sm text-destructive">{{ imageError }}</p>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-2">
               <Label>Title</Label>
               <Input v-model="form.title" placeholder="Product title" />
             </div>
             <div class="space-y-2">
-              <Label>Price</Label>
+              <Label>Price (Rs)</Label>
               <Input v-model="form.price" type="number" placeholder="0.00" />
             </div>
           </div>
 
           <div class="space-y-2">
             <Label>Description</Label>
-            <textarea
-              v-model="form.description"
-              class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            ></textarea>
+            <textarea v-model="form.description"
+              class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"></textarea>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label>Product Type</Label>
-              <Input v-model="form.type" placeholder="e.g. Veg, Non-Veg" />
-            </div>
-            <div class="space-y-2">
-              <Label>Image</Label>
-              <Input type="file" accept="image/*" @change="handleFileChange" />
-              <p v-if="imageError" class="text-sm text-destructive">{{ imageError }}</p>
-            </div>
+          <div class="space-y-2">
+            <Label>Product Type</Label>
+            <Input v-model="form.type" placeholder="e.g. Veg, Non-Veg" />
           </div>
 
-          <div v-if="isGroceryProvider" class="space-y-2">
+          <div v-if="isGroceryProvider" class="space-y-2 rounded-md border border-border p-3">
             <div class="flex items-center justify-between">
               <Label>Sizes / Variants</Label>
-              <button
-                type="button"
-                class="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
-                @click="addEditSize"
-              >
+              <button type="button" class="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
+                @click="addEditSize">
                 <Plus class="h-4 w-4" /> Add Size
               </button>
             </div>
-            <div
-              v-for="(size, index) in form.sizes"
-              :key="index"
-              class="flex items-center gap-2"
-            >
+            <div v-for="(size, index) in form.sizes" :key="index" class="flex items-center gap-2">
               <Input v-model="size.name" placeholder="e.g. 1 KG, Large" class="flex-1" />
-              <Input
-                v-model.number="size.price"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Absolute price"
-                class="w-28"
-              />
-              <button
-                type="button"
-                class="p-1 text-destructive hover:text-destructive/80"
-                @click="removeEditSize(index)"
-              >
+              <Input v-model.number="size.price" type="number" min="0" step="0.01" placeholder="Absolute price"
+                class="w-28" />
+              <button type="button" class="p-1 text-destructive hover:text-destructive/80"
+                @click="removeEditSize(index)">
                 <X class="h-4 w-4" />
               </button>
             </div>
@@ -303,36 +339,20 @@
             </p>
           </div>
 
-          <div v-else-if="isFoodProvider" class="space-y-2">
+          <div v-else-if="isFoodProvider" class="space-y-2 rounded-md border border-border p-3">
             <div class="flex items-center justify-between">
               <Label>Extra Items</Label>
-              <button
-                type="button"
-                class="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
-                @click="addEditExtra"
-              >
+              <button type="button" class="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
+                @click="addEditExtra">
                 <Plus class="h-4 w-4" /> Add Extra
               </button>
             </div>
-            <div
-              v-for="(extra, index) in form.extras"
-              :key="index"
-              class="flex items-center gap-2"
-            >
+            <div v-for="(extra, index) in form.extras" :key="index" class="flex items-center gap-2">
               <Input v-model="extra.name" placeholder="e.g. Extra Cheese" class="flex-1" />
-              <Input
-                v-model.number="extra.price"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Add-on price"
-                class="w-28"
-              />
-              <button
-                type="button"
-                class="p-1 text-destructive hover:text-destructive/80"
-                @click="removeEditExtra(index)"
-              >
+              <Input v-model.number="extra.price" type="number" min="0" step="0.01" placeholder="Add-on price"
+                class="w-28" />
+              <button type="button" class="p-1 text-destructive hover:text-destructive/80"
+                @click="removeEditExtra(index)">
                 <X class="h-4 w-4" />
               </button>
             </div>
@@ -350,30 +370,17 @@
           <div class="space-y-3">
             <Label>Discount</Label>
             <div class="flex gap-4">
-              <Button
-                type="button"
-                :variant="discountType === 'percentage' ? 'default' : 'outline'"
-                size="sm"
-                @click="discountType = 'percentage'"
-              >
+              <Button type="button" :variant="discountType === 'percentage' ? 'default' : 'outline'" size="sm"
+                @click="discountType = 'percentage'">
                 Percentage (%)
               </Button>
-              <Button
-                type="button"
-                :variant="discountType === 'flat' ? 'default' : 'outline'"
-                size="sm"
-                @click="discountType = 'flat'"
-              >
+              <Button type="button" :variant="discountType === 'flat' ? 'default' : 'outline'" size="sm"
+                @click="discountType = 'flat'">
                 Flat Amount
               </Button>
             </div>
-            <Input
-              v-model="discount"
-              type="number"
-              :min="0"
-              :max="discountType === 'percentage' ? 100 : undefined"
-              :placeholder="discountType === 'percentage' ? 'Enter percentage (0-100)' : 'Enter amount'"
-            />
+            <Input v-model="discount" type="number" :min="0" :max="discountType === 'percentage' ? 100 : undefined"
+              :placeholder="discountType === 'percentage' ? 'Enter percentage (0-100)' : 'Enter amount'" />
           </div>
 
           <div class="flex justify-end gap-2 pt-2">
@@ -404,6 +411,11 @@ import { toast } from "vue3-toastify";
 import debounce from "lodash/debounce";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -412,7 +424,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { RefreshCw, Plus, Pencil, X, Search, Save, Percent, Package, Loader2, Trash2 } from "lucide-vue-next";
+import {
+  RefreshCw, Plus, Pencil, X, Search, Save, Percent, Package, Loader2, Trash2,
+  CheckCircle2, EyeOff, ArrowDownUp, ChevronDown, Check, Image as ImageIcon,
+} from "lucide-vue-next";
 
 const router = useRouter();
 const productStore = useProductStore();
@@ -433,6 +448,7 @@ const providerType = ref("");
 const isFoodProvider = computed(() => providerType.value === "food");
 const isGroceryProvider = computed(() => providerType.value === "grocery");
 const imageError = ref("");
+const editImagePreview = ref("");
 const form = ref({
   title: "",
   price: "",
@@ -450,11 +466,57 @@ const searchQuery = ref("");
 const loadMoreTrigger = ref(null);
 const isLoading = ref(true);
 const currentPage = ref(1);
+const sortBy = ref("newest");
+
+const sortOptions = [
+  { value: "newest", label: "Newest first" },
+  { value: "name_asc", label: "Name: A → Z" },
+  { value: "price_high", label: "Price: high → low" },
+  { value: "price_low", label: "Price: low → high" },
+  { value: "discounted", label: "Discounted first" },
+];
+
+const activeSort = computed(
+  () => sortOptions.find((o) => o.value === sortBy.value) || sortOptions[0]
+);
+
+// Summary counts for the stat cards.
+const stats = computed(() => {
+  const list = productStore.currentProducts || [];
+  return {
+    total: list.length,
+    active: list.filter((p) => p.is_active).length,
+    inactive: list.filter((p) => !p.is_active).length,
+    discounted: list.filter((p) => Number(p.discount) > 0).length,
+  };
+});
+
+// Client-side sort of the already-loaded products (does not affect paging).
+const sortedProducts = computed(() => {
+  const list = [...(productStore.currentProducts || [])];
+  const price = (p) => Number(p.price) || 0;
+  return list.sort((a, b) => {
+    switch (sortBy.value) {
+      case "name_asc":
+        return String(a.title || "").localeCompare(String(b.title || ""));
+      case "price_high":
+        return price(b) - price(a);
+      case "price_low":
+        return price(a) - price(b);
+      case "discounted":
+        return (Number(b.discount) > 0 ? 1 : 0) - (Number(a.discount) > 0 ? 1 : 0);
+      case "newest":
+      default:
+        return 0; // keep backend order (already newest-first)
+    }
+  });
+});
 
 const showAddDialog = ref(false);
 const addingProduct = ref(false);
 const addForm = ref({ title: "", description: "", price: "", type: "", image: null, sizes: [], extras: [] });
 const addImageError = ref("");
+const addImagePreview = ref("");
 
 const loadProviderType = async () => {
   try {
@@ -547,7 +609,9 @@ const loadMoreProducts = async () => {
 
 const handleFileChange = (e) => {
   imageError.value = "";
-  form.value.image = e.target.files[0] || null;
+  const file = e.target.files[0] || null;
+  form.value.image = file;
+  if (file) editImagePreview.value = URL.createObjectURL(file);
 };
 
 const searchProducts = async () => {
@@ -583,6 +647,7 @@ const closeForm = () => {
     extras: [],
   };
   imageError.value = "";
+  editImagePreview.value = "";
   discount.value = 0;
   router.push({ path: router.currentRoute.value.fullPath });
 };
@@ -610,6 +675,8 @@ const loadProductDetails = () => {
   };
   discount.value = selectedProduct.value.discount || 0;
   discountType.value = selectedProduct.value.discount_type || "percentage";
+  // Show the product's current image until the user picks a new one.
+  editImagePreview.value = productImageUrl(selectedProduct.value);
 };
 
 const addEditSize = () => {
@@ -740,7 +807,9 @@ const deleteProduct = async (productId) => {
 
 const handleAddFileChange = (e) => {
   addImageError.value = "";
-  addForm.value.image = e.target.files[0] || null;
+  const file = e.target.files[0] || null;
+  addForm.value.image = file;
+  addImagePreview.value = file ? URL.createObjectURL(file) : "";
 };
 
 const addSize = () => {
@@ -790,6 +859,7 @@ const handleAddProduct = async () => {
     toast.success("Product added successfully");
     addForm.value = { title: "", description: "", price: "", type: "", image: null, sizes: [], extras: [] };
     addImageError.value = "";
+    addImagePreview.value = "";
     showAddDialog.value = false;
     await productStore.getRestaurantProducts();
   } catch (error) {
@@ -853,7 +923,7 @@ onMounted(async () => {
   padding-left: 1.5rem;
 }
 
-.prose > * + * {
+.prose>*+* {
   margin-top: 1rem;
 }
 
@@ -864,4 +934,3 @@ onMounted(async () => {
   overflow: hidden;
 }
 </style>
-

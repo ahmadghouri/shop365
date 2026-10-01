@@ -1,41 +1,41 @@
 <template>
   <div class="container mx-auto px-4 py-6">
-    <PageHeader
-      title="Business Settings"
-      description="Add your business image and operating hours"
-    />
+    <PageHeader title="Business Settings" description="Add your business image and operating hours" />
 
-    <Card class="mx-auto max-w-2xl">
-      <CardHeader>
-        <CardTitle>Provider Profile</CardTitle>
-        <CardDescription>These details are shown to customers.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div v-if="loading" class="py-10 text-center text-sm text-muted-foreground">
-          Loading business settings...
+    <Card class="mx-auto mt-6 max-w-2xl overflow-hidden">
+      <div class="flex items-center gap-3 border-b bg-muted/30 px-6 py-4">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Store class="h-5 w-5" />
+        </div>
+        <div>
+          <p class="font-semibold">Provider Profile</p>
+          <p class="text-xs text-muted-foreground">These details are shown to customers.</p>
+        </div>
+      </div>
+      <CardContent class="pt-6">
+        <div v-if="loading" class="space-y-6">
+          <Skeleton class="h-40 w-full rounded-lg" />
+          <div class="grid grid-cols-2 gap-4">
+            <Skeleton class="h-10 w-full" />
+            <Skeleton class="h-10 w-full" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <Skeleton class="h-10 w-full" />
+            <Skeleton class="h-10 w-full" />
+          </div>
         </div>
 
         <form v-else class="space-y-6" @submit.prevent="saveSettings">
           <div class="space-y-2">
             <Label>Business Image</Label>
             <div class="rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 text-center">
-              <img
-                v-if="imagePreview"
-                :src="imagePreview"
-                alt="Business preview"
-                class="mx-auto mb-4 h-40 w-full rounded-md object-contain"
-              />
+              <img v-if="imagePreview" :src="imagePreview" alt="Business preview"
+                class="mx-auto mb-4 h-40 w-full rounded-md object-contain" />
               <ImageIcon v-else class="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
               <label for="provider-image" class="cursor-pointer text-sm font-medium text-primary hover:underline">
                 {{ imagePreview ? "Change business image" : "Upload business image" }}
               </label>
-              <input
-                id="provider-image"
-                type="file"
-                accept="image/*"
-                class="sr-only"
-                @change="handleImageChange"
-              />
+              <input id="provider-image" type="file" accept="image/*" class="sr-only" @change="handleImageChange" />
               <p class="mt-2 text-xs text-muted-foreground">PNG, JPG or WebP up to 2MB</p>
             </div>
           </div>
@@ -52,12 +52,14 @@
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="space-y-2">
               <Label for="minimum-order">Minimum Order (Rs)</Label>
-              <Input id="minimum-order" v-model.number="form.minimum_order" type="number" min="0" step="1" placeholder="e.g. 500" />
+              <Input id="minimum-order" v-model.number="form.minimum_order" type="number" min="0" step="1"
+                placeholder="e.g. 500" />
               <p class="text-xs text-muted-foreground">Keep 0 to disable the minimum order limit.</p>
             </div>
             <div class="space-y-2">
               <Label for="delivery-fee">Delivery Fee (Rs)</Label>
-              <Input id="delivery-fee" v-model.number="form.delivery_fee" type="number" min="0" step="1" placeholder="e.g. 100" />
+              <Input id="delivery-fee" v-model.number="form.delivery_fee" type="number" min="0" step="1"
+                placeholder="e.g. 100" />
               <p class="text-xs text-muted-foreground">Keep 0 for free delivery.</p>
             </div>
           </div>
@@ -86,10 +88,11 @@ import { businessApi } from "@/api/modules/business.api";
 import { uploadApi } from "@/api/modules/upload.api";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Image as ImageIcon, Loader2, Save } from "lucide-vue-next";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Image as ImageIcon, Loader2, Save, Store } from "lucide-vue-next";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 const loading = ref(true);

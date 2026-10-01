@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="container mx-auto px-4 py-6 space-y-6">
     <PageHeader title="Carousel Images" description="Manage your homepage carousel images">
       <template #actions>
         <Button variant="outline" @click="fetchImages" :disabled="loadingList">
@@ -8,6 +8,14 @@
         </Button>
       </template>
     </PageHeader>
+
+    <!-- Summary stats -->
+    <div class="grid grid-cols-2 gap-4">
+      <StatCard title="Total Slides" :value="carouselImages.length" :icon="Image" description="on homepage"
+        :loading="loadingList" />
+      <StatCard title="Status" :value="carouselImages.length > 0 ? 'Live' : 'Empty'" :icon="UploadCloud"
+        description="carousel state" :loading="loadingList" />
+    </div>
 
     <!-- Upload Card -->
     <Card>
@@ -21,10 +29,8 @@
         <div class="flex flex-col sm:flex-row gap-6">
           <!-- Drop zone -->
           <div class="flex-1">
-            <label
-              for="image-upload"
-              class="cursor-pointer flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors bg-muted/30"
-            >
+            <label for="image-upload"
+              class="cursor-pointer flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors bg-muted/30">
               <div v-if="previewUrl" class="w-full h-full p-2">
                 <img :src="previewUrl" alt="Preview" class="w-full h-full object-cover rounded-md" />
               </div>
@@ -47,12 +53,9 @@
             </div>
             <div class="space-y-1.5">
               <Label>Description</Label>
-              <textarea
-                v-model="newImage.description"
-                rows="3"
+              <textarea v-model="newImage.description" rows="3"
                 class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
-                placeholder="Image description"
-              ></textarea>
+                placeholder="Image description"></textarea>
             </div>
             <Alert v-if="uploadError" variant="destructive" class="py-2">
               <AlertCircle class="h-4 w-4" />
@@ -88,18 +91,16 @@
       </div>
 
       <!-- Empty -->
-      <EmptyState
-        v-else-if="carouselImages.length === 0"
-        title="No Images"
-        description="Upload your first carousel image above."
-        :icon="Image"
-      />
+      <EmptyState v-else-if="carouselImages.length === 0" title="No Images"
+        description="Upload your first carousel image above." :icon="Image" />
 
       <!-- Grid -->
       <TransitionGroup v-else name="image-list" tag="div" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card v-for="(image, index) in carouselImages" :key="image.id" class="overflow-hidden transition-all duration-200 hover:shadow-md">
-          <div class="relative h-48">
-            <img :src="image.image_url" :alt="image.title" class="w-full h-full object-cover" />
+        <Card v-for="(image, index) in carouselImages" :key="image.id"
+          class="group overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+          <div class="relative h-48 overflow-hidden">
+            <img :src="image.image_url" :alt="image.title"
+              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
             <Badge class="absolute top-2 left-2" variant="secondary">
               #{{ index + 1 }}
             </Badge>
@@ -110,26 +111,17 @@
             <Separator />
             <div class="flex items-center justify-between pt-1">
               <div class="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  class="h-8 w-8"
-                  :disabled="index === 0"
-                  @click="moveImage(image.id, 'up')"
-                >
+                <Button variant="ghost" size="icon" class="h-8 w-8" :disabled="index === 0"
+                  @click="moveImage(image.id, 'up')">
                   <ChevronUp class="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  class="h-8 w-8"
-                  :disabled="index === carouselImages.length - 1"
-                  @click="moveImage(image.id, 'down')"
-                >
+                <Button variant="ghost" size="icon" class="h-8 w-8" :disabled="index === carouselImages.length - 1"
+                  @click="moveImage(image.id, 'down')">
                   <ChevronDown class="w-4 h-4" />
                 </Button>
               </div>
-              <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive hover:text-destructive" @click="confirmDelete(image.id)">
+              <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive hover:text-destructive"
+                @click="confirmDelete(image.id)">
                 <Trash2 class="w-4 h-4" />
               </Button>
             </div>
@@ -160,6 +152,7 @@
 import { headerImageApi } from "@/api/modules/header-image.api";
 import { ref, onMounted } from "vue";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -286,14 +279,15 @@ const moveImage = async (id, direction) => {
 .image-list-move {
   transition: transform 0.5s ease;
 }
+
 .image-list-enter-active,
 .image-list-leave-active {
   transition: all 0.5s ease;
 }
+
 .image-list-enter-from,
 .image-list-leave-to {
   opacity: 0;
   transform: translateX(30px);
 }
 </style>
-

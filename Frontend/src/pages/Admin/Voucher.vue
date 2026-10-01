@@ -2,23 +2,25 @@
   <div class="container mx-auto px-4 py-6">
     <PageHeader title="Create Voucher" description="Create a new discount voucher for a business" />
 
-    <div class="max-w-md mx-auto">
-      <Card>
+    <div class="max-w-md mx-auto mt-6">
+      <Card class="overflow-hidden">
+        <div class="flex items-center gap-3 border-b bg-muted/30 px-6 py-4">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Ticket class="h-5 w-5" />
+          </div>
+          <div>
+            <p class="font-semibold">New Voucher</p>
+            <p class="text-xs text-muted-foreground">Fill in the details below</p>
+          </div>
+        </div>
         <CardContent class="pt-6">
           <form @submit.prevent="createVoucher" class="space-y-4">
             <div class="space-y-2">
               <Label>Business</Label>
-              <select
-                v-model="voucherData.business_id"
-                required
-                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
+              <select v-model="voucherData.business_id" required
+                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <option value="" disabled>Select Business</option>
-                <option
-                  v-for="business in businessStore.businesses"
-                  :key="business.id"
-                  :value="business.id"
-                >
+                <option v-for="business in businessStore.businesses" :key="business.id" :value="business.id">
                   {{ business.name }}
                 </option>
               </select>
@@ -26,13 +28,7 @@
 
             <div class="space-y-2">
               <Label>Voucher Code</Label>
-              <Input
-                v-model="voucherData.code"
-                type="text"
-                required
-                maxlength="12"
-                placeholder="Enter voucher code"
-              />
+              <Input v-model="voucherData.code" type="text" required maxlength="12" placeholder="Enter voucher code" />
               <p class="text-xs" :class="voucherData.code.length > 12 ? 'text-destructive' : 'text-muted-foreground'">
                 {{ voucherData.code.length }}/12 characters
               </p>
@@ -40,33 +36,19 @@
 
             <div class="space-y-2">
               <Label>Price Limit</Label>
-              <Input
-                v-model.number="voucherData.min_purchase_amount"
-                type="number"
-                required
-                min="0"
-                placeholder="Enter price limit amount"
-              />
+              <Input v-model.number="voucherData.min_purchase_amount" type="number" required min="0"
+                placeholder="Enter price limit amount" />
             </div>
 
             <div class="space-y-2">
               <Label>Discount Amount</Label>
-              <Input
-                v-model.number="voucherData.discount_amount"
-                type="number"
-                required
-                min="0"
-                placeholder="Enter discount amount"
-              />
+              <Input v-model.number="voucherData.discount_amount" type="number" required min="0"
+                placeholder="Enter discount amount" />
             </div>
 
             <div class="space-y-2">
               <Label>Expiry Date</Label>
-              <Input
-                v-model="voucherData.expiry_date"
-                type="date"
-                required
-              />
+              <Input v-model="voucherData.expiry_date" type="date" required />
             </div>
 
             <Button type="submit" class="w-full" :disabled="isSubmitting">
@@ -101,7 +83,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, CheckCircle, AlertCircle } from "lucide-vue-next";
+import { Loader2, CheckCircle, AlertCircle, Ticket } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
 
@@ -166,4 +148,3 @@ onMounted(async () => {
   }
 });
 </script>
-

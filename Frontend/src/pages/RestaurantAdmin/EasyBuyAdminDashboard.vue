@@ -1,10 +1,21 @@
 <template>
-    <div class="container mx-auto mobile-spacing">
-        <div class="flex justify-between items-center">
-            <h1 class="text-xl font-semibold mb-4">EasyBuy Product List</h1>
-            <router-link class="bg-blue-500 px-5 py-1 mb-4 text-white rounded-md" to="/admin/store-easybuy-product">
-                ADD
-            </router-link>
+    <div class="container mx-auto px-4 py-6">
+        <PageHeader title="EasyBuy Products" description="Manage your EasyBuy product catalog">
+            <template #actions>
+                <router-link to="/admin/store-easybuy-product">
+                    <Button>
+                        <Plus class="w-4 h-4 mr-2" />
+                        Add Product
+                    </Button>
+                </router-link>
+            </template>
+        </PageHeader>
+
+        <div v-if="!selectedProduct" class="grid grid-cols-2 gap-4 mt-6 mb-6">
+            <StatCard title="Total Products" :value="easyBuyProducts.length" :icon="Package" description="in catalog"
+                :loading="isLoading" />
+            <StatCard title="Total Brands" :value="totalBrands" :icon="LayoutGrid" description="across products"
+                :loading="isLoading" />
         </div>
 
         <!-- Update form -->
@@ -100,16 +111,16 @@
 
         <!-- Product List -->
         <div v-else>
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            <EmptyState v-if="!isLoading && easyBuyProducts.length === 0" title="No Products"
+                description="Add your first EasyBuy product to get started." :icon="Package" />
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 <div v-for="product in easyBuyProducts" :key="product.id"
-                    class="bg-card shadow-md rounded-lg overflow-hidden flex flex-col justify-between">
+                    class="group bg-card border shadow-sm rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
                     <div class="p-4 flex-grow">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h2 class="text-xl font-semibold">{{ product.title }}</h2>
-                                <img :src="product.image_url" alt="Product Image"
-                                    class="mt-2 h-20 w-20 object-cover rounded" />
-                            </div>
+                        <div class="flex items-center gap-3">
+                            <img :src="product.image_url" alt="Product Image"
+                                class="h-16 w-16 object-cover rounded-lg border shrink-0" />
+                            <h2 class="text-lg font-semibold truncate">{{ product.title }}</h2>
                         </div>
 
                         <div class="mt-4">
@@ -147,8 +158,13 @@
 
 <script setup>
 import { easyBuyApi } from "@/api/modules/easy-buy.api";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { toast } from "vue3-toastify";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
+import EmptyState from "@/components/dashboard/EmptyState.vue";
+import { Button } from "@/components/ui/button";
+import { Plus, Package, LayoutGrid } from "lucide-vue-next";
 
 const isLoading = ref(false);
 const isSubmitting = ref(false);
@@ -163,6 +179,13 @@ const brands = ref([
         variants: [{ weight: "", price: null }],
     },
 ]);
+
+const totalBrands = computed(() =>
+    easyBuyProducts.value.reduce(
+        (s, p) => s + Object.keys(p.payload || {}).length,
+        0,
+    ),
+);
 
 onMounted(async () => {
     await fetchProducts();
@@ -363,4 +386,3 @@ const handleDelete = async (product) => {
     }
 };
 </script>
-

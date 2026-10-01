@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="container mx-auto px-4 py-6">
     <PageHeader title="SHOP365 Users" description="View grocery store users">
       <template #actions>
         <Button variant="outline" @click="usersStore.fetchUsers()" :disabled="loading">
@@ -9,12 +9,20 @@
       </template>
     </PageHeader>
 
-    <!-- Summary -->
-    <div v-if="!loading && users?.length" class="flex items-center gap-4 text-sm text-muted-foreground">
-      <div class="flex items-center gap-1.5">
-        <Users class="h-4 w-4" />
-        <span class="font-medium text-foreground">{{ users.length }}</span> users
-      </div>
+    <!-- Summary stats -->
+    <div class="grid grid-cols-3 gap-4 mt-6">
+      <StatCard title="Total Users" :value="users?.length || 0" :icon="Users" description="grocery store"
+        :loading="loading" />
+      <StatCard title="Total Orders" :value="totalOrders" :icon="ShoppingBag" description="all users"
+        :loading="loading" />
+      <StatCard title="Total Points" :value="totalPoints" :icon="Star" description="loyalty points"
+        :loading="loading" />
+    </div>
+
+    <!-- Search -->
+    <div class="relative mt-6 mb-2">
+      <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input v-model="searchQuery" placeholder="Search by name or phone…" class="pl-9" />
     </div>
 
     <!-- Loading State -->
@@ -44,12 +52,9 @@
     </Alert>
 
     <!-- Users Grid -->
-    <div v-else-if="users?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <Card
-        v-for="(user, index) in users"
-        :key="user?.id || index"
-        class="transition-all duration-200 hover:shadow-md"
-      >
+    <div v-else-if="filteredUsers?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card v-for="(user, index) in filteredUsers" :key="user?.id || index"
+        class="transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
         <CardHeader class="pb-3">
           <div class="flex items-center gap-3">
             <Avatar class="h-12 w-12">
@@ -108,34 +113,51 @@
     </div>
 
     <!-- Empty State -->
-    <EmptyState
-      v-if="!loading && !users?.length"
-      title="No Users"
-      description="No grocery store users found."
-      :icon="Users"
-    />
+    <EmptyState v-if="!loading && !filteredUsers?.length" title="No Users"
+      :description="searchQuery ? 'No users match your search.' : 'No grocery store users found.'" :icon="Users" />
   </div>
 </template>
 
 <script setup>
 import { storeToRefs } from "pinia";
 import { useUserStore } from "../../store/userStore";
-import { computed, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  RefreshCw, Users, Phone, MapPin, Star, ShoppingBag, Hash, AlertCircle
+  RefreshCw, Users, Phone, MapPin, Star, ShoppingBag, Hash, AlertCircle, Search
 } from "lucide-vue-next";
 
 const usersStore = useUserStore();
 const { groceryUsers: users } = storeToRefs(usersStore);
 const loading = computed(() => usersStore.loading);
+const searchQuery = ref("");
+
+const filteredUsers = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase();
+  const list = users.value || [];
+  if (!q) return list;
+  return list.filter(
+    (u) =>
+      (u?.name || "").toLowerCase().includes(q) ||
+      (u?.phone_no || "").toLowerCase().includes(q),
+  );
+});
+
+const totalOrders = computed(() =>
+  (users.value || []).reduce((s, u) => s + Number(u?.order_count || 0), 0),
+);
+const totalPoints = computed(() =>
+  (users.value || []).reduce((s, u) => s + Number(u?.points || 0), 0),
+);
 
 onMounted(() => {
   usersStore.fetchUsers();

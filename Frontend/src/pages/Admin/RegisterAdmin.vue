@@ -1,7 +1,10 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-12">
-    <Card class="w-full max-w-md">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted/40 to-background px-4 py-12">
+    <Card class="w-full max-w-md shadow-lg">
       <CardHeader class="text-center">
+        <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <UserPlus class="h-7 w-7" />
+        </div>
         <CardTitle class="text-2xl">Register Admin</CardTitle>
         <CardDescription>Create a new restaurant admin account</CardDescription>
       </CardHeader>
@@ -21,12 +24,8 @@
           </div>
           <div class="space-y-2">
             <Label for="restaurant">Restaurant</Label>
-            <select
-              id="restaurant"
-              v-model="form.business"
-              required
-              class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
+            <select id="restaurant" v-model="form.business" required
+              class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <option value="" disabled>Select a restaurant</option>
               <option v-for="restaurant in businessStore.businesses" :key="restaurant.id" :value="restaurant.name">
                 {{ restaurant.name }}
@@ -98,4 +97,3 @@ onMounted(async () => {
   await businessStore.getBusinesses();
 });
 </script>
-

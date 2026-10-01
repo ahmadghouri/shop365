@@ -13,16 +13,20 @@
       </template>
     </PageHeader>
 
+    <!-- Summary stats -->
+    <div class="grid grid-cols-3 gap-4 mt-6 mb-6">
+      <StatCard title="Total Riders" :value="riders.length" :icon="Bike" description="all riders" :loading="loading" />
+      <StatCard title="Active" :value="activeCount" :icon="CheckCircle2" description="on duty" :loading="loading" />
+      <StatCard title="Inactive" :value="inactiveCount" :icon="PauseCircle" description="off duty" :loading="loading" />
+    </div>
+
     <div v-if="riders.length" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      <Card v-for="rider in riders" :key="rider._id" class="overflow-hidden">
+      <Card v-for="rider in riders" :key="rider._id"
+        class="group overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
         <CardHeader class="pb-3">
           <div class="flex items-start gap-3">
-            <img
-              v-if="rider.image"
-              :src="riderImageUrl(rider.image)"
-              alt=""
-              class="h-14 w-14 shrink-0 rounded-2xl object-cover"
-            />
+            <img v-if="rider.image" :src="riderImageUrl(rider.image)" alt=""
+              class="h-14 w-14 shrink-0 rounded-2xl object-cover" />
             <div v-else class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-muted">
               <Bike class="h-6 w-6 text-muted-foreground" />
             </div>
@@ -48,13 +52,11 @@
             <div class="flex items-center justify-between pt-2">
               <span class="text-sm text-muted-foreground">Active Status</span>
               <label class="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only peer"
-                  :checked="rider.status === 'active'"
-                  @change="() => toggleRider(rider)"
-                />
-                <div class="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-foreground after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                <input type="checkbox" class="sr-only peer" :checked="rider.status === 'active'"
+                  @change="() => toggleRider(rider)" />
+                <div
+                  class="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-foreground after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500">
+                </div>
               </label>
             </div>
           </div>
@@ -107,9 +109,7 @@
       <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{{ editingRider ? 'Edit Rider' : 'Add Rider' }}</DialogTitle>
-          <DialogDescription>
-            {{ editingRider ? 'Update rider details below.' : 'Riders log into the mobile app with their phone and this password.' }}
-          </DialogDescription>
+          <DialogDescription>{{ dialogDescription }}</DialogDescription>
         </DialogHeader>
         <form @submit.prevent="submitRider" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -126,18 +126,15 @@
           <div v-if="!editingRider" class="space-y-2">
             <Label>Login Password</Label>
             <Input v-model="form.password" placeholder="Set mobile app login password" required />
-            <p class="text-xs text-muted-foreground">The rider will log in with their phone number and this password.</p>
+            <p class="text-xs text-muted-foreground">The rider will log in with their phone number and this password.
+            </p>
           </div>
 
           <div class="space-y-2">
             <Label>Image</Label>
             <div class="flex items-center gap-3">
-              <img
-                v-if="form.imagePreview"
-                :src="form.imagePreview"
-                alt=""
-                class="h-14 w-14 rounded-2xl object-cover"
-              />
+              <img v-if="form.imagePreview" :src="form.imagePreview" alt=""
+                class="h-14 w-14 rounded-2xl object-cover" />
               <Input type="file" accept="image/*" @change="handleImageChange" />
             </div>
           </div>
@@ -178,6 +175,7 @@ import { toast } from "vue3-toastify";
 import { riderApi } from "@/api/modules/rider.api";
 import { API_BASE_URL } from "@/config/api";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -185,10 +183,18 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { RefreshCw, Plus, Pencil, Save, Trash2, Loader2, Bike } from "lucide-vue-next";
+import { RefreshCw, Plus, Pencil, Save, Trash2, Loader2, Bike, CheckCircle2, PauseCircle } from "lucide-vue-next";
+import { computed } from "vue";
 
 const riders = ref([]);
 const loading = ref(false);
+const activeCount = computed(() => riders.value.filter((r) => r.status === "active").length);
+const inactiveCount = computed(() => riders.value.filter((r) => r.status !== "active").length);
+const dialogDescription = computed(() =>
+  editingRider.value
+    ? "Update rider details below."
+    : "Riders log into the mobile app with their phone and this password.",
+);
 const saving = ref(false);
 const showDialog = ref(false);
 const showConfirmModal = ref(false);
@@ -254,9 +260,9 @@ const submitRider = async () => {
     const hasFile = payload.image instanceof File;
     const body = hasFile
       ? Object.entries(payload).reduce((fd, [key, value]) => {
-          if (value !== undefined && value !== null && value !== "") fd.append(key, value);
-          return fd;
-        }, new FormData())
+        if (value !== undefined && value !== null && value !== "") fd.append(key, value);
+        return fd;
+      }, new FormData())
       : payload;
 
     if (editingRider.value) {

@@ -1,6 +1,16 @@
 <template>
-  <div class="space-y-6">
+  <div class="container mx-auto px-4 py-6 space-y-6">
     <PageHeader title="Customer Reviews" description="Manage and respond to customer feedback" />
+
+    <!-- Summary stats -->
+    <div class="grid grid-cols-3 gap-4">
+      <StatCard title="Total Reviews" :value="totalReviews" :icon="MessageSquare" description="all feedback"
+        :loading="reviewStore.loading" />
+      <StatCard title="Avg. Rating" :value="avgRating" :icon="Star" description="out of 5"
+        :loading="reviewStore.loading" />
+      <StatCard title="Needs Response" :value="pendingReplies" :icon="Send" description="awaiting reply"
+        :loading="reviewStore.loading" />
+    </div>
 
     <!-- Loading State -->
     <div v-if="reviewStore.loading && !(reviewStore.reviewsList || []).length" class="space-y-4">
@@ -29,11 +39,8 @@
 
     <!-- Reviews List -->
     <div v-else-if="(reviewStore.reviewsList || []).length" class="space-y-4">
-      <Card
-        v-for="review in reviewStore.reviewsList"
-        :key="review.id"
-        class="transition-all duration-200 hover:shadow-md"
-      >
+      <Card v-for="review in reviewStore.reviewsList" :key="review.id"
+        class="transition-all duration-200 hover:shadow-md">
         <!-- Review Header -->
         <CardHeader class="pb-3">
           <div class="flex justify-between items-start">
@@ -53,12 +60,8 @@
             <div class="flex items-center gap-2">
               <!-- Stars -->
               <div class="flex items-center gap-0.5">
-                <Star
-                  v-for="i in 5"
-                  :key="i"
-                  class="h-3.5 w-3.5"
-                  :class="i <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'"
-                />
+                <Star v-for="i in 5" :key="i" class="h-3.5 w-3.5"
+                  :class="i <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'" />
               </div>
               <Badge :variant="review.reply ? 'default' : 'secondary'" class="text-[10px]">
                 {{ review.reply ? "Replied" : "Needs Response" }}
@@ -82,18 +85,11 @@
           <!-- Reply Form -->
           <div v-else class="px-6 py-4 bg-muted/30">
             <form @submit.prevent="handleReply(review.id)" class="space-y-3">
-              <textarea
-                v-model="replyText[review.id]"
-                rows="2"
+              <textarea v-model="replyText[review.id]" rows="2"
                 class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                placeholder="Write your response..."
-              ></textarea>
+                placeholder="Write your response..."></textarea>
               <div class="flex justify-end">
-                <Button
-                  type="submit"
-                  size="sm"
-                  :disabled="!replyText[review.id]?.trim() || isSubmitting[review.id]"
-                >
+                <Button type="submit" size="sm" :disabled="!replyText[review.id]?.trim() || isSubmitting[review.id]">
                   <Send v-if="!isSubmitting[review.id]" class="h-3.5 w-3.5 mr-1.5" />
                   <Loader2 v-else class="h-3.5 w-3.5 mr-1.5 animate-spin" />
                   {{ isSubmitting[review.id] ? "Submitting..." : "Submit Reply" }}
@@ -106,12 +102,8 @@
     </div>
 
     <!-- Empty State -->
-    <EmptyState
-      v-if="!reviewStore.loading && !(reviewStore.reviewsList || []).length"
-      title="No Reviews"
-      description="No customer reviews to display yet."
-      :icon="MessageSquare"
-    />
+    <EmptyState v-if="!reviewStore.loading && !(reviewStore.reviewsList || []).length" title="No Reviews"
+      description="No customer reviews to display yet." :icon="MessageSquare" />
   </div>
 </template>
 
@@ -119,6 +111,7 @@
 import { ref, onMounted } from "vue";
 import { useReviewStore } from "../../store/useReviewStore";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -127,10 +120,22 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Star, Send, Loader2, AlertCircle, MessageSquare } from "lucide-vue-next";
+import { computed } from "vue";
 
 const reviewStore = useReviewStore();
 const replyText = ref({});
 const isSubmitting = ref({});
+
+const totalReviews = computed(() => (reviewStore.reviewsList || []).length);
+const avgRating = computed(() => {
+  const list = reviewStore.reviewsList || [];
+  if (!list.length) return "0.0";
+  const sum = list.reduce((s, r) => s + Number(r.rating || 0), 0);
+  return (sum / list.length).toFixed(1);
+});
+const pendingReplies = computed(
+  () => (reviewStore.reviewsList || []).filter((r) => !r.reply).length,
+);
 
 const getInitials = (name) => {
   if (!name) return "A";

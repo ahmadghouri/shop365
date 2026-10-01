@@ -15,50 +15,66 @@
     </div>
 
     <template v-else>
-      <div class="flex flex-wrap gap-2 mb-8">
-        <Button
-          v-for="filter in filters"
-          :key="filter.value"
-          :variant="selectedFilter === filter.value ? 'default' : 'outline'"
-          @click="applyFilter(filter.value)"
-        >
-          {{ filter.label }}
-        </Button>
+      <!-- Summary stats -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        <StatCard title="Total Revenue" :value="`PKR ${totals.revenue.toLocaleString()}`" :icon="DollarSign" description="selected period" />
+        <StatCard title="Total Orders" :value="totals.orders" :icon="ShoppingCart" description="selected period" />
+        <StatCard title="Businesses" :value="businesses.length" :icon="Store" description="with activity" />
+        <StatCard title="Avg. Order Value" :value="`PKR ${totals.avgOrder.toLocaleString()}`" :icon="TrendingUp" description="per order" />
+      </div>
+
+      <!-- Filters + search -->
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 mt-6 mb-6">
+        <div class="flex flex-wrap gap-2">
+          <Button
+            v-for="filter in filters"
+            :key="filter.value"
+            size="sm"
+            :variant="selectedFilter === filter.value ? 'default' : 'outline'"
+            @click="applyFilter(filter.value)"
+          >
+            {{ filter.label }}
+          </Button>
+        </div>
+        <div class="relative sm:ml-auto sm:w-64">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input v-model="searchQuery" placeholder="Search businesses…" class="pl-9" />
+        </div>
       </div>
 
       <EmptyState
-        v-if="businesses.length === 0"
+        v-if="filteredBusinesses.length === 0"
         title="No Data"
-        description="No sales data available for this period."
+        :description="searchQuery ? 'No businesses match your search.' : 'No sales data available for this period.'"
         :icon="BarChart3"
       />
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card
-          v-for="business in businesses"
+          v-for="business in filteredBusinesses"
           :key="business.id"
-          class="cursor-pointer transition-shadow hover:shadow-md"
+          class="group cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
           @click="showBusinessOrders(business.id)"
         >
-          <CardHeader>
-            <CardTitle>{{ business.name }}</CardTitle>
+          <CardHeader class="pb-3">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Store class="h-5 w-5" />
+              </div>
+              <CardTitle class="truncate">{{ business.name }}</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-muted-foreground flex items-center gap-2">
-                  <ShoppingCart class="w-4 h-4" />
-                  Total Orders
-                </span>
-                <span class="font-semibold">{{ business.total_orders || 0 }}</span>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-muted-foreground flex items-center gap-2">
-                  <DollarSign class="w-4 h-4" />
-                  Total Revenue
-                </span>
-                <span class="font-semibold">PKR {{ (business.total_revenue || 0).toLocaleString() }}</span>
-              </div>
+            <div class="rounded-xl bg-muted/40 p-4 mb-3">
+              <p class="text-xs text-muted-foreground">Total Revenue</p>
+              <p class="text-2xl font-bold">PKR {{ (business.total_revenue || 0).toLocaleString() }}</p>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted-foreground flex items-center gap-2">
+                <ShoppingCart class="w-4 h-4" />
+                Orders
+              </span>
+              <span class="font-semibold">{{ business.total_orders || 0 }}</span>
             </div>
           </CardContent>
         </Card>
@@ -117,16 +133,19 @@ import { QUERY_KEYS } from "@/api/queries/query-keys";
 import { useOrderStore } from "@/store/orderStore";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
 import StatusBadge from "@/components/dashboard/StatusBadge.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ShoppingCart, DollarSign, PackageX, BarChart3 } from "lucide-vue-next";
+import { ShoppingCart, DollarSign, PackageX, BarChart3, Store, TrendingUp, Search } from "lucide-vue-next";
 
 const selectedFilter = ref("all");
 const showModal = ref(false);
+const searchQuery = ref("");
 const orderStore = useOrderStore();
 
 const filters = [
@@ -145,6 +164,23 @@ const { data: statsData, isLoading: loading, refetch } = useQuery({
 });
 
 const businesses = computed(() => statsData.value ?? []);
+
+const filteredBusinesses = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase();
+  if (!q) return businesses.value;
+  return businesses.value.filter((b) => (b.name || "").toLowerCase().includes(q));
+});
+
+const totals = computed(() => {
+  const list = businesses.value;
+  const revenue = list.reduce((s, b) => s + Number(b.total_revenue || 0), 0);
+  const orders = list.reduce((s, b) => s + Number(b.total_orders || 0), 0);
+  return {
+    revenue,
+    orders,
+    avgOrder: orders > 0 ? Math.round(revenue / orders) : 0,
+  };
+});
 
 const applyFilter = (filter) => {
   selectedFilter.value = filter;

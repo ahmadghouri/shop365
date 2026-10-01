@@ -3,8 +3,9 @@ import { onMounted, computed } from "vue";
 import { useBusinessStore } from "../../store/businessStore";
 import { useRouter } from "vue-router";
 import PageHeader from "@/components/dashboard/PageHeader.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -20,6 +21,9 @@ const businessId = user?.business_id;
 const router = useRouter();
 
 const isLoading = computed(() => businessStore.loading);
+const activeSubCount = computed(
+  () => (businessStore.subBusinesses || []).filter((b) => b.status === "active").length,
+);
 
 const formatTime = (time) => {
   return time ? time.replace(/:00([AP]M)$/, "$1") : "";
@@ -50,8 +54,16 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="container mx-auto px-4 py-6 space-y-6">
     <PageHeader title="Sub Businesses" description="View and manage your sub businesses" />
+
+    <!-- Summary stats -->
+    <div class="grid grid-cols-2 gap-4">
+      <StatCard title="Total Sub-Businesses" :value="businessStore.subBusinesses?.length || 0" :icon="Building2"
+        description="linked outlets" :loading="isLoading" />
+      <StatCard title="Active" :value="activeSubCount" :icon="Store" description="currently open"
+        :loading="isLoading" />
+    </div>
 
     <!-- Loading State -->
     <div v-if="isLoading" class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -79,27 +91,15 @@ onMounted(async () => {
     </Alert>
 
     <!-- Products Grid -->
-    <div
-      v-else-if="businessStore.subBusinesses?.length"
-      class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-    >
-      <Card
-        v-for="(business, index) in businessStore.subBusinesses"
-        :key="business.id"
+    <div v-else-if="businessStore.subBusinesses?.length" class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <Card v-for="(business, index) in businessStore.subBusinesses" :key="business.id"
         class="overflow-hidden transition-all duration-300 hover:shadow-lg animate-in fade-in slide-in-from-bottom-4"
-        :style="{ animationDelay: `${index * 75}ms` }"
-      >
+        :style="{ animationDelay: `${index * 75}ms` }">
         <!-- Image -->
         <div class="relative h-56 overflow-hidden">
-          <img
-            :src="business.image_url"
-            :alt="business.name"
-            class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-          />
-          <Badge
-            class="absolute top-3 right-3"
-            :variant="business.status === 'active' ? 'default' : 'destructive'"
-          >
+          <img :src="business.image_url" :alt="business.name"
+            class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
+          <Badge class="absolute top-3 right-3" :variant="business.status === 'active' ? 'default' : 'destructive'">
             {{ business.status }}
           </Badge>
         </div>
@@ -137,11 +137,6 @@ onMounted(async () => {
     </div>
 
     <!-- Empty State -->
-    <EmptyState
-      v-else
-      title="No Businesses"
-      description="Add some businesses to get started."
-      :icon="Store"
-    />
+    <EmptyState v-else title="No Businesses" description="Add some businesses to get started." :icon="Store" />
   </div>
 </template>

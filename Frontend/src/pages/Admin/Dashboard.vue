@@ -9,14 +9,51 @@
       </template>
     </PageHeader>
 
-    <div class="mb-6">
+    <!-- Summary stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
       <StatCard
         title="Total Providers"
         :value="businessStore.businesses.length"
         :icon="Store"
-        description="All registered providers"
+        description="all registered"
         :loading="businessStore.loading"
       />
+      <StatCard
+        title="On Discount"
+        :value="discountedCount"
+        :icon="Percent"
+        description="running offers"
+        :loading="businessStore.loading"
+      />
+      <StatCard
+        title="Provider Types"
+        :value="typeCount"
+        :icon="LayoutGrid"
+        description="categories covered"
+        :loading="businessStore.loading"
+      />
+      <StatCard
+        title="Avg. Rating"
+        :value="avgRating"
+        :icon="Star"
+        description="across providers"
+        :loading="businessStore.loading"
+      />
+    </div>
+
+    <!-- Toolbar: search + type filter -->
+    <div class="flex flex-col sm:flex-row gap-3 mt-6 mb-6">
+      <div class="relative flex-1">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input v-model="searchQuery" placeholder="Search providers…" class="pl-9" />
+      </div>
+      <select
+        v-model="typeFilter"
+        class="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring sm:w-52"
+      >
+        <option value="">All types</option>
+        <option v-for="t in providerTypes" :key="t" :value="t">{{ t }}</option>
+      </select>
     </div>
 
     <div v-if="businessStore.loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -35,9 +72,9 @@
     </div>
 
     <EmptyState
-      v-else-if="businessStore.businesses.length === 0"
+      v-else-if="filteredBusinesses.length === 0"
       title="No Providers"
-      description="Get started by adding your first provider."
+      :description="searchQuery || typeFilter ? 'No providers match your filters.' : 'Get started by adding your first provider.'"
       :icon="Store"
       actionLabel="Add Provider"
       @action="showForm = true"
@@ -45,7 +82,7 @@
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <router-link
-        v-for="restaurant in businessStore.businesses"
+        v-for="restaurant in filteredBusinesses"
         :key="restaurant.id"
         :to="{
           name: 'Products',
@@ -53,13 +90,37 @@
           query: { title: restaurant.name },
         }"
       >
-        <Card class="h-full transition-shadow hover:shadow-md cursor-pointer">
-          <div v-if="restaurant.image_url" class="flex h-40 items-center justify-center bg-muted/50 p-3">
-            <img :src="restaurant.image_url" :alt="restaurant.name" class="h-full w-full object-contain" />
+        <Card class="group h-full overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+          <div class="relative flex h-40 items-center justify-center bg-muted/50 p-3">
+            <img
+              v-if="restaurant.image_url"
+              :src="restaurant.image_url"
+              :alt="restaurant.name"
+              class="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+            <Store v-else class="h-12 w-12 text-muted-foreground/40" />
+            <Badge
+              v-if="restaurant.discount > 0"
+              variant="destructive"
+              class="absolute top-2 left-2 text-[11px]"
+            >
+              {{ restaurant.discount }}% OFF
+            </Badge>
           </div>
-          <CardHeader>
-            <CardTitle class="truncate">{{ restaurant.name }}</CardTitle>
-            <CardDescription>{{ restaurant.type }}</CardDescription>
+          <CardHeader class="pb-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <CardTitle class="truncate">{{ restaurant.name }}</CardTitle>
+                <CardDescription class="capitalize">{{ restaurant.type }}</CardDescription>
+              </div>
+              <div class="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5">
+                <Star class="h-3 w-3 text-amber-500 fill-amber-500" />
+                <span class="text-xs font-semibold text-slate-700">
+                  {{ Number(restaurant.reviews_avg_rating || 0).toFixed(1) }}
+                </span>
+                <span class="text-[11px] text-muted-foreground">({{ restaurant.reviews_count || 0 }})</span>
+              </div>
+            </div>
           </CardHeader>
           <CardFooter class="flex gap-2">
             <Button
@@ -128,7 +189,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useBusinessStore } from "@/store/businessStore.js";
 import AddRestaurantForm from "@/components/AddRestaurant.vue";
 import EditRestaurantForm from "@/components/EditRestaurant.vue";
@@ -137,13 +198,44 @@ import StatCard from "@/components/dashboard/StatCard.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Store } from "lucide-vue-next";
+import { Plus, Pencil, Trash2, Store, Percent, LayoutGrid, Star, Search } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();
 const showForm = ref(false);
+const searchQuery = ref("");
+const typeFilter = ref("");
+
+const providerTypes = computed(() => {
+  const set = new Set(
+    (businessStore.businesses || []).map((b) => b.type).filter(Boolean),
+  );
+  return [...set].sort();
+});
+
+const filteredBusinesses = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase();
+  return (businessStore.businesses || []).filter((b) => {
+    if (typeFilter.value && b.type !== typeFilter.value) return false;
+    if (!q) return true;
+    return (b.name || "").toLowerCase().includes(q);
+  });
+});
+
+const discountedCount = computed(
+  () => (businessStore.businesses || []).filter((b) => Number(b.discount) > 0).length,
+);
+const typeCount = computed(() => providerTypes.value.length);
+const avgRating = computed(() => {
+  const list = (businessStore.businesses || []).filter((b) => b.reviews_count > 0);
+  if (!list.length) return "0.0";
+  const sum = list.reduce((s, b) => s + Number(b.reviews_avg_rating || 0), 0);
+  return (sum / list.length).toFixed(1);
+});
 const showEditForm = ref(false);
 const showDeleteConfirm = ref(false);
 const selectedRestaurant = ref(null);

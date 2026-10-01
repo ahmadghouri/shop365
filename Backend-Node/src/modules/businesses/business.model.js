@@ -10,6 +10,7 @@ const businessSchema = new mongoose.Schema({
   discount: { type: Number, default: 0 },
   minimum_order: { type: Number, default: 0 },
   delivery_fee: { type: Number, default: 0 },
+  delivery_time: { type: String },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   parent_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Business' },
 }, { timestamps: true });

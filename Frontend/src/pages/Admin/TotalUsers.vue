@@ -50,20 +50,19 @@
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input v-model="searchQuery" placeholder="Search by name or phone…" class="pl-9" />
       </div>
-      <select v-model="sortOrder"
-        class="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring sm:w-52">
-        <option value="desc">Highest Orders First</option>
-        <option value="asc">Lowest Orders First</option>
-      </select>
+      <Select v-model="sortOrder" class="sm:w-52">
+        <SelectItem value="desc">Highest Orders First</SelectItem>
+        <SelectItem value="asc">Lowest Orders First</SelectItem>
+      </Select>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <Card v-for="(user, index) in sortedUsers" :key="user.id"
         class="group relative overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-        :class="isTopThree(index) ? 'ring-2 ring-yellow-400' : ''">
+        :class="isTopThree(index) ? 'ring-2 ring-primary/60' : ''">
         <!-- Rank ribbon for top 3 -->
         <div v-if="isTopThree(index)"
-          class="absolute right-0 top-0 flex items-center gap-1 rounded-bl-lg bg-yellow-400 px-2 py-1 text-[11px] font-semibold text-yellow-900">
+          class="absolute right-0 top-0 flex items-center gap-1 rounded-bl-lg bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground">
           <Crown class="h-3 w-3" />
           Top {{ index + 1 }}
         </div>
@@ -72,7 +71,7 @@
           <div class="flex items-center gap-3 mb-4">
             <Avatar class="h-11 w-11 shrink-0">
               <AvatarFallback
-                :class="isTopThree(index) ? 'bg-yellow-100 text-yellow-800' : 'bg-primary/10 text-primary'"
+                :class="isTopThree(index) ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'"
                 class="text-sm font-semibold">
                 {{ initials(user.name) }}
               </AvatarFallback>
@@ -152,6 +151,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectItem } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { RefreshCw, Users, UserPlus, Trash2, Loader2, Search, Crown, ShoppingBag, Star, Calendar } from "lucide-vue-next";

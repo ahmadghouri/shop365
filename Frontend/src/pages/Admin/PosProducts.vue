@@ -16,18 +16,18 @@
       <CardContent class="pt-6">
         <div class="flex flex-wrap justify-between items-center gap-4">
           <div class="flex flex-wrap gap-3 items-center">
-            <select v-model="filters.locno" @change="loadProducts"
-              class="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="0">Shop</option>
-              <option value="1">Warehouse</option>
-            </select>
+            <Select :model-value="String(filters.locno)"
+              @update:model-value="(v) => { filters.locno = v; loadProducts() }" class="w-40">
+              <SelectItem value="0">Shop</SelectItem>
+              <SelectItem value="1">Warehouse</SelectItem>
+            </Select>
 
-            <select v-model="filters.sort" @change="loadProducts"
-              class="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="">Default</option>
-              <option value="price_asc">Price Low to High</option>
-              <option value="price_desc">Price High to Low</option>
-            </select>
+            <Select :model-value="filters.sort || 'default'"
+              @update:model-value="(v) => { filters.sort = v === 'default' ? '' : v; loadProducts() }" class="w-48">
+              <SelectItem value="default">Default</SelectItem>
+              <SelectItem value="price_asc">Price Low to High</SelectItem>
+              <SelectItem value="price_desc">Price High to Low</SelectItem>
+            </Select>
 
             <Input type="number" v-model="filters.max_quantity" @input="debouncedLoad" placeholder="Min Qty"
               class="w-40" />
@@ -157,6 +157,7 @@ import EmptyState from '@/components/dashboard/EmptyState.vue'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectItem } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Search, Download, Table as TableIcon, LayoutGrid, ChevronLeft, ChevronRight, ImageOff, Package, Store } from 'lucide-vue-next'

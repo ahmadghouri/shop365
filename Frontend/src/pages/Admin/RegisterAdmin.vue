@@ -24,13 +24,11 @@
           </div>
           <div class="space-y-2">
             <Label for="restaurant">Restaurant</Label>
-            <select id="restaurant" v-model="form.business" required
-              class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-              <option value="" disabled>Select a restaurant</option>
-              <option v-for="restaurant in businessStore.businesses" :key="restaurant.id" :value="restaurant.name">
+            <Select v-model="form.business" required placeholder="Select a restaurant">
+              <SelectItem v-for="restaurant in businessStore.businesses" :key="restaurant.id" :value="restaurant.name">
                 {{ restaurant.name }}
-              </option>
-            </select>
+              </SelectItem>
+            </Select>
           </div>
           <Button type="submit" class="w-full">
             <UserPlus class="w-4 h-4 mr-2" />
@@ -53,6 +51,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectItem } from "@/components/ui/select";
 import { UserPlus } from "lucide-vue-next";
 
 const businessStore = useBusinessStore();

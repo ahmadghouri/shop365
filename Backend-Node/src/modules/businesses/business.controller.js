@@ -186,6 +186,35 @@ async function updateOwn(req, res, next) {
       }
     }
 
+    // Delivery area for the business's own riders. Orders outside it go to
+    // platform riders. Send nulls / empty values to clear.
+    const has = (k) => Object.prototype.hasOwnProperty.call(req.body, k);
+    if (has('latitude') || has('longitude')) {
+      const empty = (v) => v === null || v === undefined || String(v).trim() === '';
+      if (empty(req.body.latitude) && empty(req.body.longitude)) {
+        business.location = { latitude: null, longitude: null };
+      } else {
+        const lat = Number(req.body.latitude);
+        const lng = Number(req.body.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+          return res.status(422).json({ message: 'Location must have a valid latitude and longitude' });
+        }
+        business.location = { latitude: lat, longitude: lng };
+      }
+    }
+    if (has('rider_radius_km')) {
+      const raw = req.body.rider_radius_km;
+      if (raw === null || raw === undefined || String(raw).trim() === '') {
+        business.rider_radius_km = null;
+      } else {
+        const km = Number(raw);
+        if (!Number.isFinite(km) || km <= 0 || km > 200) {
+          return res.status(422).json({ message: 'Rider radius must be between 0 and 200 km' });
+        }
+        business.rider_radius_km = km;
+      }
+    }
+
     if (Object.prototype.hasOwnProperty.call(req.body, 'delivery_time')) {
       const dt = String(req.body.delivery_time ?? '').trim();
       business.delivery_time = dt || null;

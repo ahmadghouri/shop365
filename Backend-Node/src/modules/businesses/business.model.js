@@ -13,6 +13,14 @@ const businessSchema = new mongoose.Schema({
   delivery_time: { type: String },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   parent_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Business' },
+  // Where the business is, used to decide which orders its own riders can reach.
+  location: {
+    latitude: { type: Number, default: null },
+    longitude: { type: Number, default: null },
+  },
+  // How far (km) the business's OWN riders deliver. Orders farther than this go
+  // to platform riders. null = no limit (own riders take every order).
+  rider_radius_km: { type: Number, default: null },
 }, { timestamps: true });
 
 businessSchema.virtual('image_url').get(function () {

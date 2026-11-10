@@ -31,8 +31,10 @@ async function show(req, res, next) {
           { path: 'household_id', populate: { path: 'town_id' } }
         ]
       })
-      // The tracking screen needs the courier's name, phone and photo
-      .populate({ path: 'rider_id', select: 'name phone_no image' });
+      // The tracking screen needs the courier's name, phone, photo and last location
+      .populate({ path: 'rider_id', select: 'name phone_no image location' })
+      // ...and where the order is going, to pin it on the map
+      .populate({ path: 'address_id' });
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
     const items = await OrderItem.find({ order_id: order._id }).populate('product_id');
@@ -53,9 +55,46 @@ async function show(req, res, next) {
           name: r.name,
           phone_no: r.phone_no,
           image: r.image || '',
+          // Live position is shared only once the delivery has started, and
+          // only if it was reported after that (not a stale one from an
+          // earlier delivery).
+          location: (() => {
+            if (order.status !== 'out_for_delivery' || !r.location?.updated_at) return null;
+            const started = [...(order.status_history || [])]
+              .reverse()
+              .find((h) => h.status === 'out_for_delivery')?.at;
+            return started && new Date(r.location.updated_at) < new Date(started) ? null : r.location;
+          })(),
         }
       : null;
     orderObj.rider_id = r ? r._id?.toString() : null;
+
+    // Delivery address chosen at checkout (same shape as the list endpoint).
+    // Older orders without one fall back to the customer's saved location.
+    const a = order.address_id && typeof order.address_id === 'object' ? order.address_id : null;
+    const u = order.user_id && typeof order.user_id === 'object' ? order.user_id : null;
+    orderObj.delivery_address = a
+      ? {
+          label: a.label || '',
+          address: a.address || '',
+          street: a.street || '',
+          area: a.area || '',
+          city: a.city || '',
+          latitude: a.latitude ?? null,
+          longitude: a.longitude ?? null,
+        }
+      : u && typeof u.latitude === 'number' && typeof u.longitude === 'number'
+        ? {
+            label: '',
+            address: u.address || [u.street, u.area, u.city].filter(Boolean).join(', '),
+            street: u.street || '',
+            area: u.area || '',
+            city: u.city || '',
+            latitude: u.latitude,
+            longitude: u.longitude,
+          }
+        : null;
+    orderObj.address_id = a ? a._id?.toString() : orderObj.address_id;
 
     // Whether this order's owner has already reviewed the vendor / the rider,
     // so the app can hide the review option once submitted.
@@ -127,6 +166,13 @@ async function assignRider(req, res, next) {
   } catch (error) { next(error); }
 }
 
+async function sendToPlatform(req, res, next) {
+  try {
+    const order = await orderService.sendToPlatform(req.params.id, req.user.business_id);
+    successResponse(res, order, 'Order sent to platform riders');
+  } catch (error) { next(error); }
+}
+
 async function superAdminOrders(req, res, next) {
   try {
     const businessId = req.params.id;
@@ -162,4 +208,4 @@ async function deleteAllOrders(req, res, next) {
   } catch (error) { next(error); }
 }
 
-module.exports = { placeOrder, viewOrders, show, updateStatus, reorder, viewRestaurantOrders, assignRider, superAdminOrders, getGroceryOrders, deleteAllOrders };
+module.exports = { placeOrder, viewOrders, show, updateStatus, reorder, viewRestaurantOrders, assignRider, sendToPlatform, superAdminOrders, getGroceryOrders, deleteAllOrders };

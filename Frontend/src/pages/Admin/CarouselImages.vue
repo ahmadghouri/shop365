@@ -53,16 +53,15 @@
             </div>
             <div class="space-y-1.5">
               <Label>Description</Label>
-              <textarea v-model="newImage.description" rows="3"
-                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
-                placeholder="Image description"></textarea>
+              <Textarea v-model="newImage.description" rows="3" class="resize-none"
+                placeholder="Image description" />
             </div>
             <Alert v-if="uploadError" variant="destructive" class="py-2">
               <AlertCircle class="h-4 w-4" />
               <AlertDescription>{{ uploadError }}</AlertDescription>
             </Alert>
             <Alert v-if="uploadSuccess" class="py-2">
-              <CheckCircle class="h-4 h-4" />
+              <CheckCircle class="h-4 w-4" />
               <AlertDescription>{{ uploadSuccess }}</AlertDescription>
             </Alert>
             <Button @click="uploadImage" :disabled="!newImage.file || uploading" class="w-full">
@@ -159,6 +158,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";

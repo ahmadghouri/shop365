@@ -85,9 +85,8 @@
           <!-- Reply Form -->
           <div v-else class="px-6 py-4 bg-muted/30">
             <form @submit.prevent="handleReply(review.id)" class="space-y-3">
-              <textarea v-model="replyText[review.id]" rows="2"
-                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                placeholder="Write your response..."></textarea>
+              <Textarea v-model="replyText[review.id]" rows="2" class="min-h-0 resize-none"
+                placeholder="Write your response..." />
               <div class="flex justify-end">
                 <Button type="submit" size="sm" :disabled="!replyText[review.id]?.trim() || isSubmitting[review.id]">
                   <Send v-if="!isSubmitting[review.id]" class="h-3.5 w-3.5 mr-1.5" />
@@ -115,6 +114,7 @@ import StatCard from "@/components/dashboard/StatCard.vue";
 import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";

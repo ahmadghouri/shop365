@@ -140,12 +140,13 @@
             </div>
           </div>
 
-          <p v-if="formError" class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {{ formError }}
-          </p>
-          <p v-if="successMessage" class="rounded-md bg-emerald-50 p-3 text-sm text-emerald-700">
-            {{ successMessage }}
-          </p>
+          <Alert v-if="formError" variant="destructive">
+            <AlertDescription>{{ formError }}</AlertDescription>
+          </Alert>
+          <Alert v-if="successMessage">
+            <CircleCheck class="h-4 w-4" />
+            <AlertDescription>{{ successMessage }}</AlertDescription>
+          </Alert>
 
           <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" @click="showCreateDialog = false">Cancel</Button>
@@ -172,6 +173,7 @@ import { API_BASE_URL } from '@/config/api'
 import PageHeader from '@/components/dashboard/PageHeader.vue'
 import StatCard from '@/components/dashboard/StatCard.vue'
 import EmptyState from '@/components/dashboard/EmptyState.vue'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'

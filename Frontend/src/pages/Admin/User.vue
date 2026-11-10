@@ -32,8 +32,8 @@
       <Card>
         <CardContent class="pt-6">
           <div class="flex items-center gap-3">
-            <div class="p-2 bg-blue-500/10 rounded-lg">
-              <Users class="w-5 h-5 text-blue-500" />
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <Users class="w-5 h-5 text-primary" />
             </div>
             <div>
               <p class="text-xs text-muted-foreground">Total Users</p>
@@ -45,8 +45,8 @@
       <Card>
         <CardContent class="pt-6">
           <div class="flex items-center gap-3">
-            <div class="p-2 bg-emerald-500/10 rounded-lg">
-              <TrendingUp class="w-5 h-5 text-emerald-500" />
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <TrendingUp class="w-5 h-5 text-primary" />
             </div>
             <div>
               <p class="text-xs text-muted-foreground">Top User Orders</p>
@@ -58,8 +58,8 @@
       <Card>
         <CardContent class="pt-6">
           <div class="flex items-center gap-3">
-            <div class="p-2 bg-orange-500/10 rounded-lg">
-              <Award class="w-5 h-5 text-orange-500" />
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <Award class="w-5 h-5 text-primary" />
             </div>
             <div>
               <p class="text-xs text-muted-foreground">Total Points</p>
@@ -84,20 +84,19 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <Card v-for="(user, index) in sortedUsers" :key="user.id"
         class="overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-        :class="isTopThree(index) ? 'ring-2 ring-yellow-400/80' : ''">
+        :class="isTopThree(index) ? 'ring-2 ring-primary/60' : ''">
         <CardHeader class="pb-3">
           <div class="flex items-center gap-3">
-            <Avatar class="h-11 w-11 border-2" :class="isTopThree(index) ? 'border-yellow-400' : 'border-muted'">
+            <Avatar class="h-11 w-11 border-2" :class="isTopThree(index) ? 'border-primary' : 'border-muted'">
               <AvatarFallback
-                :class="isTopThree(index) ? 'bg-yellow-100 text-yellow-700' : 'bg-muted text-muted-foreground'">
+                :class="isTopThree(index) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'">
                 {{ getInitials(user.name) }}
               </AvatarFallback>
             </Avatar>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <CardTitle class="text-base truncate">{{ user.name || "No Name" }}</CardTitle>
-                <Badge v-if="isTopThree(index)"
-                  class="shrink-0 bg-yellow-400 text-yellow-900 border-yellow-400 hover:bg-yellow-400">
+                <Badge v-if="isTopThree(index)" class="shrink-0">
                   <Award class="w-3 h-3 mr-0.5" />
                   #{{ index + 1 }}
                 </Badge>

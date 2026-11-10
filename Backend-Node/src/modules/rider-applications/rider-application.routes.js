@@ -12,6 +12,8 @@ const uploadFields = cloudinaryUpload.fields([
   { name: 'vehicle_image', maxCount: 1 },
 ]);
 
+// Public application from the rider app (no login required).
+router.post('/rider-applications/public', uploadFields, ctrl.storePublic);
 router.post('/rider-applications', authenticate, uploadFields, ctrl.store);
 router.get('/rider-applications/me', authenticate, ctrl.myApplication);
 router.post('/rider-applications/reupload', authenticate, uploadFields, ctrl.reupload);

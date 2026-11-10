@@ -113,9 +113,9 @@
                 <CardTitle class="truncate">{{ restaurant.name }}</CardTitle>
                 <CardDescription class="capitalize">{{ restaurant.type }}</CardDescription>
               </div>
-              <div class="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5">
+              <div class="flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5">
                 <Star class="h-3 w-3 text-amber-500 fill-amber-500" />
-                <span class="text-xs font-semibold text-slate-700">
+                <span class="text-xs font-semibold text-foreground">
                   {{ Number(restaurant.reviews_avg_rating || 0).toFixed(1) }}
                 </span>
                 <span class="text-[11px] text-muted-foreground">({{ restaurant.reviews_count || 0 }})</span>

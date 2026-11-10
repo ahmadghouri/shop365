@@ -29,7 +29,7 @@
       <div v-if="showForm" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
         aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4">
-          <div class="fixed inset-0 bg-gray-900 bg-opacity-50" @click="showForm = false"></div>
+          <div class="fixed inset-0 bg-black/80" @click="showForm = false"></div>
           <div class="relative bg-card rounded-lg w-full max-w-2xl mx-auto">
             <AddProduct @close="showForm = false" />
           </div>
@@ -40,35 +40,27 @@
       <div v-if="editFormVisible" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
         aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4">
-          <div class="fixed inset-0 bg-gray-900 bg-opacity-50" @click="editFormVisible = false"></div>
+          <div class="fixed inset-0 bg-black/80" @click="editFormVisible = false"></div>
           <div class="relative bg-card rounded-lg w-full max-w-2xl mx-auto">
             <EditProduct :product="selectedProduct" @close="editFormVisible = false" @save="handleProductUpdate" />
           </div>
         </div>
       </div>
-
-      <!-- Delete Confirmation Modal -->
-      <div v-if="showDeleteConfirm" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title"
-        role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen px-4">
-          <div class="fixed inset-0 bg-gray-900 bg-opacity-50" @click="cancelDelete"></div>
-          <div class="relative bg-card rounded-lg w-full max-w-md mx-auto p-6">
-            <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
-            <p class="mb-6">Are you sure you want to delete this product?</p>
-            <div class="flex flex-col sm:flex-row justify-end gap-3">
-              <button @click="cancelDelete"
-                class="w-full sm:w-auto px-6 py-2 bg-muted text-foreground rounded-lg hover:bg-accent transition-colors">
-                Cancel
-              </button>
-              <button @click="confirmDelete"
-                class="w-full sm:w-auto px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </Teleport>
+
+    <!-- Delete Confirmation Modal -->
+    <AlertDialog :open="showDeleteConfirm" @update:open="(v) => { if (!v) cancelDelete() }">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+          <AlertDialogDescription>Are you sure you want to delete this product?</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="outline" @click="cancelDelete">Cancel</Button>
+          <Button variant="destructive" @click="confirmDelete">Delete</Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     <!-- Empty state -->
     <EmptyState v-if="filteredProducts.length === 0" title="No Products"
@@ -125,6 +117,14 @@ import EmptyState from "@/components/dashboard/EmptyState.vue";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Package, DollarSign, LayoutGrid, Search } from "lucide-vue-next";
 
 const route = useRoute();

@@ -17,13 +17,12 @@
           <form @submit.prevent="createVoucher" class="space-y-4">
             <div class="space-y-2">
               <Label>Business</Label>
-              <select v-model="voucherData.business_id" required
-                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <option value="" disabled>Select Business</option>
-                <option v-for="business in businessStore.businesses" :key="business.id" :value="business.id">
+              <Select :model-value="voucherData.business_id ?? ''" @update:model-value="voucherData.business_id = $event"
+                required placeholder="Select Business">
+                <SelectItem v-for="business in businessStore.businesses" :key="business.id" :value="business.id">
                   {{ business.name }}
-                </option>
-              </select>
+                </SelectItem>
+              </Select>
             </div>
 
             <div class="space-y-2">
@@ -82,6 +81,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectItem } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, AlertCircle, Ticket } from "lucide-vue-next";
 

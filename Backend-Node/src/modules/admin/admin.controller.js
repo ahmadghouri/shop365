@@ -7,6 +7,8 @@ const Voucher = require('../vouchers/voucher.model');
 const Internship = require('../internship-applications/internship-application.model');
 const RiderApplication = require('../rider-applications/rider-application.model');
 const Rider = require('../riders/rider.model');
+const OrderItem = require('../orders/order-item.model');
+const orderService = require('../orders/order.service');
 const { UserRole } = require('../../common/enums');
 const { successResponse } = require('../../utils/api-response');
 const { hashPassword } = require('../../utils/password');
@@ -145,6 +147,7 @@ async function riderApplications(req, res, next) {
   try {
     const applications = await RiderApplication.find()
       .populate('user_id', 'name email phone_no')
+      .populate('business_id', 'name')
       .sort({ createdAt: -1 });
     successResponse(res, applications, 'Rider applications');
   } catch (error) { next(error); }
@@ -152,10 +155,9 @@ async function riderApplications(req, res, next) {
 
 async function riderApplicationShow(req, res, next) {
   try {
-    const application = await RiderApplication.findById(req.params.id).populate(
-      'user_id',
-      'name email phone_no'
-    );
+    const application = await RiderApplication.findById(req.params.id)
+      .populate('user_id', 'name email phone_no')
+      .populate('business_id', 'name');
     if (!application) return res.status(404).json({ message: 'Application not found' });
     successResponse(res, application, 'Rider application');
   } catch (error) { next(error); }
@@ -171,7 +173,7 @@ async function updateRiderApplicationStatus(req, res, next) {
       req.params.id,
       { status },
       { new: true }
-    );
+    ).select('+password');
     if (!application) return res.status(404).json({ message: 'Application not found' });
 
     // Option A: on approval the applicant's own account becomes a RIDER (no
@@ -179,38 +181,43 @@ async function updateRiderApplicationStatus(req, res, next) {
     // application. Reversing the decision downgrades the user and deactivates
     // the linked rider.
     if (status === 'approved') {
-      if (application.user_id) {
-        await User.updateOne({ _id: application.user_id }, { role: UserRole.RIDER });
+      // Riders are a self-contained collection (no User link). Their initial
+      // password is their CNIC, so they can log into the rider app right away.
+      // A restaurant-requested rider uses the password the restaurant set.
+      let passwordHash = application.password || undefined;
+      if (!passwordHash && application.cnic) {
+        passwordHash = await hashPassword(String(application.cnic));
       }
 
       // Map the application's vehicle to the Rider model's enum.
       const vehicleType = /car/i.test(application.vehicle_type || '') ? 'car' : 'bike';
 
       // Create the Rider record once, or reactivate/refresh it if it exists.
+      const riderUpdate = {
+        application_id: application._id,
+        kind: 'parcel',
+        name: application.name,
+        phone_no: application.phone_no,
+        image: application.photo_image || '',
+        cnic: application.cnic,
+        vehicle_type: vehicleType,
+        vehicle_no: application.vehicle_no || undefined,
+        status: 'active',
+        deleted_at: null,
+      };
+      if (passwordHash) riderUpdate.password = passwordHash;
+      // Requested by a restaurant → becomes that restaurant's own rider.
+      if (application.business_id) riderUpdate.business_id = application.business_id;
+      if (application.license_no) riderUpdate.license_no = application.license_no;
+
       await Rider.findOneAndUpdate(
         { application_id: application._id },
-        {
-          application_id: application._id,
-          user_id: application.user_id,
-          kind: 'parcel',
-          name: application.name,
-          phone_no: application.phone_no,
-          image: application.photo_image || '',
-          cnic: application.cnic,
-          vehicle_type: vehicleType,
-          status: 'active',
-        },
+        riderUpdate,
         { new: true, upsert: true, setDefaultsOnInsert: true }
       );
     } else {
-      // Only downgrade if they were made a rider by this flow.
-      if (application.user_id) {
-        await User.updateOne(
-          { _id: application.user_id, role: UserRole.RIDER },
-          { role: UserRole.END_USER }
-        );
-      }
-      // Deactivate the linked rider record (keep it for history).
+      // Deactivate the linked rider record — an inactive Rider can no longer
+      // log into or use the rider app. (Role isn't used for riders anymore.)
       await Rider.updateOne({ application_id: application._id }, { status: 'inactive' });
     }
 
@@ -355,10 +362,71 @@ async function updateAdmin(req, res, next) {
   } catch (error) { next(error); }
 }
 
+// ---- Rider cancellations (deliveries a rider dropped) ----
+
+// Recent requests: pending first, then the last few resolved ones.
+async function riderCancellations(req, res, next) {
+  try {
+    const orders = await Order.find({ 'rider_cancel.status': { $in: ['pending', 'resolved'] } })
+      .populate('user_id', 'name phone_no')
+      .sort({ 'rider_cancel.at': -1 })
+      .limit(100);
+
+    const items = await OrderItem.find({ order_id: { $in: orders.map((o) => o._id) } }).populate({
+      path: 'product_id',
+      select: 'business_id',
+      populate: { path: 'business_id', select: 'name' },
+    });
+    const businessByOrder = {};
+    for (const i of items) {
+      const b = i.product_id?.business_id;
+      if (b && !businessByOrder[i.order_id.toString()]) businessByOrder[i.order_id.toString()] = b;
+    }
+
+    const data = orders
+      .map((o) => ({
+        id: o._id.toString(),
+        status: o.status,
+        total_price: o.total_price,
+        created_at: o.createdAt,
+        customer: o.user_id ? { name: o.user_id.name, phone_no: o.user_id.phone_no } : null,
+        business: businessByOrder[o._id.toString()]
+          ? { id: businessByOrder[o._id.toString()]._id, name: businessByOrder[o._id.toString()].name }
+          : null,
+        rider_cancel: o.rider_cancel,
+      }))
+      .sort((a, b) => (a.rider_cancel.status === 'pending' ? 0 : 1) - (b.rider_cancel.status === 'pending' ? 0 : 1));
+
+    successResponse(res, data, 'Rider cancellations');
+  } catch (error) { next(error); }
+}
+
+// Admin cancels the customer's order (e.g. after a platform rider dropped it).
+async function adminCancelOrder(req, res, next) {
+  try {
+    const order = await Order.findById(req.params.id).select('status');
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (['delivered', 'cancelled'].includes(order.status)) {
+      return res.status(400).json({ message: `Order is already ${order.status}` });
+    }
+    const updated = await orderService.updateOrderStatus(req.params.id, 'cancelled');
+    successResponse(res, updated, 'Order cancelled');
+  } catch (error) { next(error); }
+}
+
+// Admin hands the order to platform riders.
+async function adminSendToPlatform(req, res, next) {
+  try {
+    const order = await orderService.sendToPlatform(req.params.id, null, { asAdmin: true });
+    successResponse(res, order, 'Order sent to platform riders');
+  } catch (error) { next(error); }
+}
+
 module.exports = {
   createVoucher, getVoucher, deleteVoucher, superAdminOrders, getGroceryOrders,
   getBusinessStats, createProvider, createTownAdmin, internshipApplications, usersPreviousTwoDays,
   usersIndex, usersShow, usersDestroy, getVendors, updateAdmin,
   riderApplications, riderApplicationShow, updateRiderApplicationStatus,
   updateRiderDocumentStatus, updateRiderApplicationMessage,
+  riderCancellations, adminCancelOrder, adminSendToPlatform,
 };

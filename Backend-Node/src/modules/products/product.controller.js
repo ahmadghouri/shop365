@@ -296,7 +296,9 @@ async function updateDiscount(req, res, next) {
     if (Number.isNaN(discount) || discount < 0 || discount > 100) {
       return res.status(422).json({ message: 'Discount must be a number between 0 and 100.' });
     }
-    await Product.updateMany({ business_id: businessId }, { discount });
+    // Store-wide discount is always a percentage; also reset the type so a
+    // product that had a flat (Rs) discount doesn't read "20" as Rs 20.
+    await Product.updateMany({ business_id: businessId }, { discount, discount_type: 'percentage' });
     const business = await Business.findByIdAndUpdate(
       businessId,
       { discount },
@@ -328,7 +330,7 @@ async function updateDiscount(req, res, next) {
 async function removeDiscount(req, res, next) {
   try {
     const businessId = req.user.business_id;
-    await Product.updateMany({ business_id: businessId }, { discount: 0 });
+    await Product.updateMany({ business_id: businessId }, { discount: 0, discount_type: 'percentage' });
     const Business = require('../businesses/business.model');
     await Business.findByIdAndUpdate(businessId, { discount: 0 });
     res.json({ message: 'Discount removed successfully' });

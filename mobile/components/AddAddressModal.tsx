@@ -9,7 +9,10 @@ import {
   View,
 } from "react-native";
 import { Map, Plus, X } from "lucide-react-native";
-import { LocationPickerModal } from "@/components/LocationPickerModal";
+import {
+  LocationPickerModal,
+  type PickedLocation,
+} from "@/components/LocationPickerModal";
 import { useAuthStore } from "@/lib/authStore";
 import {
   useCreateAddress,
@@ -38,9 +41,16 @@ export function AddAddressModal({
     null,
   );
   const [showPicker, setShowPicker] = useState(false);
+  // street / area / city from the last map pick
+  const [picked, setPicked] = useState<{
+    street?: string;
+    area?: string;
+    city?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (visible) {
+      setPicked(null);
       if (editingAddress) {
         setLabel(editingAddress.label || "");
         setAddress(editingAddress.address || "");
@@ -57,13 +67,14 @@ export function AddAddressModal({
     }
   }, [visible, editingAddress]);
 
-  const handlePickerClose = () => {
-    setShowPicker(false);
-    const u = useAuthStore.getState().user;
-    if (u?.latitude && u.longitude) {
-      setCoords({ lat: u.latitude, lng: u.longitude });
-      if (u.address && !address.trim()) setAddress(u.address);
-    }
+  const handlePickerConfirm = (location: PickedLocation) => {
+    setCoords({ lat: location.latitude, lng: location.longitude });
+    setPicked({
+      street: location.street,
+      area: location.area,
+      city: location.city,
+    });
+    if (location.address) setAddress(location.address);
   };
 
   const handleSave = async () => {
@@ -85,9 +96,9 @@ export function AddAddressModal({
       const payload: any = {
         label: name,
         address: addrText,
-        street: u?.street || editingAddress?.street || "",
-        area: u?.area || editingAddress?.area || "",
-        city: u?.city || editingAddress?.city || "",
+        street: picked?.street || editingAddress?.street || u?.street || "",
+        area: picked?.area || editingAddress?.area || u?.area || "",
+        city: picked?.city || editingAddress?.city || u?.city || "",
       };
       if (coords) {
         payload.latitude = coords.lat;
@@ -108,6 +119,7 @@ export function AddAddressModal({
       setLabel("");
       setAddress("");
       setCoords(null);
+      setPicked(null);
       onClose();
     } catch (error: any) {
       Alert.alert(
@@ -120,7 +132,7 @@ export function AddAddressModal({
   return (
     <>
       <Modal
-        visible={visible}
+        visible={visible && !showPicker}
         transparent
         animationType="slide"
         onRequestClose={onClose}
@@ -209,7 +221,14 @@ export function AddAddressModal({
         </Pressable>
       </Modal>
 
-      <LocationPickerModal visible={showPicker} onClose={handlePickerClose} />
+      <LocationPickerModal
+        visible={visible && showPicker}
+        onClose={() => setShowPicker(false)}
+        onConfirm={handlePickerConfirm}
+        initialLocation={
+          coords ? { latitude: coords.lat, longitude: coords.lng } : null
+        }
+      />
     </>
   );
 }

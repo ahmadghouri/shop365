@@ -11,7 +11,7 @@ function DottedConnector({ active }: { active: boolean }) {
                 <View
                     key={i}
                     className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: active ? ACCENT : '#4A4A4A' }}
+                    style={{ backgroundColor: active ? ACCENT : '#E2E8F0' }}
                 />
             ))}
         </View>
@@ -26,7 +26,7 @@ type TrackingStepperProps = {
 /** Condensed 4-stage delivery stepper shown in the tracking bottom sheet. */
 export function TrackingStepper({ currentStage, cancelled }: TrackingStepperProps) {
     return (
-        <View className="mt-6 border-t border-b border-white/10 py-6">
+        <View className="mt-6 border-t border-b border-slate-100 py-6">
             <View className="flex-row items-center justify-between">
                 {STAGES.map((stage, index) => {
                     const done = !cancelled && index < currentStage;
@@ -43,18 +43,18 @@ export function TrackingStepper({ currentStage, cancelled }: TrackingStepperProp
                             {isLast ? (
                                 // Delivered node: filled circle with a check
                                 <View
-                                    className={`h-10 w-10 items-center justify-center rounded-full ${reached ? 'bg-[#EAB308]' : 'bg-[#3A3A3A]'}`}
+                                    className={`h-10 w-10 items-center justify-center rounded-full ${reached ? 'bg-[#EAB308]' : 'bg-slate-100'}`}
                                 >
                                     <Check
                                         size={18}
-                                        color={reached ? ACCENT_DARK : '#8A8A8A'}
+                                        color={reached ? ACCENT_DARK : '#94A3B8'}
                                         strokeWidth={3}
                                     />
                                 </View>
                             ) : (
                                 <StageIcon
                                     size={30}
-                                    color={reached ? ACCENT : '#6B7280'}
+                                    color={reached ? ACCENT : '#CBD5E1'}
                                     strokeWidth={2}
                                 />
                             )}

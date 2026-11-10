@@ -26,6 +26,10 @@ router.get('/users', ctrl.usersIndex);
 router.get('/users/:id', ctrl.usersShow);
 router.delete('/users/:id', ctrl.usersDestroy);
 router.get('/vendors', ctrl.getVendors);
+// Deliveries dropped by riders that need a decision
+router.get('/rider-cancellations', ctrl.riderCancellations);
+router.put('/orders/:id/cancel', ctrl.adminCancelOrder);
+router.put('/orders/:id/send-to-platform', ctrl.adminSendToPlatform);
 router.put('/admins/:id', ctrl.updateAdmin);
 
 module.exports = router;

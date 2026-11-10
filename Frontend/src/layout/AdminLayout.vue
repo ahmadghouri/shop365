@@ -32,7 +32,6 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useTheme } from '@/composables/useTheme'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import AppSidebar from '@/components/dashboard/AppSidebar.vue'
@@ -40,7 +39,6 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
-const { theme } = useTheme()
 
 const sidebarCollapsed = ref(false)
 const mobileSidebarOpen = ref(false)

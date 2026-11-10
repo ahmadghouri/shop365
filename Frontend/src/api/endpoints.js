@@ -73,6 +73,9 @@ export const ENDPOINTS = {
   ADMIN_RIDER_APP_STATUS: (id) => `/admin/rider-applications/${id}/status`,
   ADMIN_RIDER_APP_DOCUMENT: (id) => `/admin/rider-applications/${id}/document`,
   ADMIN_RIDER_APP_MESSAGE: (id) => `/admin/rider-applications/${id}/message`,
+  ADMIN_RIDER_CANCELLATIONS: "/admin/rider-cancellations",
+  ADMIN_ORDER_CANCEL: (id) => `/admin/orders/${id}/cancel`,
+  ADMIN_ORDER_SEND_TO_PLATFORM: (id) => `/admin/orders/${id}/send-to-platform`,
   RESTAURANT_REVIEWS: "/restaurantAdmin/get-reviews",
   RESTAURANT_BUSINESS: "/restaurantAdmin/business",
   RESTAURANT_REPLY_REVIEW: (id) => `/restaurantAdmin/review/${id}/reply`,
@@ -81,6 +84,7 @@ export const ENDPOINTS = {
   RESTAURANT_PRODUCTS: "/restaurantAdmin/allproducts",
   RESTAURANT_ORDERS: "/restaurantAdmin/orders",
   ORDER_ASSIGN_RIDER: (id) => `/restaurantAdmin/orders/${id}/assign-rider`,
+  ORDER_SEND_TO_PLATFORM: (id) => `/restaurantAdmin/orders/${id}/send-to-platform`,
   RESTAURANT_DISCOUNT: "/restaurantAdmin/products/discount",
   RESTAURANT_REMOVE_DISCOUNT: "/restaurantAdmin/products/removeDiscount",
   RESTAURANT_ADD_PRODUCT: "/restaurantAdmin/add-products",
@@ -89,4 +93,5 @@ export const ENDPOINTS = {
   RESTAURANT_RIDERS: "/restaurantAdmin/riders",
   RESTAURANT_RIDER: (id) => `/restaurantAdmin/riders/${id}`,
   RESTAURANT_RIDER_TOGGLE: (id) => `/restaurantAdmin/riders/${id}/toggle`,
+  RESTAURANT_RIDER_REQUESTS: "/restaurantAdmin/rider-requests",
 };

@@ -3,6 +3,13 @@ const mongoose = require('mongoose');
 const riderApplicationSchema = new mongoose.Schema(
   {
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+    // Set when a restaurant requested this rider from its dashboard. On approval
+    // the rider becomes that restaurant's own rider.
+    business_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Business', index: true },
+    // Login password chosen by the restaurant (bcrypt hash). Public applicants
+    // have none — their initial password is their CNIC.
+    password: { type: String, select: false },
+    license_no: { type: String, default: '', trim: true },
     name: { type: String, required: true, trim: true },
     phone_no: { type: String, required: true, trim: true },
     cnic: { type: String, required: true, trim: true },
@@ -65,6 +72,7 @@ const riderApplicationSchema = new mongoose.Schema(
 riderApplicationSchema.set('toJSON', {
   transform: (doc, ret) => {
     delete ret.__v;
+    delete ret.password;
     return ret;
   },
 });

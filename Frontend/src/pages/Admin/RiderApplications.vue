@@ -5,21 +5,22 @@
         <div class="relative w-full sm:w-72">
           <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input v-model="search" type="search" placeholder="Search name, phone, CNIC, address…" class="pl-9 pr-9" />
-          <button v-if="search" type="button"
-            class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted"
+          <Button v-if="search" type="button" variant="ghost" size="icon"
+            class="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-full text-muted-foreground"
             aria-label="Clear search" @click="search = ''">
             <X class="h-3.5 w-3.5" />
-          </button>
+          </Button>
         </div>
       </template>
     </PageHeader>
 
     <!-- Summary stats double as quick status filters -->
     <div class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <button v-for="stat in stats" :key="stat.key" type="button"
-        class="rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted/50"
+      <Card v-for="stat in stats" :key="stat.key" role="button" tabindex="0"
+        class="cursor-pointer p-4 text-left transition-colors hover:bg-muted/50"
         :class="statusFilter === stat.key ? 'border-primary ring-1 ring-primary' : ''"
-        @click="statusFilter = statusFilter === stat.key ? 'all' : stat.key">
+        @click="statusFilter = statusFilter === stat.key ? 'all' : stat.key"
+        @keydown.enter="statusFilter = statusFilter === stat.key ? 'all' : stat.key">
         <div class="flex items-center justify-between">
           <span class="text-sm text-muted-foreground">{{ stat.label }}</span>
           <span class="flex h-7 w-7 items-center justify-center rounded-full" :class="stat.iconClass">
@@ -27,11 +28,11 @@
           </span>
         </div>
         <p class="mt-2 text-2xl font-bold tracking-tight">{{ stat.count }}</p>
-      </button>
+      </Card>
     </div>
 
     <!-- Advanced filter toolbar -->
-    <div class="mb-5 flex flex-col gap-3 rounded-xl border bg-card p-3 sm:flex-row sm:items-center">
+    <Card class="mb-5 flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
       <div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
         <SlidersHorizontal class="h-4 w-4" />
         Filters
@@ -57,7 +58,7 @@
         <X class="mr-1 h-3.5 w-3.5" />
         Reset
       </Button>
-    </div>
+    </Card>
 
     <!-- Loading -->
     <div v-if="loading" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -99,6 +100,9 @@
                   <span class="block truncate font-semibold">{{ application.name }}</span>
                   <span class="block truncate text-xs font-normal text-muted-foreground">
                     Applied {{ timeAgo(application.createdAt) }}
+                  </span>
+                  <span class="block truncate text-xs font-medium text-primary">
+                    {{ application.business_id?.name ? `Requested by ${application.business_id.name}` : 'Platform rider' }}
                   </span>
                 </span>
               </span>

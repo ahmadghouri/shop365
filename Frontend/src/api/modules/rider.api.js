@@ -9,4 +9,6 @@ export const riderApi = {
   updateRider: (id, data) => http.put(ENDPOINTS.RESTAURANT_RIDER(id), data, multipart(data)),
   toggleRider: (id) => http.patch(ENDPOINTS.RESTAURANT_RIDER_TOGGLE(id)),
   deleteRider: (id) => http.delete(ENDPOINTS.RESTAURANT_RIDER(id)),
+  // Add-rider requests waiting for / rejected by the admin
+  getRequests: () => http.get(ENDPOINTS.RESTAURANT_RIDER_REQUESTS),
 };

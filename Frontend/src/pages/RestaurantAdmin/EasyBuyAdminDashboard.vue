@@ -1,145 +1,145 @@
 <template>
-    <div class="container mx-auto mobile-spacing">
-        <div class="flex justify-between items-center">
-            <h1 class="text-xl font-semibold mb-4">EasyBuy Product List</h1>
-            <router-link class="bg-blue-500 px-5 py-1 mb-4 text-white rounded-md" to="/admin/store-easybuy-product">
-                ADD
-            </router-link>
+    <div class="container mx-auto px-4 py-6">
+        <PageHeader title="EasyBuy Products" description="Manage your EasyBuy product catalog">
+            <template #actions>
+                <router-link to="/admin/store-easybuy-product">
+                    <Button>
+                        <Plus class="w-4 h-4 mr-2" />
+                        Add Product
+                    </Button>
+                </router-link>
+            </template>
+        </PageHeader>
+
+        <div v-if="!selectedProduct" class="grid grid-cols-2 gap-4 mt-6 mb-6">
+            <StatCard title="Total Products" :value="easyBuyProducts.length" :icon="Package" description="in catalog"
+                :loading="isLoading" />
+            <StatCard title="Total Brands" :value="totalBrands" :icon="LayoutGrid" description="across products"
+                :loading="isLoading" />
         </div>
 
         <!-- Update form -->
-        <div v-if="selectedProduct" class="bg-card shadow rounded-lg p-5 w-full max-w-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-medium text-foreground">Update Easy Buy Product</h2>
-                <button @click="cancelUpdate" class="text-red-500 hover:text-red-700">✕ Cancel</button>
-            </div>
+        <Card v-if="selectedProduct" class="w-full max-w-2xl">
+            <CardHeader class="flex flex-row items-center justify-between space-y-0">
+                <CardTitle class="text-xl">Update Easy Buy Product</CardTitle>
+                <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="cancelUpdate">
+                    <X class="w-4 h-4 mr-1" />
+                    Cancel
+                </Button>
+            </CardHeader>
 
-            <!-- Product Title & Image -->
-            <div class="mb-6 flex justify-between items-center gap-4">
-                <!-- Title -->
-                <div class="w-full">
-                    <label for="title" class="text-sm font-medium text-muted-foreground">Title</label>
-                    <input type="text" id="title" v-model="title" placeholder="Enter title"
-                        class="block w-full border border-input rounded p-2 focus:border-blue-500 focus:ring-blue-500 text-sm"
-                        required />
-                </div>
+            <CardContent class="space-y-6">
+                <!-- Product Title & Image -->
+                <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4">
+                    <div class="w-full space-y-2">
+                        <Label for="title">Title</Label>
+                        <Input id="title" v-model="title" placeholder="Enter title" required />
+                    </div>
 
-                <!-- Image Upload -->
-                <div>
-                    <label for="image" class="text-sm font-medium text-muted-foreground">Image</label>
-                    <input type="file" id="image" @change="handleFileUpload"
-                        class="block text-sm border border-input rounded p-2 focus:border-blue-500 focus:ring-blue-500" />
-                    <p v-if="imageError" class="text-red-500 text-xs mt-1">
-                        {{ imageError }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Brands Section -->
-            <div v-for="(brand, brandIndex) in brands" :key="brandIndex" class="mb-6 border p-4 rounded-lg">
-                <!-- Brand Name -->
-                <div class="mb-3">
-                    <label :for="`brand-name-${brandIndex}`" class="text-sm font-medium text-muted-foreground">Brand
-                        Name</label>
-                    <div class="flex items-center space-x-2 mt-1">
-                        <input :id="`brand-name-${brandIndex}`" v-model="brand.name" placeholder="Brand Name"
-                            class="flex-1 border rounded px-2 py-1" />
-                        <button @click="removeBrand(brandIndex)"
-                            class="text-red-500 hover:text-red-700 px-2 py-1 border border-red-300 rounded"
-                            v-if="brands.length > 1">
-                            Delete
-                        </button>
+                    <div class="w-full space-y-2">
+                        <Label for="image">Image</Label>
+                        <Input type="file" id="image" accept="image/*" @change="handleFileUpload" />
+                        <p v-if="imageError" class="text-destructive text-xs">
+                            {{ imageError }}
+                        </p>
                     </div>
                 </div>
 
-                <!-- Variants -->
-                <div v-for="(variant, varIndex) in brand.variants" :key="varIndex" class="mb-2">
-                    <div class="grid grid-cols-2 gap-2 items-center">
-                        <!-- Weight -->
-                        <div>
-                            <label :for="`weight-${brandIndex}-${varIndex}`"
-                                class="text-sm font-medium text-muted-foreground">Weight</label>
-                            <input :id="`weight-${brandIndex}-${varIndex}`" v-model="variant.weight"
-                                placeholder="e.g. 1-Kg" class="w-full border rounded px-2 py-1 mt-1" />
+                <!-- Brands Section -->
+                <div v-for="(brand, brandIndex) in brands" :key="brandIndex" class="border border-border p-4 rounded-lg space-y-3">
+                    <div class="space-y-2">
+                        <Label :for="`brand-name-${brandIndex}`">Brand Name</Label>
+                        <div class="flex items-center gap-2">
+                            <Input :id="`brand-name-${brandIndex}`" v-model="brand.name" placeholder="Brand Name" class="flex-1" />
+                            <Button v-if="brands.length > 1" variant="outline" size="sm"
+                                class="text-destructive hover:text-destructive" @click="removeBrand(brandIndex)">
+                                <Trash2 class="w-4 h-4 mr-1" />
+                                Delete
+                            </Button>
                         </div>
-                        <!-- Price -->
-                        <div>
-                            <label :for="`price-${brandIndex}-${varIndex}`"
-                                class="text-sm font-medium text-muted-foreground">Price</label>
-                            <div class="flex items-center space-x-2 mt-1">
-                                <input :id="`price-${brandIndex}-${varIndex}`" v-model.number="variant.price"
-                                    type="number" placeholder="e.g. 500" class="w-full border rounded px-2 py-1" />
-                                <button @click="removeVariant(brandIndex, varIndex)"
-                                    class="text-red-500 hover:text-red-700 px-2 py-1" v-if="brand.variants.length > 1">
-                                    X
-                                </button>
+                    </div>
+
+                    <!-- Variants -->
+                    <div v-for="(variant, varIndex) in brand.variants" :key="varIndex"
+                        class="grid grid-cols-2 gap-2 items-end">
+                        <div class="space-y-2">
+                            <Label :for="`weight-${brandIndex}-${varIndex}`">Weight</Label>
+                            <Input :id="`weight-${brandIndex}-${varIndex}`" v-model="variant.weight" placeholder="e.g. 1-Kg" />
+                        </div>
+                        <div class="space-y-2">
+                            <Label :for="`price-${brandIndex}-${varIndex}`">Price</Label>
+                            <div class="flex items-center gap-2">
+                                <Input :id="`price-${brandIndex}-${varIndex}`" type="number" placeholder="e.g. 500"
+                                    :model-value="variant.price"
+                                    @update:model-value="setVariantPrice(variant, $event)" />
+                                <Button v-if="brand.variants.length > 1" variant="ghost" size="icon"
+                                    class="shrink-0 text-destructive hover:text-destructive"
+                                    @click="removeVariant(brandIndex, varIndex)">
+                                    <X class="w-4 h-4" />
+                                </Button>
                             </div>
                         </div>
                     </div>
+
+                    <Button variant="ghost" size="sm" class="text-primary" @click="addVariant(brandIndex)">
+                        <Plus class="w-4 h-4 mr-1" />
+                        Add Variant
+                    </Button>
                 </div>
 
-                <!-- Add Variant Button -->
-                <button @click="addVariant(brandIndex)" class="text-blue-500 text-sm mt-2">+ Add Variant</button>
-            </div>
+                <Button variant="secondary" @click="addBrand">
+                    <Plus class="w-4 h-4 mr-2" />
+                    Add Brand
+                </Button>
 
-            <!-- Add Brand Button -->
-            <div class="mb-4">
-                <button @click="addBrand" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                    + Add Brand
-                </button>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="text-right">
-                <button @click="submitProduct" :disabled="isSubmitting"
-                    class="w-full bg-blue-500 text-white text-sm font-medium py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 hover:bg-blue-600 transition disabled:opacity-50">
+                <Button class="w-full" :disabled="isSubmitting" @click="submitProduct">
                     {{ isSubmitting ? "Updating..." : "Update EasyBuy Product" }}
-                </button>
-            </div>
-        </div>
+                </Button>
+            </CardContent>
+        </Card>
 
         <!-- Product List -->
         <div v-else>
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                <div v-for="product in easyBuyProducts" :key="product.id"
-                    class="bg-card shadow-md rounded-lg overflow-hidden flex flex-col justify-between">
-                    <div class="p-4 flex-grow">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h2 class="text-xl font-semibold">{{ product.title }}</h2>
-                                <img :src="product.image_url" alt="Product Image"
-                                    class="mt-2 h-20 w-20 object-cover rounded" />
-                            </div>
+            <EmptyState v-if="!isLoading && easyBuyProducts.length === 0" title="No Products"
+                description="Add your first EasyBuy product to get started." :icon="Package" />
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <Card v-for="product in easyBuyProducts" :key="product.id"
+                    class="overflow-hidden flex flex-col justify-between transition-shadow hover:shadow-md">
+                    <CardContent class="p-4 flex-grow">
+                        <div class="flex items-center gap-3">
+                            <img :src="product.image_url" alt="Product Image"
+                                class="h-16 w-16 object-cover rounded-lg border border-border shrink-0" />
+                            <h2 class="text-lg font-semibold truncate">{{ product.title }}</h2>
                         </div>
 
                         <div class="mt-4">
-                            <h3 class="font-semibold text-sm mb-1">Variants</h3>
+                            <h3 class="font-semibold text-sm mb-2">Variants</h3>
                             <div v-for="(weights, brand) in product.payload" :key="brand" class="mb-2">
-                                <div class="font-semibold">{{ brand }}:</div>
+                                <Badge variant="secondary" class="mb-1">{{ brand }}</Badge>
                                 <ul class="pl-4 list-disc text-sm text-muted-foreground">
                                     <li v-for="(price, weight) in weights" :key="weight">{{ weight }} – Rs. {{ price }}
                                     </li>
                                 </ul>
                             </div>
                         </div>
-                    </div>
+                    </CardContent>
 
-                    <div class="p-4 flex justify-between items-center gap-4">
-                        <button @click="openFormForUpdate(product)" class="bg-yellow-500 text-white w-full font-bold 
-                        rounded-lg px-4 py-2 hover:bg-yellow-600 transition duration-150 ease-in-out">
+                    <CardFooter class="p-4 pt-0 flex gap-3">
+                        <Button class="w-full" @click="openFormForUpdate(product)">
+                            <Pencil class="w-4 h-4 mr-2" />
                             Update
-                        </button>
-                        <button @click="handleDelete(product)" class="border border-yellow-500 text-yellow-500 w-full 
-                        font-bold rounded-lg px-4 py-2 
-                            hover:bg-yellow-600 hover:text-white transition duration-150 ease-in-out">
+                        </Button>
+                        <Button variant="outline" class="w-full text-destructive hover:text-destructive"
+                            @click="handleDelete(product)">
+                            <Trash2 class="w-4 h-4 mr-2" />
                             Delete
-                        </button>
-                    </div>
-                </div>
+                        </Button>
+                    </CardFooter>
+                </Card>
             </div>
 
-            <div v-if="isLoading" class="text-center py-4">
-                <div class="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent"></div>
+            <div v-if="isLoading" class="flex justify-center py-4">
+                <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
         </div>
     </div>
@@ -147,8 +147,22 @@
 
 <script setup>
 import { easyBuyApi } from "@/api/modules/easy-buy.api";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { toast } from "vue3-toastify";
+import PageHeader from "@/components/dashboard/PageHeader.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
+import EmptyState from "@/components/dashboard/EmptyState.vue";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Plus, Package, LayoutGrid, X, Trash2, Pencil, Loader2 } from "lucide-vue-next";
+
+// Input's v-model is string-based; keep numeric prices like v-model.number did.
+const setVariantPrice = (variant, val) => {
+    variant.price = val === "" || val == null ? null : Number(val);
+};
 
 const isLoading = ref(false);
 const isSubmitting = ref(false);
@@ -163,6 +177,13 @@ const brands = ref([
         variants: [{ weight: "", price: null }],
     },
 ]);
+
+const totalBrands = computed(() =>
+    easyBuyProducts.value.reduce(
+        (s, p) => s + Object.keys(p.payload || {}).length,
+        0,
+    ),
+);
 
 onMounted(async () => {
     await fetchProducts();
@@ -363,4 +384,3 @@ const handleDelete = async (product) => {
     }
 };
 </script>
-

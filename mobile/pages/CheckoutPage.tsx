@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Upload } from 'lucide-react-native';
+import { AddNewAddressButton } from '@/components/addresses/AddNewAddressButton';
 import { useQueryClient } from '@tanstack/react-query';
 import { AppBackground } from '@/components/AppBackground';
 import { GradientPill } from '@/components/reusable/GradientPill';
 import { OrderSuccessModal } from '@/components/orders/OrderSuccessModal';
+import { AddAddressModal } from '@/components/AddAddressModal';
 import { useAddresses } from '@/api/addresses/useAddressQueries';
 import { useCartStore } from '@/lib/cartStore';
 import { placeOrder } from '@/api/orders/order.service';
@@ -46,6 +48,23 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
     const [screenshotUri, setScreenshotUri] = useState('');
     const [placing, setPlacing] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [showAddressModal, setShowAddressModal] = useState(false);
+    const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+
+    const openAddAddress = () => {
+        setEditingAddress(null);
+        setShowAddressModal(true);
+    };
+
+    const closeAddressModal = () => {
+        setShowAddressModal(false);
+        setEditingAddress(null);
+    };
+
+    const handleAddressSaved = (address: Address) => {
+        setSelectedAddressId(address._id);
+        closeAddressModal();
+    };
 
     const excludeSet = new Set(excludeVendorIds);
     const vendorSummaries = getVendorSummaries().filter((v) => !excludeSet.has(v.businessId));
@@ -70,7 +89,12 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
             queryClient.invalidateQueries({ queryKey: ['orders'] });
             setShowSuccess(true);
         } catch (err: any) {
-            Alert.alert('Error', err?.response?.data?.message || err?.message || 'Could not place order. Please try again.');
+            Alert.alert(
+                'Error',
+                err?.response?.data?.message ||
+                err?.message ||
+                'Could not place order. Please try again.'
+            );
         } finally {
             setPlacing(false);
         }
@@ -91,11 +115,12 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                 </View>
 
                 <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
-
                     {/* Delivery Addresses */}
-                    {addresses.length > 0 && (
-                        <View className="mb-5">
-                            {addresses.map((addr: Address) => {
+                    <View className="mb-5">
+                        {addresses.length === 0 ? (
+                            <AddNewAddressButton onPress={openAddAddress} />
+                        ) : (
+                            addresses.map((addr: Address) => {
                                 const selected = addr._id === selectedAddressId;
                                 return (
                                     <Pressable
@@ -103,19 +128,31 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                                         onPress={() => setSelectedAddressId(addr._id)}
                                         className={`mb-3 rounded-2xl bg-white px-4 py-3 flex-row items-center justify-between border ${selected ? 'border-[#EAB308]' : 'border-slate-100'}`}
                                     >
-                                        <View className="flex-1">
-                                            <Text className="text-sm font-lufga-semibold text-slate-900">{addr.label}</Text>
-                                            <Text className="text-xs font-lufga text-slate-400 mt-0.5" numberOfLines={1}>{addr.address}</Text>
+                                        <View className="flex-1 min-w-0">
+                                            <Text className="text-sm font-lufga-semibold text-slate-900">
+                                                {addr.label}
+                                            </Text>
+                                            <Text
+                                                className="text-xs font-lufga text-slate-400 mt-0.5"
+                                                numberOfLines={1}
+                                                ellipsizeMode="tail"
+                                            >
+                                                {addr.address}
+                                            </Text>
                                         </View>
-                                        <View className={`h-4 w-4 rounded-full border-2 ml-3 ${selected ? 'border-[#EAB308] bg-[#EAB308]' : 'border-slate-300'}`} />
+                                        <View
+                                            className={`h-4 w-4 rounded-full border-2 ml-3 shrink-0 ${selected ? 'border-[#EAB308] bg-[#EAB308]' : 'border-slate-300'}`}
+                                        />
                                     </Pressable>
                                 );
-                            })}
-                        </View>
-                    )}
+                            })
+                        )}
+                    </View>
 
                     {/* Payment Method */}
-                    <Text className="text-base font-lufga-semibold text-slate-900 mb-3">Payment Method</Text>
+                    <Text className="text-base font-lufga-semibold text-slate-900 mb-3">
+                        Payment Method
+                    </Text>
                     <View className="bg-white rounded-2xl px-4 py-3 mb-3">
                         {PAYMENT_METHODS.map((pm, i) => (
                             <View
@@ -129,10 +166,16 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                                 />
                                 <View className="ml-3">
                                     <Text className="text-xs font-lufga text-slate-500">
-                                        Account Title: <Text className="font-lufga-bold text-slate-900">{pm.title}</Text>
+                                        Account Title:{' '}
+                                        <Text className="font-lufga-bold text-slate-900">
+                                            {pm.title}
+                                        </Text>
                                     </Text>
                                     <Text className="text-xs font-lufga text-slate-500 mt-0.5">
-                                        Account No: <Text className="font-lufga-bold text-slate-900">{pm.account}</Text>
+                                        Account No:{' '}
+                                        <Text className="font-lufga-bold text-slate-900">
+                                            {pm.account}
+                                        </Text>
                                     </Text>
                                 </View>
                             </View>
@@ -141,12 +184,14 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
 
                     {/* Note */}
                     <Text className="text-xs font-lufga text-slate-400 mb-4 leading-5">
-                        For online payments (JazzCash/Bank Transfer), please upload a screenshot as proof of payment. For COD orders, payment will be collected upon delivery.
+                        For online payments (JazzCash/Bank Transfer), please upload a screenshot as
+                        proof of payment. For COD orders, payment will be collected upon delivery.
                     </Text>
 
                     {/* Upload Screenshot */}
                     <Text className="text-sm font-lufga-semibold text-slate-700 mb-2">
-                        Upload Payment Screenshot <Text className="font-lufga text-slate-400">(Optional)</Text>
+                        Upload Payment Screenshot{' '}
+                        <Text className="font-lufga text-slate-400">(Optional)</Text>
                     </Text>
                     <View className="flex-row items-center bg-white rounded-2xl border border-slate-100 overflow-hidden mb-6">
                         <TextInput
@@ -157,24 +202,38 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                         />
                         <Pressable className="bg-slate-900 px-5 py-3 flex-row items-center active:opacity-80">
                             <Upload size={15} color="#fff" />
-                            <Text className="ml-2 text-sm font-lufga-semibold text-white">Upload</Text>
+                            <Text className="ml-2 text-sm font-lufga-semibold text-white">
+                                Upload
+                            </Text>
                         </Pressable>
                     </View>
 
                     {/* Order Summary */}
                     <View className="mb-6 border-t border-slate-100 pt-4">
-                        <Text className="mb-2 text-sm font-lufga-semibold text-slate-900">Order Summary</Text>
+                        <Text className="mb-2 text-sm font-lufga-semibold text-slate-900">
+                            Order Summary
+                        </Text>
                         {vendorSummaries.map((v) => (
                             <View key={v.name} className="mb-3 rounded-xl bg-slate-50 p-3">
-                                <Text className="mb-1 text-sm font-lufga-bold text-slate-900">{v.name}</Text>
+                                <Text className="mb-1 text-sm font-lufga-bold text-slate-900">
+                                    {v.name}
+                                </Text>
                                 <View className="flex-row justify-between mb-1">
-                                    <Text className="text-sm font-lufga text-slate-500">Subtotal</Text>
-                                    <Text className="text-sm font-lufga-semibold text-slate-900">RS: {v.subtotal.toLocaleString()}</Text>
+                                    <Text className="text-sm font-lufga text-slate-500">
+                                        Subtotal
+                                    </Text>
+                                    <Text className="text-sm font-lufga-semibold text-slate-900">
+                                        RS: {v.subtotal.toLocaleString()}
+                                    </Text>
                                 </View>
                                 {v.deliveryFee > 0 && (
                                     <View className="flex-row justify-between mb-1">
-                                        <Text className="text-sm font-lufga text-slate-500">Delivery Charges</Text>
-                                        <Text className="text-sm font-lufga-semibold text-slate-900">RS: {v.deliveryFee}</Text>
+                                        <Text className="text-sm font-lufga text-slate-500">
+                                            Delivery Charges
+                                        </Text>
+                                        <Text className="text-sm font-lufga-semibold text-slate-900">
+                                            RS: {v.deliveryFee}
+                                        </Text>
                                     </View>
                                 )}
                                 {v.minimumOrder > 0 && (
@@ -188,11 +247,17 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                         ))}
                         <View className="flex-row justify-between mb-2">
                             <Text className="text-sm font-lufga text-slate-500">Discount:</Text>
-                            <Text className="text-sm font-lufga-semibold text-slate-900">RS: {discount}</Text>
+                            <Text className="text-sm font-lufga-semibold text-slate-900">
+                                RS: {discount}
+                            </Text>
                         </View>
                         <View className="flex-row justify-between mt-1">
-                            <Text className="text-sm font-lufga-semibold text-slate-900">Payable Amount:</Text>
-                            <Text className="text-sm font-lufga-bold text-slate-900">RS: {payable.toLocaleString()}</Text>
+                            <Text className="text-sm font-lufga-semibold text-slate-900">
+                                Payable Amount:
+                            </Text>
+                            <Text className="text-sm font-lufga-bold text-slate-900">
+                                RS: {payable.toLocaleString()}
+                            </Text>
                         </View>
                     </View>
 
@@ -213,7 +278,7 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                         </Pressable>
                     </GradientPill>
                 </View>
-            </SafeAreaView>
+            </SafeAreaView >
 
             <OrderSuccessModal
                 visible={showSuccess}
@@ -226,6 +291,13 @@ export function CheckoutPage({ onBack, onSuccess, excludeVendorIds = [] }: Check
                     onSuccess?.();
                 }}
             />
-        </AppBackground>
+
+            <AddAddressModal
+                visible={showAddressModal}
+                onClose={closeAddressModal}
+                editingAddress={editingAddress}
+                onSaved={handleAddressSaved}
+            />
+        </AppBackground >
     );
 }

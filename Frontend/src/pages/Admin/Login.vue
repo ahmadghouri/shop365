@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-muted/30 px-4">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted/40 to-background px-4">
     <div class="w-full max-w-sm">
-      <Card>
+      <Card class="shadow-lg">
         <CardHeader class="text-center">
-          <div class="flex justify-center mb-2">
-            <Store class="w-10 h-10 text-primary" />
+          <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Store class="h-7 w-7" />
           </div>
           <CardTitle class="text-2xl">Shop365</CardTitle>
           <CardDescription>Admin Login</CardDescription>
@@ -13,23 +13,11 @@
           <form @submit.prevent="login" class="space-y-4">
             <div class="space-y-2">
               <Label for="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="text"
-                v-model="phone"
-                placeholder="Enter 11-digit phone number"
-                required
-              />
+              <Input id="phone" type="text" v-model="phone" placeholder="Enter 11-digit phone number" required />
             </div>
             <div class="space-y-2">
               <Label for="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                v-model="password"
-                placeholder="Enter your password"
-                required
-              />
+              <Input id="password" type="password" v-model="password" placeholder="Enter your password" required />
             </div>
             <Alert v-if="error" variant="destructive">
               <AlertCircle class="h-4 w-4" />

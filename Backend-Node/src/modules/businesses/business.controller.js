@@ -20,9 +20,7 @@ async function index(req, res, next) {
       match = {
         $or: [
           { category_id: catId },
-          ...(category?.name
-            ? [{ category_id: null, type: category.name }]
-            : []),
+          ...(category?.name ? [{ category_id: null, type: category.name }] : []),
         ],
       };
     } else if (req.query.type) {
@@ -36,21 +34,25 @@ async function index(req, res, next) {
           from: 'reviews',
           localField: '_id',
           foreignField: 'business_id',
-          as: 'reviews'
-        }
+          as: 'reviews',
+        },
       },
       {
         $addFields: {
           id: { $toString: '$_id' },
           reviews_count: { $size: '$reviews' },
-          reviews_avg_rating: { $cond: [{ $gt: [{ $size: '$reviews' }, 0] }, { $avg: '$reviews.rating' }, 0] }
-        }
+          reviews_avg_rating: {
+            $cond: [{ $gt: [{ $size: '$reviews' }, 0] }, { $avg: '$reviews.rating' }, 0],
+          },
+        },
       },
       { $project: { reviews: 0, __v: 0 } },
-      { $sort: { discount: -1, reviews_count: -1, reviews_avg_rating: -1, createdAt: 1 } }
+      { $sort: { discount: -1, reviews_count: -1, reviews_avg_rating: -1, createdAt: 1 } },
     ]);
     successResponse(res, businesses, 'All the businesses');
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function store(req, res, next) {
@@ -61,35 +63,47 @@ async function store(req, res, next) {
 
     if (data.category_id) {
       if (!mongoose.isValidObjectId(data.category_id)) {
-        return res.status(422).json({ status: false, message: 'Please select a valid provider type' });
+        return res
+          .status(422)
+          .json({ status: false, message: 'Please select a valid provider type' });
       }
       const category = await Category.findOne({ _id: data.category_id, status: 'active' });
       if (!category) {
-        return res.status(422).json({ status: false, message: 'Selected provider type is not available' });
+        return res
+          .status(422)
+          .json({ status: false, message: 'Selected provider type is not available' });
       }
       data.type = category.name;
     }
 
     const business = await Business.create(data);
     successResponse(res, business, 'Business added successfully');
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function show(req, res, next) {
   try {
     const business = await Business.findById(req.params.id);
     if (!business) return res.status(404).json({ message: 'Business not found' });
-    const products = await Product.find({ business_id: req.params.id, is_active: true, deleted_at: null });
+    const products = await Product.find({
+      business_id: req.params.id,
+      is_active: true,
+      deleted_at: null,
+    });
     const reviewStats = await Review.aggregate([
       { $match: { business_id: business._id } },
-      { $group: { _id: null, avg_rating: { $avg: '$rating' }, count: { $sum: 1 } } }
+      { $group: { _id: null, avg_rating: { $avg: '$rating' }, count: { $sum: 1 } } },
     ]);
     const businessObj = business.toJSON();
     businessObj.products = products;
     businessObj.reviews_count = reviewStats.length > 0 ? reviewStats[0].count : 0;
     businessObj.reviews_avg_rating = reviewStats.length > 0 ? reviewStats[0].avg_rating : 0;
     successResponse(res, businessObj, 'Business', 201);
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function update(req, res, next) {
@@ -103,7 +117,8 @@ async function update(req, res, next) {
         return res.status(422).json({ message: 'Please select a valid provider type' });
       }
       const category = await Category.findOne({ _id: req.body.category_id, status: 'active' });
-      if (!category) return res.status(422).json({ message: 'Selected provider type is not available' });
+      if (!category)
+        return res.status(422).json({ message: 'Selected provider type is not available' });
       business.category_id = category._id;
       business.type = category.name;
     } else if (req.body.type !== undefined) {
@@ -115,21 +130,27 @@ async function update(req, res, next) {
     else if (req.body.parent_id === '' || req.body.parent_id === null) business.parent_id = null;
     await business.save();
     successResponse(res, business, 'Updated');
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function showOwn(req, res, next) {
   try {
-    if (!req.user.business_id) return res.status(404).json({ message: 'Provider business not found' });
+    if (!req.user.business_id)
+      return res.status(404).json({ message: 'Provider business not found' });
     const business = await Business.findById(req.user.business_id);
     if (!business) return res.status(404).json({ message: 'Provider business not found' });
     successResponse(res, business, 'Provider business retrieved successfully');
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function updateOwn(req, res, next) {
   try {
-    if (!req.user.business_id) return res.status(404).json({ message: 'Provider business not found' });
+    if (!req.user.business_id)
+      return res.status(404).json({ message: 'Provider business not found' });
     const business = await Business.findById(req.user.business_id);
     if (!business) return res.status(404).json({ message: 'Provider business not found' });
 
@@ -138,10 +159,16 @@ async function updateOwn(req, res, next) {
     if (!openingTime || !closingTime) {
       return res.status(422).json({ message: 'Opening time and closing time are required' });
     }
-    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(openingTime) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(closingTime)) {
+    if (
+      !/^([01]\d|2[0-3]):[0-5]\d$/.test(openingTime) ||
+      !/^([01]\d|2[0-3]):[0-5]\d$/.test(closingTime)
+    ) {
       return res.status(422).json({ message: 'Opening and closing times must be valid' });
     }
-    if (req.body.image !== undefined && (typeof req.body.image !== 'string' || !req.body.image.trim())) {
+    if (
+      req.body.image !== undefined &&
+      (typeof req.body.image !== 'string' || !req.body.image.trim())
+    ) {
       return res.status(422).json({ message: 'Business image is not valid' });
     }
 
@@ -159,9 +186,45 @@ async function updateOwn(req, res, next) {
       }
     }
 
+    // Delivery area for the business's own riders. Orders outside it go to
+    // platform riders. Send nulls / empty values to clear.
+    const has = (k) => Object.prototype.hasOwnProperty.call(req.body, k);
+    if (has('latitude') || has('longitude')) {
+      const empty = (v) => v === null || v === undefined || String(v).trim() === '';
+      if (empty(req.body.latitude) && empty(req.body.longitude)) {
+        business.location = { latitude: null, longitude: null };
+      } else {
+        const lat = Number(req.body.latitude);
+        const lng = Number(req.body.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+          return res.status(422).json({ message: 'Location must have a valid latitude and longitude' });
+        }
+        business.location = { latitude: lat, longitude: lng };
+      }
+    }
+    if (has('rider_radius_km')) {
+      const raw = req.body.rider_radius_km;
+      if (raw === null || raw === undefined || String(raw).trim() === '') {
+        business.rider_radius_km = null;
+      } else {
+        const km = Number(raw);
+        if (!Number.isFinite(km) || km <= 0 || km > 200) {
+          return res.status(422).json({ message: 'Rider radius must be between 0 and 200 km' });
+        }
+        business.rider_radius_km = km;
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'delivery_time')) {
+      const dt = String(req.body.delivery_time ?? '').trim();
+      business.delivery_time = dt || null;
+    }
+
     await business.save();
     successResponse(res, business, 'Business settings updated successfully');
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function destroy(req, res, next) {
@@ -172,21 +235,31 @@ async function destroy(req, res, next) {
     await User.updateMany({ business_id: business._id }, { deleted_at: new Date() });
     await Business.findByIdAndDelete(req.params.id);
     successResponse(res, null, 'Deleted Successfully');
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function getChildBusiness(req, res, next) {
   try {
     const businesses = await Business.find({ parent_id: req.params.businessId });
     successResponse(res, businesses, 'Sub-businesses retrieved successfully');
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function getBusinessStats(req, res, next) {
   try {
     const businesses = await Business.find();
-    successResponse(res, { stats: { totalBusinesses: businesses.length } }, 'Stats retrieved successfully');
-  } catch (error) { next(error); }
+    successResponse(
+      res,
+      { stats: { totalBusinesses: businesses.length } },
+      'Stats retrieved successfully'
+    );
+  } catch (error) {
+    next(error);
+  }
 }
 
 async function getNumber(req, res, next) {
@@ -195,10 +268,20 @@ async function getNumber(req, res, next) {
     if (!user) return res.status(404).json({ status: false, message: 'User not found' });
     const business = await Business.findById(user.business_id);
     successResponse(res, { business }, 'Business retrieved successfully');
-  } catch (error) { next(error); }
+  } catch (error) {
+    next(error);
+  }
 }
 
 module.exports = {
-  index, store, show, update, showOwn, updateOwn, destroy,
-  getChildBusiness, getBusinessStats, getNumber,
+  index,
+  store,
+  show,
+  update,
+  showOwn,
+  updateOwn,
+  destroy,
+  getChildBusiness,
+  getBusinessStats,
+  getNumber,
 };

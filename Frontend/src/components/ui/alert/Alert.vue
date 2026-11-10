@@ -15,7 +15,7 @@ const props = defineProps({
 
 const variantClasses = {
   default: 'bg-background text-foreground border',
-  destructive: 'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
+  destructive: 'border-destructive/50 text-destructive [&>svg]:text-destructive',
 }
 </script>
 

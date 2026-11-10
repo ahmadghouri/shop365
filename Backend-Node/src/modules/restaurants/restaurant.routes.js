@@ -23,6 +23,7 @@ router.get('/complaints', complaintCtrl.complaintsOfTown);
 router.get('/allproducts', productCtrl.getProducts);
 router.get('/orders', orderCtrl.viewRestaurantOrders);
 router.put('/orders/:id/assign-rider', orderCtrl.assignRider);
+router.put('/orders/:id/send-to-platform', orderCtrl.sendToPlatform);
 router.post('/products/discount', productCtrl.updateDiscount);
 router.get('/products/removeDiscount', productCtrl.removeDiscount);
 router.post('/add-products', upload.single('image'), productCtrl.addProduct);

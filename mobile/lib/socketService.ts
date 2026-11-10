@@ -7,6 +7,23 @@ let socket: Socket | null = null;
 let reconnectCount = 0;
 let onSecurityNotification: (() => void) | null = null;
 
+export type RiderLocationEvent = {
+  order_id: string;
+  latitude: number;
+  longitude: number;
+  updated_at: string;
+};
+// Listeners survive reconnects (connectSocket creates a fresh socket).
+const riderLocationListeners = new Set<(e: RiderLocationEvent) => void>();
+
+/** Live rider GPS for the customer's in-flight orders. Returns an unsubscribe fn. */
+export function onRiderLocation(listener: (e: RiderLocationEvent) => void) {
+  riderLocationListeners.add(listener);
+  return () => {
+    riderLocationListeners.delete(listener);
+  };
+}
+
 /** Register a callback to open SecurityPage when a 'security' notification arrives via socket */
 export function setSecurityNotificationHandler(cb: () => void) {
   onSecurityNotification = cb;
@@ -120,6 +137,10 @@ export function connectSocket(token: string) {
         "attempts. Check server reachability / Nginx / SSL.",
       );
     }
+  });
+
+  socket.on("rider_location", (payload: RiderLocationEvent) => {
+    riderLocationListeners.forEach((listener) => listener(payload));
   });
 
   socket.on("notification", (payload) => {

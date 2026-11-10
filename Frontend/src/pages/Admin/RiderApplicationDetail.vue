@@ -2,10 +2,10 @@
   <div class="container mx-auto max-w-6xl px-4 py-6">
     <!-- Top bar -->
     <div class="mb-6 flex items-center gap-3">
-      <button class="flex h-9 w-9 items-center justify-center rounded-lg border hover:bg-muted"
+      <Button variant="outline" size="icon" class="h-9 w-9"
         @click="$router.push('/admin/rider-applications')">
         <ArrowLeft class="h-4 w-4" />
-      </button>
+      </Button>
       <div>
         <h1 class="text-xl font-bold">Rider Application</h1>
         <p class="text-sm text-muted-foreground">Review documents and decide</p>
@@ -41,14 +41,14 @@
               </Badge>
             </div>
             <div class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <button class="flex items-center gap-1.5 hover:text-foreground" title="Copy phone"
+              <Button variant="ghost" size="sm" class="h-auto gap-1.5 px-1 py-0.5 font-normal text-muted-foreground hover:text-foreground" title="Copy phone"
                 @click="copy(application.phone_no)">
                 <Phone class="h-3.5 w-3.5" /> {{ application.phone_no }}
-              </button>
-              <button class="flex items-center gap-1.5 hover:text-foreground" title="Copy CNIC"
+              </Button>
+              <Button variant="ghost" size="sm" class="h-auto gap-1.5 px-1 py-0.5 font-normal text-muted-foreground hover:text-foreground" title="Copy CNIC"
                 @click="copy(application.cnic)">
                 <CreditCard class="h-3.5 w-3.5" /> {{ application.cnic }}
-              </button>
+              </Button>
               <span class="flex items-center gap-1.5">
                 <Calendar class="h-3.5 w-3.5" /> Applied {{ formatDate(application.createdAt) }}
               </span>
@@ -91,6 +91,9 @@
               <InfoRow :icon="CreditCard" label="CNIC" :value="application.cnic" />
               <InfoRow :icon="Bike" label="Vehicle" :value="application.vehicle_type" />
               <InfoRow :icon="Hash" label="Vehicle Number" :value="application.vehicle_no" />
+              <InfoRow :icon="Bike" label="Rider Type"
+                :value="application.business_id?.name ? `Restaurant rider — ${application.business_id.name}` : 'Platform rider'" />
+              <InfoRow v-if="application.license_no" :icon="Hash" label="License No" :value="application.license_no" />
               <InfoRow class="sm:col-span-2" :icon="MapPin" label="Address" :value="application.address" />
             </CardContent>
           </Card>
@@ -135,8 +138,8 @@
                     <span class="text-sm font-semibold">{{ doc.label }}</span>
                     <Badge :class="statusClass(doc.status)" class="capitalize">{{ doc.status }}</Badge>
                   </div>
-                  <input v-model="doc.note" type="text" placeholder="Add a note (e.g. blurry, re-upload)"
-                    class="w-full rounded-md border px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary" />
+                  <Input v-model="doc.note" type="text" placeholder="Add a note (e.g. blurry, re-upload)"
+                    class="h-8 text-xs" />
                   <div class="flex gap-2">
                     <Button size="sm" variant="outline" class="flex-1 border-green-300 text-green-700 hover:bg-green-50"
                       :disabled="savingDoc === doc.key" @click="saveDoc(doc, 'approved')">
@@ -194,9 +197,9 @@
               </CardTitle>
             </CardHeader>
             <CardContent class="space-y-3">
-              <textarea v-model="adminMessage" rows="5" maxlength="500"
+              <Textarea v-model="adminMessage" rows="5" maxlength="500"
                 placeholder="Write a message the rider will see (optional)…"
-                class="w-full resize-none rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
+                class="resize-none" />
               <div class="flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">{{ adminMessage.length }}/500</span>
                 <span v-if="messageDirty" class="text-xs text-amber-600">Unsaved changes</span>
@@ -251,6 +254,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   ArrowLeft,

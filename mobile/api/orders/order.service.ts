@@ -27,6 +27,18 @@ export type OrderRider = {
     name: string;
     phone_no?: string;
     image?: string;
+    /** Rider's last known GPS position (live updates arrive over the socket). */
+    location?: { latitude: number | null; longitude: number | null; updated_at?: string | null } | null;
+};
+
+export type OrderDeliveryAddress = {
+    label?: string;
+    address?: string;
+    street?: string;
+    area?: string;
+    city?: string;
+    latitude?: number | null;
+    longitude?: number | null;
 };
 
 export type Order = {
@@ -42,6 +54,8 @@ export type Order = {
     item_count?: number;
     items?: OrderItemDetail[];
     rider?: OrderRider | null;
+    /** Where the order is being delivered (from the address picked at checkout). */
+    delivery_address?: OrderDeliveryAddress | null;
 };
 
 export type OrderDetail = Order & {

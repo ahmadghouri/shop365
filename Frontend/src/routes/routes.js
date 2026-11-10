@@ -50,6 +50,7 @@ import SubProducts from "../pages/RestaurantAdmin/SubProducts.vue";
 import InternshipApplications from "../pages/Admin/InternshipApplications.vue";
 import RiderApplications from "../pages/Admin/RiderApplications.vue";
 import RiderApplicationDetail from "../pages/Admin/RiderApplicationDetail.vue";
+import RiderCancellations from "../pages/Admin/RiderCancellations.vue";
 import EasyBuyPage from "../pages/EasyBuyPage.vue";
 import EasyBuyAdminDashboard from "../pages/RestaurantAdmin/EasyBuyAdminDashboard.vue";
 import StoreEasyBuyProduct from "../components/Vendor/StoreEasyBuyProduct.vue";
@@ -269,6 +270,14 @@ const routes = [
         path: "rider-applications",
         name: "Rider Applications",
         component: RiderApplications,
+        meta: {
+          requiresAdminAuth: true,
+        },
+      },
+      {
+        path: "rider-cancellations",
+        name: "Rider Cancellations",
+        component: RiderCancellations,
         meta: {
           requiresAdminAuth: true,
         },

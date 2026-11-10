@@ -1,19 +1,19 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import {
     Animated,
     PanResponder,
-    Pressable,
     Text,
     View,
     useWindowDimensions,
 } from 'react-native';
-import { GradientPill } from '@/components/reusable/GradientPill';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Bike, MapPin } from 'lucide-react-native';
 import { useOrderDetail } from '@/api/orders/useOrderQueries';
 import type { Order, OrderDetail } from '@/api/orders/order.service';
 import { statusToStep } from '@/components/orders/OrderTimeline';
-import { MapBackdrop } from '@/components/orders/tracking/MapBackdrop';
+import { TrackingMap } from '@/components/orders/tracking/TrackingMap';
+import { useLiveRider } from '@/components/orders/tracking/useLiveRider';
 import { TrackingStepper } from '@/components/orders/tracking/TrackingStepper';
 import { CourierCard } from '@/components/orders/tracking/CourierCard';
 import { TrackingBackButton } from '@/components/orders/tracking/TrackingBackButton';
@@ -29,10 +29,11 @@ type Props = {
 };
 
 export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
-    const { width, height } = useWindowDimensions();
+    const { width } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
     const isTinyScreen = width < 340;
     const sheetPx = isTinyScreen ? 'px-4' : 'px-6';
-    const { data: detail } = useOrderDetail(orderId);
+    const { data: detail, refetch: refetchDetail } = useOrderDetail(orderId);
     // Prefer the freshly fetched detail: it carries the ETA and populated
     // courier that the list payload in `initialOrder` may not have yet.
     const order = (detail as Order | undefined) ?? initialOrder;
@@ -70,6 +71,46 @@ export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
     const partnerName = order?.rider?.name || order?.vendors?.[0] || 'Delivery partner';
     const riderPhone = order?.rider?.phone_no;
     const riderImage = order?.rider?.image;
+    const destination = order?.delivery_address;
+    const destinationText =
+        destination?.address ||
+        [destination?.street, destination?.area, destination?.city].filter(Boolean).join(', ');
+    const destinationCoord = useMemo(
+        () =>
+            typeof destination?.latitude === 'number' && typeof destination?.longitude === 'number'
+                ? { latitude: destination.latitude, longitude: destination.longitude }
+                : null,
+        [destination?.latitude, destination?.longitude],
+    );
+
+    // Live rider: shown only after the rider taps "Start Delivery"
+    // (status "out_for_delivery"), then follows live socket updates.
+    const liveRider = useLiveRider(
+        orderId,
+        status === 'out_for_delivery',
+        order?.rider?.location,
+        destinationCoord,
+    );
+    const riderOnTheWay =
+        !delivered && !cancelled && (status === 'out_for_delivery' || liveRider.gotLive);
+
+    // First live point arrived before the screen saw the new status → refresh
+    // so the stepper and ETA catch up.
+    useEffect(() => {
+        if (liveRider.gotLive && status !== 'out_for_delivery' && !delivered && !cancelled) {
+            refetchDetail();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [liveRider.gotLive]);
+    const riderDistanceLabel =
+        liveRider.remainingMeters == null
+            ? ''
+            : liveRider.remainingMeters >= 1000
+                ? `${(liveRider.remainingMeters / 1000).toFixed(1)} km`
+                : `${Math.round(liveRider.remainingMeters)} m`;
+    const lastSeenMinutes = liveRider.updatedAt
+        ? Math.floor((Date.now() - liveRider.updatedAt.getTime()) / 60000)
+        : null;
 
     // Collapsible bottom sheet using the built-in PanResponder (no native
     // modules, so no rebuild needed). It snaps between two positions:
@@ -130,50 +171,119 @@ export function OrderTrackingPage({ orderId, initialOrder, onBack }: Props) {
     ).current;
 
     return (
-        <View className="flex-1 bg-[#111111]">
-            {/* Full-screen map: fills the whole screen so that when the bottom
-                sheet is dragged down, the map takes its place behind it. */}
+        <View className="flex-1 bg-slate-100">
+            {/* Full-screen Google map pinned on the delivery address. The
+                padding keeps the pin clear of the back button and the sheet. */}
             <View className="absolute inset-0">
-                <MapBackdrop width={width} height={height} />
+                <TrackingMap
+                    latitude={destination?.latitude}
+                    longitude={destination?.longitude}
+                    title={destination?.label || ''}
+                    topInset={insets.top + 56}
+                    bottomInset={sheetHeight}
+                    riderPosition={liveRider.position}
+                    remainingRoute={liveRider.remainingRoute}
+                    fullRoute={liveRider.fullRoute}
+                />
             </View>
 
             {/* Back button */}
             <TrackingBackButton onBack={onBack} />
 
+            {/* Live rider chip (top right) */}
+            {riderOnTheWay ? (
+                <View
+                    pointerEvents="none"
+                    className="absolute right-4 items-end"
+                    style={{ top: insets.top + 8 }}
+                >
+                    <View
+                        className="flex-row items-center rounded-full bg-white px-4 py-2.5"
+                        style={{
+                            shadowColor: '#0f172a',
+                            shadowOpacity: 0.12,
+                            shadowRadius: 10,
+                            shadowOffset: { width: 0, height: 4 },
+                            elevation: 5,
+                        }}
+                    >
+                        <View
+                            className={`h-2 w-2 rounded-full ${liveRider.position && (lastSeenMinutes ?? 0) < 2 ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                        />
+                        <Text className="ml-2 text-sm font-lufga-semibold text-slate-950">
+                            {!liveRider.position
+                                ? 'Waiting for rider location'
+                                : (lastSeenMinutes ?? 0) >= 2
+                                    ? `Last seen ${lastSeenMinutes} min ago`
+                                    : 'Live'}
+                        </Text>
+                    </View>
+
+                    {liveRider.position && riderDistanceLabel ? (
+                        <View className="mt-2 flex-row items-center rounded-full bg-slate-950 px-3 py-1.5">
+                            <Bike size={14} color="#EAB308" />
+                            <Text className="ml-1.5 text-xs font-lufga-semibold text-white">
+                                {liveRider.remainingMeters != null && liveRider.remainingMeters < 50
+                                    ? 'Rider has arrived'
+                                    : `Rider ${riderDistanceLabel} away`}
+                            </Text>
+                        </View>
+                    ) : null}
+                </View>
+            ) : null}
+
             {/* Bottom sheet — overlays the map at the bottom and slides away on drag */}
             <Animated.View
                 onLayout={onSheetLayout}
-                className={`absolute left-0 right-0 bottom-0 overflow-hidden rounded-t-[32px] ${sheetPx} pt-3`}
-                style={{ transform: [{ translateY }] }}
+                className={`absolute left-0 right-0 bottom-0 rounded-t-[32px] bg-white ${sheetPx} pt-3`}
+                style={{
+                    transform: [{ translateY }],
+                    shadowColor: '#0f172a',
+                    shadowOpacity: 0.1,
+                    shadowRadius: 16,
+                    shadowOffset: { width: 0, height: -4 },
+                    elevation: 12,
+                }}
             >
-                {/* Gradient background fill (reusable GradientPill) */}
-                <GradientPill
-                    colors={['#1F2937', '#0B0B0B']}
-                    style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
-                />
 
                 {/* Drag handle — swipe down to collapse (reveal the map),
                     swipe up to expand. The page is not dismissed by dragging. */}
                 <View {...panResponder.panHandlers} className="items-center pb-3 pt-1">
-                    <View className="h-1.5 w-12 rounded-full bg-white/25" />
+                    <View className="h-1.5 w-12 rounded-full bg-slate-200" />
                 </View>
 
                 <SafeAreaView edges={['bottom']}>
                     {/* Top section — stays visible when collapsed: ETA + stepper */}
                     <View onLayout={onTopSectionLayout}>
-                        <Text className="text-center text-base font-lufga-bold text-white">
+                        <Text className="text-center text-base font-lufga-bold text-slate-950">
                             {etaLabel}
                         </Text>
-                        <Text className="mt-1 text-center text-[13px] font-lufga text-slate-400">
+                        <Text className="mt-1 text-center text-[13px] font-lufga text-slate-500">
                             {subLabel}
                         </Text>
 
                         <TrackingStepper currentStage={currentStage} cancelled={cancelled} />
                     </View>
 
-                    <Text className="mt-3 text-center text-[11px] font-lufga text-slate-500">
+                    <Text className="mt-3 text-center text-[11px] font-lufga text-slate-400">
                         Order #{shortId}
                     </Text>
+
+                    {destinationText ? (
+                        <View className="mt-4 flex-row items-center rounded-3xl border border-slate-100 bg-slate-50 p-4">
+                            <View className="h-10 w-10 items-center justify-center rounded-2xl bg-amber-50">
+                                <MapPin size={18} color="#b77900" />
+                            </View>
+                            <View className="ml-3 flex-1 min-w-0">
+                                <Text className="text-xs font-lufga text-slate-400">
+                                    Delivering to{destination?.label ? ` · ${destination.label}` : ''}
+                                </Text>
+                                <Text className="mt-0.5 font-lufga-semibold text-slate-950" numberOfLines={2}>
+                                    {destinationText}
+                                </Text>
+                            </View>
+                        </View>
+                    ) : null}
 
                     <CourierCard
                         partnerName={partnerName}

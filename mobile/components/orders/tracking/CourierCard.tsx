@@ -1,5 +1,6 @@
 import { Image, Linking, Pressable, Text, View } from 'react-native';
-import { MessageCircle, Phone } from 'lucide-react-native';
+import { Bike, MessageCircle, Phone } from 'lucide-react-native';
+import { GradientPill } from '@/components/reusable/GradientPill';
 import { ACCENT } from './trackingConstants';
 
 type CourierCardProps = {
@@ -11,18 +12,18 @@ type CourierCardProps = {
 /** The courier row: rider avatar/name plus call and message actions. */
 export function CourierCard({ partnerName, riderPhone, riderImage }: CourierCardProps) {
     return (
-        <View className="mt-6 mb-2 flex-row items-center rounded-3xl bg-[#1D1D1D] p-4">
-            <View className="h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-slate-700">
+        <View className="mt-4 mb-2 flex-row items-center rounded-3xl border border-slate-100 bg-slate-50 p-4">
+            <View className="h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-amber-50">
                 {riderImage ? (
                     <Image source={{ uri: riderImage }} className="h-12 w-12" resizeMode="cover" />
                 ) : (
-                    <Text className="text-xs font-lufga text-slate-300">Rider</Text>
+                    <Bike size={20} color="#b77900" />
                 )}
             </View>
 
             <View className="ml-3 flex-1 min-w-0">
                 <Text
-                    className="text-sm font-lufga-bold text-white"
+                    className="text-sm font-lufga-bold text-slate-950"
                     numberOfLines={1}
                     ellipsizeMode="tail"
                 >
@@ -33,17 +34,22 @@ export function CourierCard({ partnerName, riderPhone, riderImage }: CourierCard
 
             {/* Call */}
             <Pressable
-                className="h-12 w-12 items-center justify-center rounded-full bg-white active:opacity-70"
+                className="active:opacity-70"
+                disabled={!riderPhone}
                 onPress={() => (riderPhone ? Linking.openURL(`tel:${riderPhone}`) : undefined)}
             >
-                <Phone size={19} color="#141414" />
+                <GradientPill className={`h-12 w-12 rounded-full ${riderPhone ? '' : 'opacity-50'}`}>
+                    <View className="flex-1 items-center justify-center">
+                        <Phone size={19} color="#171717" />
+                    </View>
+                </GradientPill>
             </Pressable>
 
             {/* Message */}
-            <Pressable className="relative ml-2 h-12 w-12 items-center justify-center rounded-full bg-white active:opacity-70">
-                <MessageCircle size={19} color="#141414" />
+            <Pressable className="relative ml-2 h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white active:opacity-70">
+                <MessageCircle size={19} color="#0f172a" />
                 <View
-                    className="absolute right-0.5 top-0.5 h-3 w-3 rounded-full border-2 border-[#1D1D1D]"
+                    className="absolute right-0.5 top-0.5 h-3 w-3 rounded-full border-2 border-white"
                     style={{ backgroundColor: ACCENT }}
                 />
             </Pressable>

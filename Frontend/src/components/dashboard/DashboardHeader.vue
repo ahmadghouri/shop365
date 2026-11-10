@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu'
-import ThemeToggle from './ThemeToggle.vue'
 import { Menu, User, LogOut, Settings } from 'lucide-vue-next'
 
 const emit = defineEmits(['toggle-sidebar'])
@@ -57,8 +56,6 @@ const handleLogout = () => {
     <div class="flex-1">
       <h1 class="text-lg font-semibold tracking-tight">{{ pageTitle }}</h1>
     </div>
-
-    <ThemeToggle />
 
     <DropdownMenu>
       <DropdownMenuTrigger as-child>

@@ -35,6 +35,44 @@ function estimateDeliveryAt(status, from = new Date()) {
   return new Date(from.getTime() + minutes * 60 * 1000);
 }
 
+/** Great-circle distance in km between two {latitude, longitude} points. */
+function distanceKm(a, b) {
+  const R = 6371;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLng = toRad(b.longitude - a.longitude);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.latitude)) * Math.cos(toRad(b.latitude)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+const hasCoords = (p) =>
+  p && typeof p.latitude === "number" && typeof p.longitude === "number";
+
+/**
+ * Decide who delivers a new order:
+ *  - business has no active riders of its own          → platform
+ *  - business set a rider radius, both locations known,
+ *    and the customer is farther than that radius       → platform
+ *  - otherwise                                          → restaurant (own riders)
+ */
+async function decideDeliveryMode(business, address) {
+  if (!business?._id) return "platform";
+  const ownRiders = await Rider.countDocuments({
+    business_id: business._id,
+    status: "active",
+    deleted_at: null,
+  });
+  if (!ownRiders) return "platform";
+
+  const radius = Number(business.rider_radius_km);
+  if (radius > 0 && hasCoords(business.location) && hasCoords(address)) {
+    if (distanceKm(business.location, address) > radius) return "platform";
+  }
+  return "restaurant";
+}
+
 class OrderService {
   async placeOrder(userId, data) {
     const cartItems = await Cart.find({ user_id: userId }).populate({
@@ -156,12 +194,14 @@ class OrderService {
         Math.max(0, subtotal - voucherDiscount - pointsDiscount) + deliveryFee;
 
       const placedAt = new Date();
+      const deliveryMode = await decideDeliveryMode(group.business, chosenAddress);
       const order = await Order.create({
         user_id: userId,
         total_price: total,
         delivery_fee: deliveryFee,
         voucher_id: voucher?._id,
         address_id: chosenAddress?._id || null,
+        delivery_mode: deliveryMode,
         estimated_delivery_at: estimateDeliveryAt("pending", placedAt),
         status_history: [{ status: "pending", at: placedAt }],
       });
@@ -320,7 +360,13 @@ class OrderService {
         created_at: o.createdAt,
         status: o.status,
         total_price: o.total_price,
+        delivery_fee: o.delivery_fee || 0,
+        delivered_at: o.delivered_at || null,
         rider_id: o.rider_id ? o.rider_id._id.toString() : null,
+        // restaurant = own riders, platform = platform rider pool (old orders: null)
+        delivery_mode: o.delivery_mode || null,
+        // A rider dropped this delivery and it needs a decision
+        rider_cancel: o.rider_cancel?.status ? o.rider_cancel : null,
         rider: o.rider_id
           ? {
               id: r._id.toString(),
@@ -378,6 +424,14 @@ class OrderService {
       $push: { status_history: { status, at: changedAt } },
     };
     if (status === "delivered") update.delivered_at = changedAt;
+    // Cancelling settles any open rider-cancellation request.
+    if (status === "cancelled") {
+      const current = await Order.findById(orderId).select("rider_cancel");
+      if (current?.rider_cancel?.status === "pending") {
+        update["rider_cancel.status"] = "resolved";
+        update["rider_cancel.resolution"] = "cancelled";
+      }
+    }
 
     const order = await Order.findByIdAndUpdate(orderId, update, {
       returnDocument: "after",
@@ -482,7 +536,7 @@ class OrderService {
     }
 
     const rider = await Rider.findById(riderId);
-    if (!rider || rider.business_id.toString() !== String(businessId)) {
+    if (!rider || rider.business_id?.toString() !== String(businessId)) {
       throw Object.assign(new Error("Rider not found for your business"), {
         statusCode: 400,
       });
@@ -493,11 +547,82 @@ class OrderService {
       });
     }
 
-    order.rider_id = rider.user_id;
+    // A platform rider already took this order — don't pull it away from them.
+    if (order.rider_id && String(order.rider_id) !== String(rider._id)) {
+      const current = await Rider.findById(order.rider_id).select("business_id");
+      if (current && current.business_id?.toString() !== String(businessId)) {
+        throw Object.assign(
+          new Error("A platform rider has already accepted this order"),
+          { statusCode: 409 },
+        );
+      }
+    }
+
+    // One order at a time per rider.
+    const busy = await Order.findOne({
+      _id: { $ne: order._id },
+      rider_id: rider._id,
+      status: { $in: ["picked_up", "out_for_delivery"] },
+    }).select("_id");
+    if (busy) {
+      throw Object.assign(
+        new Error(`${rider.name} is already on a delivery. Assign another rider or wait.`),
+        { statusCode: 409 },
+      );
+    }
+
+    order.rider_id = rider._id;
+    order.delivery_mode = "restaurant";
+    if (order.rider_cancel?.status === "pending") {
+      order.rider_cancel.status = "resolved";
+      order.rider_cancel.resolution = "reassigned";
+    }
     await order.save();
     // Assign hone ke saath hi order picked up ho jata hai — same notification path as the dashboard button
     const updated = await this.updateOrderStatus(orderId, "picked_up");
     return { order: updated, rider };
+  }
+
+  /**
+   * Business hands an order to the platform rider pool (e.g. the address is
+   * outside its own riders' area). Only before any rider has picked it up.
+   */
+  async sendToPlatform(orderId, businessId, { asAdmin = false } = {}) {
+    const order = await Order.findById(orderId);
+    if (!order)
+      throw Object.assign(new Error("Order not found"), { statusCode: 404 });
+
+    // The business may only act on its own orders; the admin on any.
+    if (!asAdmin) {
+      const items = await OrderItem.find({ order_id: order._id }).populate({
+        path: "product_id",
+        select: "business_id",
+      });
+      const businessIds = items
+        .map((i) => i.product_id?.business_id?.toString())
+        .filter(Boolean);
+      if (!businessIds.includes(String(businessId))) {
+        throw Object.assign(new Error("Not authorized for this order"), {
+          statusCode: 403,
+        });
+      }
+    }
+
+    if (!["pending", "confirmed", "preparing"].includes(order.status)) {
+      throw Object.assign(
+        new Error("This order is already with a rider or finished"),
+        { statusCode: 400 },
+      );
+    }
+
+    order.delivery_mode = "platform";
+    order.rider_id = null;
+    if (order.rider_cancel?.status === "pending") {
+      order.rider_cancel.status = "resolved";
+      order.rider_cancel.resolution = "platform";
+    }
+    await order.save();
+    return order;
   }
 
   async reorder(userId, orderId) {

@@ -23,15 +23,7 @@ function formatTime(raw?: string): string | null {
     return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
 }
 
-function InfoItem({
-    icon,
-    label,
-    value,
-}: {
-    icon: React.ReactNode;
-    label: string;
-    value: string;
-}) {
+function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
         <View className="flex-1 items-center px-1">
             <View className="h-9 w-9 items-center justify-center rounded-full bg-amber-50 mb-1.5">
